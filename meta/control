@@ -1,0 +1,11 @@
+Package: enigma2-plugin-extensions-iptv
+Version: 1.0.0.0
+Description: IPTV m3u list dynamic reader and runner
+Section:
+Priority: optional
+Maintainer: DimitarCC
+Architecture: all
+OE: N/A
+Homepage: https://github.com/DimitarCC
+Depends: 
+Source: 
