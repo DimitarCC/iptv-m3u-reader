@@ -1,10 +1,11 @@
-from enigma import eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner
+from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner
 from Plugins.Plugin import PluginDescriptor
 from Plugins.Extensions.IPTV.M3UProvider import M3UProvider
 from Plugins.Extensions.IPTV.IPTVProviders import providers
 from Plugins.Extensions.IPTV.IPTVProviders import processService as processIPTVService
 from Screens.InfoBar import InfoBar
 from Screens.InfoBarGenerics import streamrelay
+from Screens.PictureInPicture import PictureInPicture
 from Components.config import config
 from Components.ParentalControl import parentalControl
 from Components.SystemInfo import SystemInfo
@@ -36,9 +37,53 @@ def readProviders():
 # Function for overwrite some functions from Navigation.py so to inject own code
 def injectIntoNavigation():
 	import NavigationInstance
-	NavigationInstance.instance.playService  = playServiceWithIPTV.__get__(NavigationInstance.instance, Navigation) # playService overwrite
-	NavigationInstance.instance.playRealService = playRealService.__get__(NavigationInstance.instance, Navigation) # add callback so to process the parsed service ref
-	NavigationInstance.instance.recordService = recordServiceWithIPTV.__get__(NavigationInstance.instance, Navigation) # recordService overwrite
+	Navigation.originalPlayingServiceReference = None
+	NavigationInstance.instance.playService  = playServiceWithIPTV.__get__(NavigationInstance.instance, Navigation)
+	NavigationInstance.instance.playRealService = playRealService.__get__(NavigationInstance.instance, Navigation)
+	NavigationInstance.instance.recordService = recordServiceWithIPTV.__get__(NavigationInstance.instance, Navigation)
+	NavigationInstance.instance.getCurrentlyPlayingServiceOrGroup = getCurrentlyPlayingServiceOrGroup.__get__(NavigationInstance.instance, Navigation)
+	PictureInPicture.playService = playServiceWithIPTVPiP
+	
+def getCurrentlyPlayingServiceOrGroup(self):
+	return self.originalPlayingServiceReference or self.currentlyPlayingServiceOrGroup
+	
+def playServiceWithIPTVPiP(self, service):
+		if service is None:
+			return False
+		from Screens.InfoBarGenerics import streamrelay
+		from Plugins.Extensions.IPTV.IPTVProviders import processService
+		ref = streamrelay.streamrelayChecker(service)
+		ref, old_ref, is_dynamic = processService(ref, None)
+		if ref:
+			if SystemInfo["CanNotDoSimultaneousTranscodeAndPIP"] and StreamServiceList:
+				self.pipservice = None
+				self.currentService = None
+				self.currentServiceReference = None
+				if not config.usage.hide_zap_errors.value:
+					Tools.Notifications.AddPopup(text="PiP...\n" + _("Connected transcoding, limit - no PiP!"), type=MessageBox.TYPE_ERROR, timeout=5, id="ZapPipError")
+				return False
+			#if ref.toString().startswith("4097"):		#  Change to service type 1 and try to play a stream as type 1
+			#	ref = eServiceReference("1" + ref.toString()[4:])
+			if not self.isPlayableForPipService(ref):
+				if not config.usage.hide_zap_errors.value:
+					Tools.Notifications.AddPopup(text="PiP...\n" + _("No free tuner!"), type=MessageBox.TYPE_ERROR, timeout=5, id="ZapPipError")
+				return False
+			print("[PictureInPicture] playing pip service", ref and ref.toString())
+			self.pipservice = eServiceCenter.getInstance().play(ref)
+			if self.pipservice and not self.pipservice.setTarget(1, True):
+				if hasattr(self, "dishpipActive") and self.dishpipActive is not None:
+					self.dishpipActive.startPiPService(ref)
+				self.pipservice.start()
+				self.currentService = service
+				self.currentServiceReference = ref
+				return True
+			else:
+				self.pipservice = None
+				self.currentService = None
+				self.currentServiceReference = None
+				if not config.usage.hide_zap_errors.value:
+					Tools.Notifications.AddPopup(text=_("Incorrect service type for PiP!"), type=MessageBox.TYPE_ERROR, timeout=5, id="ZapPipError")
+		return False
 	
 def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False, adjust=True):
 	from Components.ServiceEventTracker import InfoBarCount
@@ -78,9 +123,10 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 		
 	self.currentlyPlayingServiceReference = ref
 	self.currentlyPlayingServiceOrGroup = ref
+	self.originalPlayingServiceReference = ref
 	
 	if InfoBarInstance:
-		#InfoBarInstance.session.screen["CurrentService"].newService(ref)
+		InfoBarInstance.session.screen["CurrentService"].newService(ref)
 		InfoBarInstance.session.screen["Event_Now"].updateSource(ref)
 		InfoBarInstance.session.screen["Event_Next"].updateSource(ref)
 		InfoBarInstance.serviceStarted()
@@ -125,11 +171,11 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 			self.currentlyPlayingServiceReference = playref
 			playref = streamrelay.streamrelayChecker(playref)
 			is_dynamic = False
-			playref, old_ref, is_dynamic = processIPTVService(playref, self.playRealService)
-			if InfoBarInstance:
-				InfoBarInstance.session.screen["CurrentService"].newService(playref)
-				InfoBarInstance.session.screen["Event_Now"].updateSource(playref)
-				InfoBarInstance.session.screen["Event_Next"].updateSource(playref)
+			if callable(processIPTVService):
+				playref, old_ref, is_dynamic = processIPTVService(playref, self.playRealService)
+				if InfoBarInstance:
+					InfoBarInstance.session.screen["Event_Now"].updateSource(playref)
+					InfoBarInstance.session.screen["Event_Next"].updateSource(playref)
 
 			self.currentlyPlayingServiceOrGroup = ref
 			if InfoBarInstance and InfoBarInstance.servicelist.servicelist.setCurrent(ref, adjust):
@@ -196,13 +242,8 @@ def playRealService(self, nnref):
 	if InfoBarInstance:
 		if "%3a//" in nnref.toString():
 			InfoBarInstance.session.screen["CurrentService"].newService(nnref)
-			InfoBarInstance.session.screen["Event_Now"].updateSource(nnref)
-			InfoBarInstance.session.screen["Event_Next"].updateSource(nnref)
 		else:
 			InfoBarInstance.session.screen["CurrentService"].newService(True)
-			InfoBarInstance.session.screen["Event_Now"].updateSource(nnref)
-			InfoBarInstance.session.screen["Event_Next"].updateSource(nnref)
-			
 		InfoBarInstance.serviceStarted()
 		
 def recordServiceWithIPTV(self, ref, simulate=False):
