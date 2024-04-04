@@ -1,4 +1,4 @@
-Package: enigma2-plugin-extensions-iptv
+Package: enigma2-plugin-extensions-m3uiptv
 Version: 1.0.0.0
 Description: IPTV m3u list dynamic reader and runner
 Section:
