@@ -1,8 +1,8 @@
 from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner
 from Plugins.Plugin import PluginDescriptor
-from Plugins.Extensions.IPTV.M3UProvider import M3UProvider
-from Plugins.Extensions.IPTV.IPTVProviders import providers
-from Plugins.Extensions.IPTV.IPTVProviders import processService as processIPTVService
+from .M3UProvider import M3UProvider
+from .IPTVProviders import providers
+from .IPTVProviders import processService as processIPTVService
 from Screens.InfoBar import InfoBar
 from Screens.InfoBarGenerics import streamrelay
 from Screens.PictureInPicture import PictureInPicture
