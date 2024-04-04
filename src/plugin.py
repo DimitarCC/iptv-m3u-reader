@@ -51,7 +51,7 @@ def playServiceWithIPTVPiP(self, service):
 		if service is None:
 			return False
 		from Screens.InfoBarGenerics import streamrelay
-		from Plugins.Extensions.IPTV.IPTVProviders import processService
+		from .IPTVProviders import processService
 		ref = streamrelay.streamrelayChecker(service)
 		ref, old_ref, is_dynamic = processService(ref, None)
 		if ref:
