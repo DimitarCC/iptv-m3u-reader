@@ -1,10 +1,10 @@
 from enigma import eServiceReference
 from ServiceReference import ServiceReference
-from urllib.request import urlopen
 from time import time
 from twisted.internet import threads
 import twisted.python.runtime
 import socket
+import urllib
 
 idIPTV = 0x13E9
 
@@ -25,7 +25,7 @@ class IPTVProcessor():
 		splittedRef = nref.toString().split(":")
 		sRef = nref and ServiceReference(nref.toString())
 		origRef = ":".join(splittedRef[:10])
-		iptvInfoDataSplit = iptvinfodata[0].split("|<|")
+		iptvInfoDataSplit = iptvinfodata[0].split("|*|")
 		channelForSearch = iptvInfoDataSplit[0].split(":")[0]
 		#catchUpDays = 0
 		#if len(iptvInfoDataSplit) > 1:
@@ -59,7 +59,8 @@ class IPTVProcessor():
 			if prov.refresh_interval > -1 and time_delta and  time_delta < cache_time:
 				playlist = prov.playlist
 			else:
-				response = urlopen(prov.url)
+				req = urllib.request.Request(prov.url, headers={'User-Agent' : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"}) 
+				response = urllib.request.urlopen(req)
 				playlist = response.read().decode('utf-8')
 				prov.playlist = playlist
 				if cache_time > 0:
