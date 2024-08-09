@@ -1,3 +1,4 @@
+from sys import modules
 from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner
 from Plugins.Plugin import PluginDescriptor
 from .M3UProvider import M3UProvider
@@ -6,19 +7,49 @@ from .IPTVProviders import processService as processIPTVService
 from Screens.InfoBar import InfoBar
 from Screens.InfoBarGenerics import streamrelay
 from Screens.PictureInPicture import PictureInPicture
-from Components.config import config
+from Screens.Setup import Setup
+from Screens.Menu import Menu
+from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigNothing
 from Components.ParentalControl import parentalControl
 from Components.SystemInfo import SystemInfo
-from Tools.Directories import resolveFilename, SCOPE_CONFIG
+from Tools.Directories import resolveFilename, SCOPE_CONFIG, fileExists, isPluginInstalled
 from Tools.BoundFunction import boundFunction
 from Navigation import Navigation
 
 from os import path
+import xml
 from xml.etree.cElementTree import ElementTree, Element, SubElement, tostring, iterparse
 
 USER_IPTV_PROVIDERS_FILE = path.realpath(resolveFilename(SCOPE_CONFIG)) + "/IPTV/providers.xml"
 
+config.plugins.m3uiptv = ConfigSubsection()
+config.plugins.m3uiptv.enabled = ConfigYesNo(default=True)
+choicelist = [("off", _("off"))] + [(str(i), ngettext("%d second", "%d seconds", i) % i) for i in [1, 2, 3, 5, 7, 10]] 
+config.plugins.m3uiptv.check_internet = ConfigSelection(default="2", choices=choicelist)
+
+
+file = open("%s/menu.xml" % path.dirname(modules[__name__].__file__), 'r')
+mdom = xml.etree.cElementTree.parse(file)
+file.close()
+
+
+def M3UIPTVMenu(session, close=None, **kwargs):
+	session.openWithCallback(boundFunction(M3UIPTVMenuCallback, close), Menu, mdom.getroot())
+
+
+def M3UIPTVMenuCallback(close, answer=None):
+	if close and answer:
+		close(True)
+
+
+def startSetup(menuid):
+	if menuid != "setup":
+		return []
+	return [(_("IPTV"), M3UIPTVMenu, "iptvmenu", 22)]
+
 def readProviders():
+	if not fileExists(USER_IPTV_PROVIDERS_FILE):
+		return
 	fd = open(USER_IPTV_PROVIDERS_FILE, 'rb')
 	for provider, elem in iterparse(fd):
 		if elem.tag == "providers":
@@ -261,12 +292,49 @@ def recordServiceWithIPTV(self, ref, simulate=False):
 	return service
 			
 def sessionstart(reason, **kwargs):
-	injectIntoNavigation()
-	readProviders()
+	if config.plugins.m3uiptv.enabled.value:
+		injectIntoNavigation()
+		readProviders()
+	else:
+		pass
+	
+class M3UIPTVManagerConfig(Setup):
+	def __init__(self, session):
+		Setup.__init__(self, session)
+		self.title = _("M3U provider manager")
+
+	def createSetup(self):
+		configlist = []
+		self["config"].list = configlist
+
+class IPTVPluginConfig(Setup):
+	def __init__(self, session):
+		Setup.__init__(self, session)
+		self.title = _("IPTV Settings")
+
+	def createSetup(self):
+		configlist = []
+		configlist.append((_("Recordings - convert IPTV servicetypes to  1"), config.recording.setstreamto1, _("Recording 4097, 5001 and 5002 streams not possible with external players, so convert recordings to servicetype 1.")))
+		configlist.append((_("Enable new GStreamer playback"), config.misc.usegstplaybin3, _("If enabled, the new GStreamer playback engine will be used.")))
+		configlist.append(("---",))
+		configlist.append((_("Automatically start timeshift after"), config.timeshift.startdelay, _("When enabled, timeshift starts automatically in background after the specified time.")))
+		configlist.append((_("Show warning when timeshift is stopped"), config.usage.check_timeshift, _("When enabled, a warning will be displayed and the user will get an option to stop or to continue the timeshift.")))
+		configlist.append((_("Timeshift-save action on zap"), config.timeshift.favoriteSaveAction, _("Select if timeshift should continue when set to record.")))
+		configlist.append((_("Stop timeshift while recording?"), config.timeshift.stopwhilerecording, _("Stops timeshift being used if a recording is in progress. (Advisable for USB sticks)")))
+		configlist.append((_("Use timeshift seekbar while timeshifting?"), config.timeshift.showinfobar, _("If set to 'yes', allows you to use the seekbar to jump to a point within the event.")))
+		configlist.append((_("Skip jumping to live TV while timeshifting with plugins"), config.usage.timeshift_skipreturntolive, _("If set to 'yes', allows you to use timeshift with alternative audio plugins.")))
+		if isPluginInstalled("ServiceApp"):
+			configlist.append(("---",))
+			configlist.append((_("Enigma2 playback system"), config.plugins.serviceapp.servicemp3.replace, _("Change the playback system to one of the players available in ServiceApp plugin.")))
+			configlist.append((_("Select the player which will be used for Enigma2 playback."), config.plugins.serviceapp.servicemp3.player, _("Select a player to be in use.")))
+		configlist.append(("---",))
+		configlist.append((_("Enable IPTV manager") + " *", config.plugins.m3uiptv.enabled, _("Enable IPTV functionality and managment.")))
+		configlist.append((_("Check for Network"), config.plugins.m3uiptv.check_internet, _("Do a check is network available before try to retrieve the iptv playlist. If no network try backup services.")))
+		self["config"].list = configlist
 
 def Plugins(path, **kwargs):
 	try:
-		return [PluginDescriptor(where=PluginDescriptor.WHERE_SESSIONSTART, fnc=sessionstart, needsRestart=False)]
+		return [PluginDescriptor(where=PluginDescriptor.WHERE_SESSIONSTART, fnc=sessionstart, needsRestart=False), PluginDescriptor(where=PluginDescriptor.WHERE_MENU, needsRestart=False, fnc=startSetup)]
 	except ImportError:
 		return PluginDescriptor()
 

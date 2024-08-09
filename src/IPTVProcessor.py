@@ -1,5 +1,6 @@
 from enigma import eServiceReference
 from ServiceReference import ServiceReference
+from Components.config import config
 from time import time
 from twisted.internet import threads
 import twisted.python.runtime
@@ -46,8 +47,10 @@ class IPTVProcessor():
 		
 	def processDownloadPlaylist(self, nref, channelForSearch, origRef, backup_ref, orig_name):
 		try:
-			socket.setdefaulttimeout(2)
-			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
+			is_check_network_val = config.plugins.m3uiptv.check_internet.value
+			if is_check_network_val != "off":
+				socket.setdefaulttimeout(int(is_check_network_val))
+				socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
 			channelSID = self.search_criteria.replace("{SID}", channelForSearch)
 			prov = self
 			cache_time = 0
