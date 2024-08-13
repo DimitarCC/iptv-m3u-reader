@@ -1,4 +1,4 @@
-from enigma import eServiceReference
+from enigma import eServiceReference, eDVBDB
 from ServiceReference import ServiceReference
 from Components.config import config
 from time import time
@@ -6,8 +6,10 @@ from twisted.internet import threads
 import twisted.python.runtime
 import socket
 import urllib
+import re
 
 idIPTV = 0x13E9
+db = eDVBDB.getInstance()
 
 class IPTVProcessor():
 	def __init__(self):
@@ -20,7 +22,50 @@ class IPTVProcessor():
 		self.refresh_interval = 1
 		self.scheme = ""
 		self.search_criteria = ",{SID}"
+		self.play_system = "4097"
+		self.onid = 1000
 		
+	def getPlaylistAndGenBouquet(self, callback=None):
+		if callback:
+			threads.deferToThread(self.storePlaylistAndGenBouquet).addCallback(callback)
+		else:
+			self.storePlaylistAndGenBouquet()
+		
+	def storePlaylistAndGenBouquet(self):
+		try:
+			is_check_network_val = config.plugins.m3uiptv.check_internet.value
+			if is_check_network_val != "off":
+				socket.setdefaulttimeout(int(is_check_network_val))
+				socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
+			req = urllib.request.Request(self.url, headers={'User-Agent' : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"}) 
+			response = urllib.request.urlopen(req)
+			playlist = response.read().decode('utf-8')
+			self.playlist = playlist
+			playlist_splitted = playlist.split("\n")
+			tsid = 1000
+			services = []
+			for line in playlist_splitted:
+				if line.startswith("#EXTINF:"):
+					condition = re.escape(self.search_criteria).replace("\\{SID\\}", "(.*?)") + r".*,(.*)"
+					match = re.search(condition, line)
+					if match:
+						sid = match.group(1)
+						ch_name = match.group(2)
+						url = self.scheme + "%3a//" + sid
+						stype = "1"
+						if "UHD" in ch_name or "4K" in ch_name:
+							stype = "1F"
+						elif "HD" in ch_name:
+							stype = "19"
+						sref = "%s:0:%s:%d:%d:1:CCCC0000:0:0:0:%s:%s•%s" % (self.play_system, stype, tsid, self.onid, url, ch_name, self.iptv_service_provider)
+						tsid += 1
+						services.append(sref)
+				else:
+					continue
+			db.addOrUpdateBouquet(self.iptv_service_provider, services, 1)
+		except Exception as e:
+			print(e)
+			pass
 
 	def processService(self, nref, iptvinfodata, callback=None):
 		splittedRef = nref.toString().split(":")

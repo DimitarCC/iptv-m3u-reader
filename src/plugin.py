@@ -4,6 +4,7 @@ from Plugins.Plugin import PluginDescriptor
 from .M3UProvider import M3UProvider
 from .IPTVProviders import providers
 from .IPTVProviders import processService as processIPTVService
+from Screens.Screen import Screen
 from Screens.InfoBar import InfoBar
 from Screens.InfoBarGenerics import streamrelay
 from Screens.PictureInPicture import PictureInPicture
@@ -18,7 +19,7 @@ from Navigation import Navigation
 
 from os import path
 import xml
-from xml.etree.cElementTree import ElementTree, Element, SubElement, tostring, iterparse
+from xml.etree.cElementTree import iterparse
 
 USER_IPTV_PROVIDERS_FILE = path.realpath(resolveFilename(SCOPE_CONFIG)) + "/IPTV/providers.xml"
 
@@ -50,6 +51,7 @@ def startSetup(menuid):
 def readProviders():
 	if not fileExists(USER_IPTV_PROVIDERS_FILE):
 		return
+	onid = 1000
 	fd = open(USER_IPTV_PROVIDERS_FILE, 'rb')
 	for provider, elem in iterparse(fd):
 		if elem.tag == "providers":
@@ -62,8 +64,41 @@ def readProviders():
 				providerObj.search_criteria = provider.find("filter").text
 				providerObj.scheme = provider.find("sheme").text
 				providerObj.play_system = provider.find("system").text
+				providerObj.onid = onid
 				providers[providerObj.scheme] = providerObj
+				onid += 1
 	fd.close()
+
+def writeProviders():
+	with open(USER_IPTV_PROVIDERS_FILE, 'w') as f:
+		f.write('<providers>\n')
+		for key, val in providers.items():
+			f.write('\t<provider>\n')
+			f.write('\t\t<servicename>')
+			f.write(val.iptv_service_provider)
+			f.write('</servicename>\n')
+			f.write('\t\t<url>')
+			f.write(val.url)
+			f.write('</url>\n')
+			f.write('\t\t<offset>')
+			f.write(str(val.offset))
+			f.write('</offset>\n')
+			f.write('\t\t<refresh_interval>')
+			f.write(str(val.refresh_interval))
+			f.write('</refresh_interval>\n')
+			f.write('\t\t<filter>')
+			f.write(val.search_criteria)
+			f.write('</filter>\n')
+			f.write('\t\t<sheme>')
+			f.write(val.scheme)
+			f.write('</sheme>\n')
+			f.write('\t\t<system>')
+			f.write(val.play_system)
+			f.write('</system>\n')
+			f.write('\t</provider>\n')
+		f.write('</providers>')
+		f.flush()
+		f.close()
 
 # Function for overwrite some functions from Navigation.py so to inject own code
 def injectIntoNavigation():
@@ -298,14 +333,16 @@ def sessionstart(reason, **kwargs):
 	else:
 		pass
 	
-class M3UIPTVManagerConfig(Setup):
+class M3UIPTVProviderEdit(Screen):
 	def __init__(self, session):
-		Setup.__init__(self, session)
+		Screen.__init__(self, session)
+		self.title = _("M3U provider edit")
+
+class M3UIPTVManagerConfig(Screen):
+	def __init__(self, session):
+		Screen.__init__(self, session)
 		self.title = _("M3U provider manager")
 
-	def createSetup(self):
-		configlist = []
-		self["config"].list = configlist
 
 class IPTVPluginConfig(Setup):
 	def __init__(self, session):
@@ -314,6 +351,9 @@ class IPTVPluginConfig(Setup):
 
 	def createSetup(self):
 		configlist = []
+		configlist.append((_("Enable IPTV manager") + " *", config.plugins.m3uiptv.enabled, _("Enable IPTV functionality and managment.")))
+		configlist.append((_("Check for Network"), config.plugins.m3uiptv.check_internet, _("Do a check is network available before try to retrieve the iptv playlist. If no network try backup services.")))
+		configlist.append(("---",))
 		configlist.append((_("Recordings - convert IPTV servicetypes to  1"), config.recording.setstreamto1, _("Recording 4097, 5001 and 5002 streams not possible with external players, so convert recordings to servicetype 1.")))
 		configlist.append((_("Enable new GStreamer playback"), config.misc.usegstplaybin3, _("If enabled, the new GStreamer playback engine will be used.")))
 		configlist.append(("---",))
@@ -327,9 +367,6 @@ class IPTVPluginConfig(Setup):
 			configlist.append(("---",))
 			configlist.append((_("Enigma2 playback system"), config.plugins.serviceapp.servicemp3.replace, _("Change the playback system to one of the players available in ServiceApp plugin.")))
 			configlist.append((_("Select the player which will be used for Enigma2 playback."), config.plugins.serviceapp.servicemp3.player, _("Select a player to be in use.")))
-		configlist.append(("---",))
-		configlist.append((_("Enable IPTV manager") + " *", config.plugins.m3uiptv.enabled, _("Enable IPTV functionality and managment.")))
-		configlist.append((_("Check for Network"), config.plugins.m3uiptv.check_internet, _("Do a check is network available before try to retrieve the iptv playlist. If no network try backup services.")))
 		self["config"].list = configlist
 
 def Plugins(path, **kwargs):
