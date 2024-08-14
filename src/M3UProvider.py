@@ -11,3 +11,4 @@ class M3UProvider(IPTVProcessor):
 		self.refresh_interval = -1
 		self.search_criteria = ""
 		self.scheme = ""
+		self.play_system = 1

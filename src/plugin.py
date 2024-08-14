@@ -10,16 +10,22 @@ from Screens.InfoBarGenerics import streamrelay
 from Screens.PictureInPicture import PictureInPicture
 from Screens.Setup import Setup
 from Screens.Menu import Menu
-from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigNothing
+from Components.ActionMap import ActionMap
+from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigNothing, ConfigText, ConfigNumber
 from Components.ParentalControl import parentalControl
+from Components.Sources.StaticText import StaticText
+from Components.Sources.List import List
 from Components.SystemInfo import SystemInfo
 from Tools.Directories import resolveFilename, SCOPE_CONFIG, fileExists, isPluginInstalled
 from Tools.BoundFunction import boundFunction
 from Navigation import Navigation
 
-from os import path
+from os import path, fsync, rename
 import xml
 from xml.etree.cElementTree import iterparse
+
+import threading
+write_lock = threading.Lock()
 
 USER_IPTV_PROVIDERS_FILE = path.realpath(resolveFilename(SCOPE_CONFIG)) + "/IPTV/providers.xml"
 
@@ -33,20 +39,6 @@ file = open("%s/menu.xml" % path.dirname(modules[__name__].__file__), 'r')
 mdom = xml.etree.cElementTree.parse(file)
 file.close()
 
-
-def M3UIPTVMenu(session, close=None, **kwargs):
-	session.openWithCallback(boundFunction(M3UIPTVMenuCallback, close), Menu, mdom.getroot())
-
-
-def M3UIPTVMenuCallback(close, answer=None):
-	if close and answer:
-		close(True)
-
-
-def startSetup(menuid):
-	if menuid != "setup":
-		return []
-	return [(_("IPTV"), M3UIPTVMenu, "iptvmenu", 22)]
 
 def readProviders():
 	if not fileExists(USER_IPTV_PROVIDERS_FILE):
@@ -69,36 +61,29 @@ def readProviders():
 				onid += 1
 	fd.close()
 
+
 def writeProviders():
-	with open(USER_IPTV_PROVIDERS_FILE, 'w') as f:
-		f.write('<providers>\n')
-		for key, val in providers.items():
-			f.write('\t<provider>\n')
-			f.write('\t\t<servicename>')
-			f.write(val.iptv_service_provider)
-			f.write('</servicename>\n')
-			f.write('\t\t<url>')
-			f.write(val.url)
-			f.write('</url>\n')
-			f.write('\t\t<offset>')
-			f.write(str(val.offset))
-			f.write('</offset>\n')
-			f.write('\t\t<refresh_interval>')
-			f.write(str(val.refresh_interval))
-			f.write('</refresh_interval>\n')
-			f.write('\t\t<filter>')
-			f.write(val.search_criteria)
-			f.write('</filter>\n')
-			f.write('\t\t<sheme>')
-			f.write(val.scheme)
-			f.write('</sheme>\n')
-			f.write('\t\t<system>')
-			f.write(val.play_system)
-			f.write('</system>\n')
-			f.write('\t</provider>\n')
-		f.write('</providers>')
+	xml = []
+	xml.append("<providers>\n")
+	for key, val in providers.items():
+		xml.append("\t<provider>\n")
+		xml.append(f"\t\t<servicename>{val.iptv_service_provider}</servicename>\n")
+		xml.append(f"\t\t<url>{val.url}</url>\n")
+		xml.append(f"\t\t<offset>{val.offset}</offset>\n")
+		xml.append(f"\t\t<refresh_interval>{val.refresh_interval}</refresh_interval>\n")
+		xml.append(f"\t\t<filter>{val.search_criteria}</filter>\n")
+		xml.append(f"\t\t<sheme>{val.scheme}</sheme>\n")
+		xml.append(f"\t\t<system>{val.play_system}</system>\n")
+		xml.append("\t</provider>\n")
+	xml.append("</providers>\n")
+	with write_lock:
+		f = open(USER_IPTV_PROVIDERS_FILE + ".writing", 'w')
+		f.write("".join(xml))
 		f.flush()
+		fsync(f.fileno())
 		f.close()
+		rename(USER_IPTV_PROVIDERS_FILE + ".writing", USER_IPTV_PROVIDERS_FILE)
+
 
 # Function for overwrite some functions from Navigation.py so to inject own code
 def injectIntoNavigation():
@@ -109,10 +94,12 @@ def injectIntoNavigation():
 	NavigationInstance.instance.recordService = recordServiceWithIPTV.__get__(NavigationInstance.instance, Navigation)
 	NavigationInstance.instance.getCurrentlyPlayingServiceOrGroup = getCurrentlyPlayingServiceOrGroup.__get__(NavigationInstance.instance, Navigation)
 	PictureInPicture.playService = playServiceWithIPTVPiP
-	
+
+
 def getCurrentlyPlayingServiceOrGroup(self):
 	return self.originalPlayingServiceReference or self.currentlyPlayingServiceOrGroup
-	
+
+
 def playServiceWithIPTVPiP(self, service):
 		if service is None:
 			return False
@@ -150,7 +137,8 @@ def playServiceWithIPTVPiP(self, service):
 				if not config.usage.hide_zap_errors.value:
 					Tools.Notifications.AddPopup(text=_("Incorrect service type for PiP!"), type=MessageBox.TYPE_ERROR, timeout=5, id="ZapPipError")
 		return False
-	
+
+
 def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False, adjust=True):
 	from Components.ServiceEventTracker import InfoBarCount
 	InfoBarInstance = InfoBarCount == 1 and InfoBar.instance
@@ -298,6 +286,7 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 		self.currentlyPlayingServiceOrGroup = InfoBarInstance.servicelist.servicelist.getCurrent()
 	return 1
 
+
 def playRealService(self, nnref):
 	self.pnav.stopService()
 	self.currentlyPlayingServiceReference = nnref
@@ -311,7 +300,8 @@ def playRealService(self, nnref):
 		else:
 			InfoBarInstance.session.screen["CurrentService"].newService(True)
 		InfoBarInstance.serviceStarted()
-		
+
+
 def recordServiceWithIPTV(self, ref, simulate=False):
 	service = None
 	if not simulate:
@@ -325,23 +315,112 @@ def recordServiceWithIPTV(self, ref, simulate=False):
 		if service is None:
 			print("[Navigation] record returned non-zero")
 	return service
-			
-def sessionstart(reason, **kwargs):
-	if config.plugins.m3uiptv.enabled.value:
-		injectIntoNavigation()
-		readProviders()
-	else:
-		pass
-	
-class M3UIPTVProviderEdit(Screen):
-	def __init__(self, session):
-		Screen.__init__(self, session)
-		self.title = _("M3U provider edit")
+
 
 class M3UIPTVManagerConfig(Screen):
+	skin = ["""
+		<screen name="M3UIPTVManagerConfig" position="center,center" size="%d,%d">
+			<panel name="__DynamicColorButtonTemplate__"/>
+			<widget source="list" render="Listbox" position="%d,%d" size="%d,%d" scrollbarMode="showOnDemand">
+				<convert type="TemplatedMultiContent">
+					{"template": [
+							MultiContentEntryText(pos = (%d,%d), size = (%d,%d), flags = RT_HALIGN_LEFT, text = 1), # index 0 is the MenuText,
+						],
+					"fonts": [gFont("Regular",%d)],
+					"itemHeight":%d
+					}
+				</convert>
+			</widget>
+			<widget source="description" render="Label" position="%d,%d" zPosition="10" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1" />
+		</screen>""",
+			610, 410,  # screen
+			15, 60, 330, 286,  # Listbox
+			2, 0, 330, 26,  # template
+			22,  # fonts
+			26,  # ItemHeight
+			5, 360, 600, 50, 22,  # description
+			]  # noqa: E124
+
 	def __init__(self, session):
 		Screen.__init__(self, session)
-		self.title = _("M3U provider manager")
+		self.setTitle(_("M3UIPTVManagerConfig"))
+		plist = []
+		for provider in providers:
+			plist.append((provider, providers[provider].iptv_service_provider))
+		self["list"] = List(plist)
+		self["key_red"] = StaticText(_("Close"))
+		self["key_green"] = StaticText(_("Add provider"))
+		self["key_yellow"] = StaticText(_("Generate bouquet"))
+		self["key_blue"] = StaticText(_("Generate epgimport mapping"))
+		self["description"] = StaticText(_("Press OK to edit the currently selected provider"))
+
+		self["actions"] = ActionMap(["SetupActions", "ColorActions",],
+			{
+				"cancel": self.close,  # KEY_RED / KEY_EXIT
+				"save": self.addProvider,  # KEY_GREEN
+				"ok": self.editProvider,
+				"yellow": self.generateBouquet,
+				"blue": self.generateEpgimportMapping,
+			}, -1)  # noqa: E123
+
+	def addProvider(self):
+		self.session.open(M3UIPTVProviderEdit)
+
+	def editProvider(self):
+		if current := self["list"].getCurrent():
+			self.session.open(M3UIPTVProviderEdit, current[0])
+
+	def generateBouquet(self):
+		print("Generate bouquet coming soon")
+
+	def generateEpgimportMapping(self):
+		print("EPG Import mapping coming soon")
+
+
+class M3UIPTVProviderEdit(Setup):
+	def __init__(self, session, provider=None):
+		self.edit = provider in providers
+		self.providerObj = providers.get(provider, M3UProvider())
+		self.iptv_service_provider = ConfigText(default=self.providerObj.iptv_service_provider, fixed_size=False)
+		self.url = ConfigText(default=self.providerObj.url, fixed_size=False)
+		self.offset = ConfigNumber(default=self.providerObj.offset)
+		self.refresh_interval = ConfigNumber(default=self.providerObj.refresh_interval)
+		self.search_criteria = ConfigText(default=self.providerObj.search_criteria, fixed_size=False)
+		self.scheme = ConfigText(default=self.providerObj.scheme, fixed_size=False)
+		play_system_choices = [1, 4097]
+		self.play_system = ConfigSelection(default=str(self.providerObj.play_system) if self.providerObj.play_system in play_system_choices else play_system_choices[0], choices=[(str(x), str(x)) for x in play_system_choices])
+		Setup.__init__(self, session, None)
+		self.title = _("M3UIPTVManager") + " - " + (_("edit provider") if self.edit else _("add new provider"))
+
+	def createSetup(self):
+		configlist = []
+		configlist.append(("iptv_service_provider", self.iptv_service_provider, "Desc "))
+		configlist.append(("url", self.url, "Desc "))
+		configlist.append(("offset", self.offset, "Desc "))
+		configlist.append(("refresh_interval", self.refresh_interval, "Desc "))
+		configlist.append(("search_criteria", self.search_criteria, "Desc "))
+		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited. 
+			configlist.append(("scheme", self.scheme, "Desc "))
+		configlist.append(("play_system", self.play_system, "Desc "))
+		self["config"].list = configlist
+
+	def keySave(self):
+		self.providerObj.iptv_service_provider = self.iptv_service_provider.value
+		self.providerObj.url = self.url.value
+		self.providerObj.offset = self.offset.value
+		self.providerObj.refresh_interval = self.refresh_interval.value
+		self.providerObj.search_criteria = self.search_criteria.value
+		self.providerObj.iptv_service_provider = self.iptv_service_provider.value
+		self.providerObj.scheme = self.scheme.value
+		self.providerObj.play_system = self.play_system.value
+		if getattr(self.providerObj, "onid") is None:
+			self.providerObj.onid = max([x.onid for x in providers.values() if hasattr(x, "onid")]) + 1
+		if not self.edit and self.providerObj.scheme in providers:  # scheme is not unique
+			pass  # handle error here
+		else:
+			providers[self.providerObj.scheme] = self.providerObj
+			writeProviders()
+			self.close()
 
 
 class IPTVPluginConfig(Setup):
@@ -368,6 +447,28 @@ class IPTVPluginConfig(Setup):
 			configlist.append((_("Enigma2 playback system"), config.plugins.serviceapp.servicemp3.replace, _("Change the playback system to one of the players available in ServiceApp plugin.")))
 			configlist.append((_("Select the player which will be used for Enigma2 playback."), config.plugins.serviceapp.servicemp3.player, _("Select a player to be in use.")))
 		self["config"].list = configlist
+
+
+def M3UIPTVMenu(session, close=None, **kwargs):
+	session.openWithCallback(boundFunction(M3UIPTVMenuCallback, close), Menu, mdom.getroot())
+
+
+def M3UIPTVMenuCallback(close, answer=None):
+	if close and answer:
+		close(True)
+
+
+def startSetup(menuid):
+	if menuid != "setup":
+		return []
+	return [(_("IPTV"), M3UIPTVMenu, "iptvmenu", 22)]
+
+
+def sessionstart(reason, **kwargs):
+	if config.plugins.m3uiptv.enabled.value:
+		injectIntoNavigation()
+		readProviders()
+
 
 def Plugins(path, **kwargs):
 	try:
