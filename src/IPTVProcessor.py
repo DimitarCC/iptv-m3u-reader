@@ -67,8 +67,7 @@ class IPTVProcessor():
 						sref = "%s:0:%s:%d:%d:1:CCCC0000:0:0:0:%s:%s•%s" % (self.play_system, stype, tsid, self.onid, url, ch_name, self.iptv_service_provider)
 						tsid += 1
 						services.append(sref)
-				else:
-					continue
+
 			db.addOrUpdateBouquet(self.iptv_service_provider, services, 1)
 
 	def processService(self, nref, iptvinfodata, callback=None):
