@@ -409,7 +409,7 @@ class M3UIPTVProviderEdit(Setup):
 		configlist = []
 		configlist.append((_("Provider name"), self.iptv_service_provider, _("Specify the provider user friendly name that will be used for bouquet name and for display in infobar.")))
 		configlist.append(("URL", self.url, _("The URL to the playlist (*.m3u; *.m3u8)")))
-		configlist.append((_("Offset to url entry"), self.offset, _("Specify the distance of URL line based on the definition line.")))
+		configlist.append((_("Offset to url entry"), self.offset, _("Format of m3u file. If the offset is 1 it means the URL line is 1 line below the #EXTINF definition line.")))
 		configlist.append((_("Refresh interval"), self.refresh_interval, _("Interval in which the playlist will be automatically updated")))
 		configlist.append((_("Filter"), self.search_criteria, _("The search criter by which the service will be searched in the playlist file.")))
 		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited. 
