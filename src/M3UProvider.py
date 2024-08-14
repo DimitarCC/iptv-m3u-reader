@@ -12,4 +12,3 @@ class M3UProvider(IPTVProcessor):
 		self.search_criteria = "tvg-id=\"{SID}\""
 		self.scheme = ""
 		self.play_system = "4097"
-		self.onid = 1000
