@@ -10,8 +10,9 @@ from Screens.InfoBarGenerics import streamrelay
 from Screens.PictureInPicture import PictureInPicture
 from Screens.Setup import Setup
 from Screens.Menu import Menu
+from Screens.MessageBox import MessageBox
 from Components.ActionMap import ActionMap
-from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigNothing, ConfigText, ConfigNumber
+from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigText, ConfigNumber
 from Components.ParentalControl import parentalControl
 from Components.Sources.StaticText import StaticText
 from Components.Sources.List import List
@@ -33,6 +34,7 @@ config.plugins.m3uiptv = ConfigSubsection()
 config.plugins.m3uiptv.enabled = ConfigYesNo(default=True)
 choicelist = [("off", _("off"))] + [(str(i), ngettext("%d second", "%d seconds", i) % i) for i in [1, 2, 3, 5, 7, 10]] 
 config.plugins.m3uiptv.check_internet = ConfigSelection(default="2", choices=choicelist)
+config.plugins.m3uiptv.req_timeout = ConfigSelection(default="2", choices=choicelist)
 
 
 file = open("%s/menu.xml" % path.dirname(modules[__name__].__file__), 'r')
@@ -54,7 +56,7 @@ def readProviders():
 				providerObj.offset = int(provider.find("offset").text)
 				providerObj.refresh_interval = int(provider.find("refresh_interval").text)
 				providerObj.search_criteria = provider.find("filter").text
-				providerObj.scheme = provider.find("sheme").text
+				providerObj.scheme = provider.find("scheme").text
 				providerObj.play_system = provider.find("system").text
 				providerObj.onid = onid
 				providers[providerObj.scheme] = providerObj
@@ -72,7 +74,7 @@ def writeProviders():
 		xml.append(f"\t\t<offset>{val.offset}</offset>\n")
 		xml.append(f"\t\t<refresh_interval>{val.refresh_interval}</refresh_interval>\n")
 		xml.append(f"\t\t<filter>{val.search_criteria}</filter>\n")
-		xml.append(f"\t\t<sheme>{val.scheme}</sheme>\n")
+		xml.append(f"\t\t<scheme>{val.scheme}</scheme>\n")
 		xml.append(f"\t\t<system>{val.play_system}</system>\n")
 		xml.append("\t</provider>\n")
 	xml.append("</providers>\n")
@@ -334,7 +336,7 @@ class M3UIPTVManagerConfig(Screen):
 			<widget source="description" render="Label" position="%d,%d" zPosition="10" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1" />
 		</screen>""",
 			610, 410,  # screen
-			15, 60, 330, 286,  # Listbox
+			15, 60, 580, 286,  # Listbox
 			2, 0, 330, 26,  # template
 			22,  # fonts
 			26,  # ItemHeight
@@ -343,7 +345,7 @@ class M3UIPTVManagerConfig(Screen):
 
 	def __init__(self, session):
 		Screen.__init__(self, session)
-		self.setTitle(_("M3UIPTVManagerConfig"))
+		self.setTitle(_("M3U IPTV Manager - providers"))
 		plist = []
 		for provider in providers:
 			plist.append((provider, providers[provider].iptv_service_provider))
@@ -351,7 +353,7 @@ class M3UIPTVManagerConfig(Screen):
 		self["key_red"] = StaticText(_("Close"))
 		self["key_green"] = StaticText(_("Add provider"))
 		self["key_yellow"] = StaticText(_("Generate bouquet"))
-		self["key_blue"] = StaticText(_("Generate epgimport mapping"))
+		self["key_blue"] = StaticText(_("Generate epgimport mappings"))
 		self["description"] = StaticText(_("Press OK to edit the currently selected provider"))
 
 		self["actions"] = ActionMap(["SetupActions", "ColorActions",],
@@ -371,10 +373,17 @@ class M3UIPTVManagerConfig(Screen):
 			self.session.open(M3UIPTVProviderEdit, current[0])
 
 	def generateBouquet(self):
-		print("Generate bouquet coming soon")
+		if current := self["list"].getCurrent():
+			provider = current[0]
+			providerObj = providers[provider]
+			try:
+				providerObj.getPlaylistAndGenBouquet()
+				self.session.open(MessageBox, _("\"%s\" bouquet has been generated succesfully") % providerObj.iptv_service_provider, MessageBox.TYPE_INFO, timeout=5)
+			except:
+				self.session.open(MessageBox, _("Unable to create bouquet \"%s\"!\nPossible reason can be no network available.") % providerObj.iptv_service_provider, MessageBox.TYPE_ERROR, timeout=5)
 
 	def generateEpgimportMapping(self):
-		print("EPG Import mapping coming soon")
+		self.session.open(MessageBox, _("EPG Import mapping coming soon"), MessageBox.TYPE_INFO, timeout=3)
 
 
 class M3UIPTVProviderEdit(Setup):
@@ -384,24 +393,28 @@ class M3UIPTVProviderEdit(Setup):
 		self.iptv_service_provider = ConfigText(default=self.providerObj.iptv_service_provider, fixed_size=False)
 		self.url = ConfigText(default=self.providerObj.url, fixed_size=False)
 		self.offset = ConfigNumber(default=self.providerObj.offset)
-		self.refresh_interval = ConfigNumber(default=self.providerObj.refresh_interval)
+		refresh_interval_choices = [(-1, _("off"))] + [(i, ngettext("%d hour", "%d hours", i) % i) for i in [1, 2, 3, 4, 5, 6, 12, 24]] 
+		self.refresh_interval = ConfigSelection(default=self.providerObj.refresh_interval, choices=refresh_interval_choices)
 		self.search_criteria = ConfigText(default=self.providerObj.search_criteria, fixed_size=False)
 		self.scheme = ConfigText(default=self.providerObj.scheme, fixed_size=False)
-		play_system_choices = [1, 4097]
-		self.play_system = ConfigSelection(default=str(self.providerObj.play_system) if self.providerObj.play_system in play_system_choices else play_system_choices[0], choices=[(str(x), str(x)) for x in play_system_choices])
+		play_system_choices = [("1", "DVB"), ("4097", "GStreamer")]
+		if isPluginInstalled("ServiceApp"):
+			play_system_choices.append(("5002", "Exteplayer3"))
+
+		self.play_system = ConfigSelection(default=self.providerObj.play_system, choices=play_system_choices)
 		Setup.__init__(self, session, None)
 		self.title = _("M3UIPTVManager") + " - " + (_("edit provider") if self.edit else _("add new provider"))
 
 	def createSetup(self):
 		configlist = []
-		configlist.append(("iptv_service_provider", self.iptv_service_provider, "Desc "))
-		configlist.append(("url", self.url, "Desc "))
-		configlist.append(("offset", self.offset, "Desc "))
-		configlist.append(("refresh_interval", self.refresh_interval, "Desc "))
-		configlist.append(("search_criteria", self.search_criteria, "Desc "))
+		configlist.append((_("Provider name"), self.iptv_service_provider, _("Specify the provider user friendly name that will be used for bouquet name and for display in infobar.")))
+		configlist.append(("URL", self.url, _("The URL to the playlist (*.m3u; *.m3u8)")))
+		configlist.append((_("Offset to url entry"), self.offset, _("Specify the distance of URL line based on the definition line.")))
+		configlist.append((_("Refresh interval"), self.refresh_interval, _("Interval in which the playlist will be automatically updated")))
+		configlist.append((_("Filter"), self.search_criteria, _("The search criter by which the service will be searched in the playlist file.")))
 		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited. 
-			configlist.append(("scheme", self.scheme, "Desc "))
-		configlist.append(("play_system", self.play_system, "Desc "))
+			configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
+		configlist.append((_("Playback system"), self.play_system, _("The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3")))
 		self["config"].list = configlist
 
 	def keySave(self):
@@ -432,6 +445,7 @@ class IPTVPluginConfig(Setup):
 		configlist = []
 		configlist.append((_("Enable IPTV manager") + " *", config.plugins.m3uiptv.enabled, _("Enable IPTV functionality and managment.")))
 		configlist.append((_("Check for Network"), config.plugins.m3uiptv.check_internet, _("Do a check is network available before try to retrieve the iptv playlist. If no network try backup services.")))
+		configlist.append((_("Request timeout"), config.plugins.m3uiptv.req_timeout, _("Timeout in seconds for the requests of getting playlist.")))
 		configlist.append(("---",))
 		configlist.append((_("Recordings - convert IPTV servicetypes to  1"), config.recording.setstreamto1, _("Recording 4097, 5001 and 5002 streams not possible with external players, so convert recordings to servicetype 1.")))
 		configlist.append((_("Enable new GStreamer playback"), config.misc.usegstplaybin3, _("If enabled, the new GStreamer playback engine will be used.")))

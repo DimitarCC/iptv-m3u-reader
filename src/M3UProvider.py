@@ -9,6 +9,7 @@ class M3UProvider(IPTVProcessor):
 		self.url = ""
 		self.offset = 1
 		self.refresh_interval = -1
-		self.search_criteria = ""
+		self.search_criteria = "tvg-id=\"{SID}\""
 		self.scheme = ""
-		self.play_system = 1
+		self.play_system = "4097"
+		self.onid = 1000

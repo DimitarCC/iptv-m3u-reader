@@ -21,7 +21,7 @@ class IPTVProcessor():
 		self.offset = 0
 		self.refresh_interval = 1
 		self.scheme = ""
-		self.search_criteria = ",{SID}"
+		self.search_criteria = "tvg-id=\"{SID}\""
 		self.play_system = "4097"
 		self.onid = 1000
 		
@@ -38,7 +38,14 @@ class IPTVProcessor():
 				socket.setdefaulttimeout(int(is_check_network_val))
 				socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
 			req = urllib.request.Request(self.url, headers={'User-Agent' : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"}) 
-			response = urllib.request.urlopen(req)
+		except Exception as e:
+			raise e
+
+			req_timeout_val = config.plugins.m3uiptv.req_timeout.value
+			if req_timeout_val != "off":
+				response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
+			else:
+				response = urllib.request.urlopen(req)
 			playlist = response.read().decode('utf-8')
 			self.playlist = playlist
 			playlist_splitted = playlist.split("\n")
@@ -63,9 +70,6 @@ class IPTVProcessor():
 				else:
 					continue
 			db.addOrUpdateBouquet(self.iptv_service_provider, services, 1)
-		except Exception as e:
-			print(e)
-			pass
 
 	def processService(self, nref, iptvinfodata, callback=None):
 		splittedRef = nref.toString().split(":")
@@ -108,7 +112,11 @@ class IPTVProcessor():
 				playlist = prov.playlist
 			else:
 				req = urllib.request.Request(prov.url, headers={'User-Agent' : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"}) 
-				response = urllib.request.urlopen(req)
+				req_timeout_val = config.plugins.m3uiptv.req_timeout.value
+				if req_timeout_val != "off":
+					response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
+				else:
+					response = urllib.request.urlopen(req)
 				playlist = response.read().decode('utf-8')
 				prov.playlist = playlist
 				if cache_time > 0:
