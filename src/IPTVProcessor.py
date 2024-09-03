@@ -116,14 +116,15 @@ class IPTVProcessor():
 				if cache_time > 0:
 					prov.last_exec = cur_time
 
-			playlist_splitted = playlist.split("\n")
-			idx = 0
-			for line in playlist_splitted:
-				if line.find(channelSID) > -1:
-					iptv_url = playlist_splitted[idx + prov.offset].replace(":", "%3a")
+			findurl = False
+			for line in playlist.splitlines():
+				line = line.strip()  # just in case there is surrounding white space present
+				if line.startswith("#EXTINF:"):
+					findurl = channelSID in line
+				elif findurl and line.startswith(("http://", "https://")):
+					iptv_url = line.replace(":", "%3a")
 					nref_new = origRef + ":" + iptv_url + ":" + orig_name + "•" + prov.iptv_service_provider
 					break
-				idx += 1
 			self.nnref = eServiceReference(nref_new)
 			self.isPlayBackup = False
 			return self.nnref#, nref

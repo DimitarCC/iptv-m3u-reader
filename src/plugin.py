@@ -53,7 +53,6 @@ def readProviders():
 				providerObj = M3UProvider()
 				providerObj.iptv_service_provider = provider.find("servicename").text
 				providerObj.url = provider.find("url").text
-				providerObj.offset = int(provider.find("offset").text)
 				providerObj.refresh_interval = int(provider.find("refresh_interval").text)
 				providerObj.search_criteria = provider.find("filter").text
 				providerObj.scheme = provider.find("scheme").text
@@ -71,7 +70,6 @@ def writeProviders():
 		xml.append("\t<provider>\n")
 		xml.append(f"\t\t<servicename>{val.iptv_service_provider}</servicename>\n")
 		xml.append(f"\t\t<url>{val.url}</url>\n")
-		xml.append(f"\t\t<offset>{val.offset}</offset>\n")
 		xml.append(f"\t\t<refresh_interval>{val.refresh_interval}</refresh_interval>\n")
 		xml.append(f"\t\t<filter>{val.search_criteria}</filter>\n")
 		xml.append(f"\t\t<scheme>{val.scheme}</scheme>\n")
@@ -146,11 +144,12 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 	InfoBarInstance = InfoBarCount == 1 and InfoBar.instance
 	
 	oldref = self.currentlyPlayingServiceOrGroup
-	self.currentlyPlayingServiceReference = None
-	self.currentlyPlayingServiceOrGroup = None
-	self.currentlyPlayingService = None
-	if InfoBarInstance:
-		InfoBarInstance.session.screen["CurrentService"].newService(False)
+	if "%3a//" in ref.toString():
+		self.currentlyPlayingServiceReference = None
+		self.currentlyPlayingServiceOrGroup = None
+		self.currentlyPlayingService = None
+		if InfoBarInstance:
+			InfoBarInstance.session.screen["CurrentService"].newService(False)
 	if ref and oldref and ref == oldref and not forceRestart:
 		print("[Navigation] ignore request to play already running service(1)")
 		return 1
@@ -177,15 +176,16 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 		self.stopService() 
 		return 0
 		
-	self.currentlyPlayingServiceReference = ref
-	self.currentlyPlayingServiceOrGroup = ref
-	self.originalPlayingServiceReference = ref
-	
-	if InfoBarInstance:
-		InfoBarInstance.session.screen["CurrentService"].newService(ref)
-		InfoBarInstance.session.screen["Event_Now"].updateSource(ref)
-		InfoBarInstance.session.screen["Event_Next"].updateSource(ref)
-		InfoBarInstance.serviceStarted()
+	if "%3a//" in ref.toString():
+		self.currentlyPlayingServiceReference = ref
+		self.currentlyPlayingServiceOrGroup = ref
+		self.originalPlayingServiceReference = ref
+		
+		if InfoBarInstance:
+			InfoBarInstance.session.screen["CurrentService"].newService(ref)
+			InfoBarInstance.session.screen["Event_Now"].updateSource(ref)
+			InfoBarInstance.session.screen["Event_Next"].updateSource(ref)
+			InfoBarInstance.serviceStarted()
 		
 	if not checkParentalControl or parentalControl.isServicePlayable(ref, boundFunction(self.playService, checkParentalControl=False, forceRestart=forceRestart, adjust=adjust)):
 		if ref.flags & eServiceReference.isGroup:
@@ -392,7 +392,6 @@ class M3UIPTVProviderEdit(Setup):
 		self.providerObj = providers.get(provider, M3UProvider())
 		self.iptv_service_provider = ConfigText(default=self.providerObj.iptv_service_provider, fixed_size=False)
 		self.url = ConfigText(default=self.providerObj.url, fixed_size=False)
-		self.offset = ConfigNumber(default=self.providerObj.offset)
 		refresh_interval_choices = [(-1, _("off"))] + [(i, ngettext("%d hour", "%d hours", i) % i) for i in [1, 2, 3, 4, 5, 6, 12, 24]] 
 		self.refresh_interval = ConfigSelection(default=self.providerObj.refresh_interval, choices=refresh_interval_choices)
 		self.search_criteria = ConfigText(default=self.providerObj.search_criteria, fixed_size=False)
@@ -409,7 +408,6 @@ class M3UIPTVProviderEdit(Setup):
 		configlist = []
 		configlist.append((_("Provider name"), self.iptv_service_provider, _("Specify the provider user friendly name that will be used for bouquet name and for display in infobar.")))
 		configlist.append(("URL", self.url, _("The URL to the playlist (*.m3u; *.m3u8)")))
-		configlist.append((_("Offset to url entry"), self.offset, _("Format of m3u file. If the offset is 1 it means the URL line is 1 line below the #EXTINF definition line.")))
 		configlist.append((_("Refresh interval"), self.refresh_interval, _("Interval in which the playlist will be automatically updated")))
 		configlist.append((_("Filter"), self.search_criteria, _("The search criter by which the service will be searched in the playlist file.")))
 		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited. 
@@ -420,7 +418,6 @@ class M3UIPTVProviderEdit(Setup):
 	def keySave(self):
 		self.providerObj.iptv_service_provider = self.iptv_service_provider.value
 		self.providerObj.url = self.url.value
-		self.providerObj.offset = self.offset.value
 		self.providerObj.refresh_interval = self.refresh_interval.value
 		self.providerObj.search_criteria = self.search_criteria.value
 		self.providerObj.iptv_service_provider = self.iptv_service_provider.value
