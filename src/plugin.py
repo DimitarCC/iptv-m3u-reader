@@ -154,23 +154,9 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 		print("[Navigation] ignore request to play already running service(1)")
 		return 1
 	print("[Navigation] playing ref", ref and ref.toString())
-	if path.exists("/proc/stb/lcd/symbol_signal") and config.lcd.mode.value == "1":
-		try:
-			if "0:0:0:0:0:0:0:0:0" not in ref.toString():
-				signal = 1
-			else:
-				signal = 0
-			f = open("/proc/stb/lcd/symbol_signal", "w")
-			f.write(str(signal))
-			f.close()
-		except:
-			f = open("/proc/stb/lcd/symbol_signal", "w")
-			f.write("0")
-			f.close()
-	elif path.exists("/proc/stb/lcd/symbol_signal") and config.lcd.mode.value == "0":
-		f = open("/proc/stb/lcd/symbol_signal", "w")
-		f.write("0")
-		f.close()
+
+	if path.exists("/proc/stb/lcd/symbol_signal") and hasattr(config.lcd, "mode"):
+			open("/proc/stb/lcd/symbol_signal", "w").write("1" if ref and "0:0:0:0:0:0:0:0:0" not in ref.toString() and config.lcd.mode.value else "0")
 
 	if ref is None:
 		self.stopService() 
