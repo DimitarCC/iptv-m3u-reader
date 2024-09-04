@@ -23,6 +23,8 @@ class IPTVProcessor():
 		self.scheme = ""
 		self.search_criteria = "tvg-id=\"{SID}\""
 		self.play_system = "4097"
+		self.static_urls = False
+		self.ignore_vod = True
 		
 	def getPlaylistAndGenBouquet(self, callback=None):
 		if callback:
@@ -35,6 +37,7 @@ class IPTVProcessor():
 		if is_check_network_val != "off":
 			socket.setdefaulttimeout(int(is_check_network_val))
 			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
+		print("URLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL: " + self.url)
 		req = urllib.request.Request(self.url, headers={'User-Agent' : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"}) 
 		req_timeout_val = config.plugins.m3uiptv.req_timeout.value
 		if req_timeout_val != "off":
@@ -46,14 +49,30 @@ class IPTVProcessor():
 		playlist_splitted = playlist.split("\n")
 		tsid = 1000
 		services = []
+		line_nr = 0
 		for line in playlist_splitted:
+			if self.ignore_vod and "group-title=\"VOD" in line:
+				continue
 			if line.startswith("#EXTINF:"):
 				condition = re.escape(self.search_criteria).replace("\\{SID\\}", "(.*?)") + r".*,(.*)"
 				match = re.search(condition, line)
 				if match:
 					sid = match.group(1)
 					ch_name = match.group(2)
-					url = self.scheme + "%3a//" + sid
+					url = ""
+					if self.static_urls:
+						found_url = False
+						next_line_nr = line_nr + 1
+						while not found_url:
+							if len(playlist_splitted) > next_line_nr:
+								next_line = playlist_splitted[next_line_nr].strip()
+								if next_line.startswith(("http://", "https://")):
+									url = next_line.replace(":", "%3a")
+									found_url = True
+							else:
+								break
+					else:
+						url = self.scheme + "%3a//" + sid.replace(" ", "_").replace(":", "__")
 					stype = "1"
 					if "UHD" in ch_name or "4K" in ch_name:
 						stype = "1F"
@@ -62,8 +81,8 @@ class IPTVProcessor():
 					sref = "%s:0:%s:%d:%d:1:CCCC0000:0:0:0:%s:%s•%s" % (self.play_system, stype, tsid, self.onid, url, ch_name, self.iptv_service_provider)
 					tsid += 1
 					services.append(sref)
-
-			db.addOrUpdateBouquet(self.iptv_service_provider, services, 1)
+			line_nr += 1
+		db.addOrUpdateBouquet(self.iptv_service_provider, services, 1)
 
 	def processService(self, nref, iptvinfodata, callback=None):
 		splittedRef = nref.toString().split(":")

@@ -12,7 +12,7 @@ from Screens.Setup import Setup
 from Screens.Menu import Menu
 from Screens.MessageBox import MessageBox
 from Components.ActionMap import ActionMap
-from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigText, ConfigNumber
+from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigText
 from Components.ParentalControl import parentalControl
 from Components.Sources.StaticText import StaticText
 from Components.Sources.List import List
@@ -28,7 +28,7 @@ from xml.etree.cElementTree import iterparse
 import threading
 write_lock = threading.Lock()
 
-USER_IPTV_PROVIDERS_FILE = path.realpath(resolveFilename(SCOPE_CONFIG)) + "/IPTV/providers.xml"
+USER_IPTV_PROVIDERS_FILE = path.realpath(resolveFilename(SCOPE_CONFIG)) + "/M3UIPTV/providers.xml"
 
 config.plugins.m3uiptv = ConfigSubsection()
 config.plugins.m3uiptv.enabled = ConfigYesNo(default=True)
@@ -47,16 +47,18 @@ def readProviders():
 		return
 	onid = 1000
 	fd = open(USER_IPTV_PROVIDERS_FILE, 'rb')
-	for provider, elem in iterparse(fd):
+	for prov, elem in iterparse(fd):
 		if elem.tag == "providers":
 			for provider in elem.findall("provider"):
 				providerObj = M3UProvider()
 				providerObj.iptv_service_provider = provider.find("servicename").text
-				providerObj.url = provider.find("url").text
+				providerObj.url = provider.find("url").text.replace("&amp;", "&")
 				providerObj.refresh_interval = int(provider.find("refresh_interval").text)
 				providerObj.search_criteria = provider.find("filter").text
 				providerObj.scheme = provider.find("scheme").text
 				providerObj.play_system = provider.find("system").text
+				providerObj.ignore_vod = True if provider.find("novod") and provider.find("novod").text == "on" else False
+				providerObj.static_urls = True if provider.find("staticurl") and provider.find("staticurl").text == "on" else False
 				providerObj.onid = onid
 				providers[providerObj.scheme] = providerObj
 				onid += 1
@@ -69,8 +71,10 @@ def writeProviders():
 	for key, val in providers.items():
 		xml.append("\t<provider>\n")
 		xml.append(f"\t\t<servicename>{val.iptv_service_provider}</servicename>\n")
-		xml.append(f"\t\t<url>{val.url}</url>\n")
+		xml.append(f"\t\t<url>{val.url.replace("&", "&amp;")}</url>\n")
 		xml.append(f"\t\t<refresh_interval>{val.refresh_interval}</refresh_interval>\n")
+		xml.append(f"\t\t<novod>{"on" if val.ignore_vod else "off"}</novod>\n")
+		xml.append(f"\t\t<staticurl>{"on" if val.static_urls else "off"}</staticurl>\n")
 		xml.append(f"\t\t<filter>{val.search_criteria}</filter>\n")
 		xml.append(f"\t\t<scheme>{val.scheme}</scheme>\n")
 		xml.append(f"\t\t<system>{val.play_system}</system>\n")
@@ -387,6 +391,8 @@ class M3UIPTVProviderEdit(Setup):
 		self.url = ConfigText(default=self.providerObj.url, fixed_size=False)
 		refresh_interval_choices = [(-1, _("off"))] + [(i, ngettext("%d hour", "%d hours", i) % i) for i in [1, 2, 3, 4, 5, 6, 12, 24]] 
 		self.refresh_interval = ConfigSelection(default=self.providerObj.refresh_interval, choices=refresh_interval_choices)
+		self.novod = ConfigYesNo(default=self.providerObj.ignore_vod)
+		self.staticurl = ConfigYesNo(default=self.providerObj.static_urls)
 		self.search_criteria = ConfigText(default=self.providerObj.search_criteria, fixed_size=False)
 		self.scheme = ConfigText(default=self.providerObj.scheme, fixed_size=False)
 		play_system_choices = [("1", "DVB"), ("4097", "GStreamer")]
@@ -402,6 +408,8 @@ class M3UIPTVProviderEdit(Setup):
 		configlist.append((_("Provider name"), self.iptv_service_provider, _("Specify the provider user friendly name that will be used for bouquet name and for display in infobar.")))
 		configlist.append(("URL", self.url, _("The URL to the playlist (*.m3u; *.m3u8)")))
 		configlist.append((_("Refresh interval"), self.refresh_interval, _("Interval in which the playlist will be automatically updated")))
+		configlist.append((_("Skip VOD entries"), self.novod, _("Skip VOD entries in the playlist")))
+		configlist.append((_("Use static URLs"), self.staticurl, _("If enabled URL will be static and not aliases. That means if the URL of a service changes in the playlist bouquet entry will stop working.")))
 		configlist.append((_("Filter"), self.search_criteria, _("The search criter by which the service will be searched in the playlist file.")))
 		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited. 
 			configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
@@ -416,6 +424,8 @@ class M3UIPTVProviderEdit(Setup):
 		self.providerObj.iptv_service_provider = self.iptv_service_provider.value
 		self.providerObj.scheme = self.scheme.value
 		self.providerObj.play_system = self.play_system.value
+		self.providerObj.ignore_vod = self.novod.value
+		self.providerObj.static_urls = self.staticurl.value
 		if not hasattr(self.providerObj, "onid") or getattr(self.providerObj, "onid") is None:
 			self.providerObj.onid = max([x.onid for x in providers.values() if hasattr(x, "onid")]) + 1 if len(providers) > 0 else 1000
 		if not self.edit and self.providerObj.scheme in providers:  # scheme is not unique
