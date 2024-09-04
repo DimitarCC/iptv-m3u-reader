@@ -57,8 +57,8 @@ def readProviders():
 				providerObj.search_criteria = provider.find("filter").text
 				providerObj.scheme = provider.find("scheme").text
 				providerObj.play_system = provider.find("system").text
-				providerObj.ignore_vod = True if provider.find("novod") and provider.find("novod").text == "on" else False
-				providerObj.static_urls = True if provider.find("staticurl") and provider.find("staticurl").text == "on" else False
+				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
+				providerObj.static_urls = provider.find("staticurl") is not None and provider.find("staticurl").text == "on"
 				providerObj.onid = onid
 				providers[providerObj.scheme] = providerObj
 				onid += 1
