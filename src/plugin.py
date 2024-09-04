@@ -429,7 +429,7 @@ class M3UIPTVProviderEdit(Setup):
 		if not hasattr(self.providerObj, "onid") or getattr(self.providerObj, "onid") is None:
 			self.providerObj.onid = max([x.onid for x in providers.values() if hasattr(x, "onid")]) + 1 if len(providers) > 0 else 1000
 		if not self.edit and self.providerObj.scheme in providers:  # scheme is not unique
-			pass  # handle error here
+			self.session.open(MessageBox, _("Scheme must be unique. \"%s\" is already in use. Please update this field.") % self.providerObj.scheme, MessageBox.TYPE_INFO, timeout=30)
 		else:
 			providers[self.providerObj.scheme] = self.providerObj
 			writeProviders()
