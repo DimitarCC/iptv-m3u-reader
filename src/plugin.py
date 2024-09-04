@@ -261,6 +261,11 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 			elif not is_dynamic and self.pnav.playService(playref):
 				self.currentlyPlayingServiceReference = None
 				self.currentlyPlayingServiceOrGroup = None
+				if oldref and "://" in oldref.getPath():
+					print("[Navigation] Streaming was active -> try again")  # use timer to give the streamserver the time to deallocate the tuner
+					self.retryServicePlayTimer = eTimer()
+					self.retryServicePlayTimer.callback.append(boundFunction(self.playService, ref, checkParentalControl, forceRestart, adjust))
+					self.retryServicePlayTimer.start(500, True)
 
 			self.skipServiceReferenceReset = False
 			if setPriorityFrontend:
@@ -365,7 +370,8 @@ class M3UIPTVManagerConfig(Screen):
 			try:
 				providerObj.getPlaylistAndGenBouquet()
 				self.session.open(MessageBox, _("\"%s\" bouquet has been generated succesfully") % providerObj.iptv_service_provider, MessageBox.TYPE_INFO, timeout=5)
-			except:
+			except Exception as ex:
+				print("EXCEPTION: " + str(ex))
 				self.session.open(MessageBox, _("Unable to create bouquet \"%s\"!\nPossible reason can be no network available.") % providerObj.iptv_service_provider, MessageBox.TYPE_ERROR, timeout=5)
 
 	def generateEpgimportMapping(self):
@@ -409,8 +415,8 @@ class M3UIPTVProviderEdit(Setup):
 		self.providerObj.iptv_service_provider = self.iptv_service_provider.value
 		self.providerObj.scheme = self.scheme.value
 		self.providerObj.play_system = self.play_system.value
-		if getattr(self.providerObj, "onid") is None:
-			self.providerObj.onid = max([x.onid for x in providers.values() if hasattr(x, "onid")]) + 1
+		if not hasattr(self.providerObj, "onid") or getattr(self.providerObj, "onid") is None:
+			self.providerObj.onid = max([x.onid for x in providers.values() if hasattr(x, "onid")]) + 1 if len(providers) > 0 else 1000
 		if not self.edit and self.providerObj.scheme in providers:  # scheme is not unique
 			pass  # handle error here
 		else:
