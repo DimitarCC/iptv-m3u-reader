@@ -156,7 +156,7 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 	print("[Navigation] playing ref", ref and ref.toString())
 
 	if path.exists("/proc/stb/lcd/symbol_signal") and hasattr(config.lcd, "mode"):
-			open("/proc/stb/lcd/symbol_signal", "w").write("1" if ref and "0:0:0:0:0:0:0:0:0" not in ref.toString() and config.lcd.mode.value else "0")
+		open("/proc/stb/lcd/symbol_signal", "w").write("1" if ref and "0:0:0:0:0:0:0:0:0" not in ref.toString() and config.lcd.mode.value else "0")
 
 	if ref is None:
 		self.stopService() 
