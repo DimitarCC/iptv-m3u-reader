@@ -167,16 +167,15 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 		self.stopService() 
 		return 0
 		
-	if "%3a//" in ref.toString():
-		self.currentlyPlayingServiceReference = ref
-		self.currentlyPlayingServiceOrGroup = ref
-		self.originalPlayingServiceReference = ref
-		
-		if InfoBarInstance:
-			InfoBarInstance.session.screen["CurrentService"].newService(ref)
-			InfoBarInstance.session.screen["Event_Now"].updateSource(ref)
-			InfoBarInstance.session.screen["Event_Next"].updateSource(ref)
-			InfoBarInstance.serviceStarted()
+	self.currentlyPlayingServiceReference = ref
+	self.currentlyPlayingServiceOrGroup = ref
+	self.originalPlayingServiceReference = ref
+	
+	if InfoBarInstance:
+		InfoBarInstance.session.screen["CurrentService"].newService(ref)
+		InfoBarInstance.session.screen["Event_Now"].updateSource(ref)
+		InfoBarInstance.session.screen["Event_Next"].updateSource(ref)
+		InfoBarInstance.serviceStarted()
 		
 	if not checkParentalControl or parentalControl.isServicePlayable(ref, boundFunction(self.playService, checkParentalControl=False, forceRestart=forceRestart, adjust=adjust)):
 		if ref.flags & eServiceReference.isGroup:
