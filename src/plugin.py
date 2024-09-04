@@ -21,7 +21,7 @@ from Tools.Directories import resolveFilename, SCOPE_CONFIG, fileExists, isPlugi
 from Tools.BoundFunction import boundFunction
 from Navigation import Navigation
 
-from os import path, fsync, rename
+from os import path, fsync, rename, makedirs
 import xml
 from xml.etree.cElementTree import iterparse
 
@@ -76,6 +76,7 @@ def writeProviders():
 		xml.append(f"\t\t<system>{val.play_system}</system>\n")
 		xml.append("\t</provider>\n")
 	xml.append("</providers>\n")
+	makedirs(path.dirname(USER_IPTV_PROVIDERS_FILE), exist_ok=True)  # create config folder recursive if not exists
 	with write_lock:
 		f = open(USER_IPTV_PROVIDERS_FILE + ".writing", 'w')
 		f.write("".join(xml))
