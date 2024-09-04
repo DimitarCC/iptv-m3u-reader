@@ -341,10 +341,8 @@ class M3UIPTVManagerConfig(Screen):
 	def __init__(self, session):
 		Screen.__init__(self, session)
 		self.setTitle(_("M3U IPTV Manager - providers"))
-		plist = []
-		for provider in providers:
-			plist.append((provider, providers[provider].iptv_service_provider))
-		self["list"] = List(plist)
+		self["list"] = List([])
+		self.buildList()
 		self["key_red"] = StaticText(_("Close"))
 		self["key_green"] = StaticText(_("Add provider"))
 		self["key_yellow"] = StaticText(_("Generate bouquet"))
@@ -360,12 +358,19 @@ class M3UIPTVManagerConfig(Screen):
 				"blue": self.generateEpgimportMapping,
 			}, -1)  # noqa: E123
 
+	def buildList(self):
+		self["list"].list = [(provider, providers[provider].iptv_service_provider) for provider in providers]
+
 	def addProvider(self):
-		self.session.open(M3UIPTVProviderEdit)
+		self.session.openWithCallback(self.providerCallback, M3UIPTVProviderEdit)
 
 	def editProvider(self):
 		if current := self["list"].getCurrent():
-			self.session.open(M3UIPTVProviderEdit, current[0])
+			self.session.openWithCallback(self.providerCallback, M3UIPTVProviderEdit, current[0])
+
+	def providerCallback(self, result=None):
+		if result:
+			self.buildList()
 
 	def generateBouquet(self):
 		if current := self["list"].getCurrent():
@@ -432,7 +437,7 @@ class M3UIPTVProviderEdit(Setup):
 		else:
 			providers[self.providerObj.scheme] = self.providerObj
 			writeProviders()
-			self.close()
+			self.close(True)
 
 
 class IPTVPluginConfig(Setup):
