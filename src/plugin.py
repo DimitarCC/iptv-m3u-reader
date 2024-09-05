@@ -402,15 +402,14 @@ class M3UIPTVProviderEdit(Setup):
 		play_system_choices = [("1", "DVB"), ("4097", "GStreamer")]
 		if isPluginInstalled("ServiceApp"):
 			play_system_choices.append(("5002", "Exteplayer3"))
-
 		self.play_system = ConfigSelection(default=self.providerObj.play_system, choices=play_system_choices)
-		Setup.__init__(self, session, None)
+		Setup.__init__(self, session, yellow_button={"text": _("Delete provider \"%s\"") % self.providerObj.iptv_service_provider, "helptext": _("Permanently remove provider \"%s\" from your configuration.") % self.providerObj.iptv_service_provider, "function": self.keyRemove} if self.edit else None)
 		self.title = _("M3UIPTVManager") + " - " + (_("edit provider") if self.edit else _("add new provider"))
 
 	def createSetup(self):
 		configlist = []
-		configlist.append((_("Provider name"), self.iptv_service_provider, _("Specify the provider user friendly name that will be used for bouquet name and for display in infobar.")))
-		configlist.append(("URL", self.url, _("The URL to the playlist (*.m3u; *.m3u8)")))
+		configlist.append((_("Provider name"), self.iptv_service_provider, _("Specify the provider user friendly name that will be used for the bouquet name and for displaying in the infobar.")))
+		configlist.append(("URL", self.url, _("The playlist URL (*.m3u; *.m3u8)")))
 		configlist.append((_("Refresh interval"), self.refresh_interval, _("Interval in which the playlist will be automatically updated")))
 		configlist.append((_("Skip VOD entries"), self.novod, _("Skip VOD entries in the playlist")))
 		configlist.append((_("Use static URLs"), self.staticurl, _("If enabled URL will be static and not aliases. That means if the URL of a service changes in the playlist bouquet entry will stop working.")))
@@ -421,6 +420,10 @@ class M3UIPTVProviderEdit(Setup):
 		self["config"].list = configlist
 
 	def keySave(self):
+		if not self.iptv_service_provider.value or not self.url.value or not self.scheme.value or not self.edit and self.scheme.value in providers:  # empty mandatory fields or scheme is not unique
+			msg = _("Scheme must be unique. \"%s\" is already in use. Please update this field.") % self.scheme.value if not self.edit and self.scheme.value and self.scheme.value in providers else _("All fields must be filled in.")
+			self.session.open(MessageBox, msg, MessageBox.TYPE_ERROR, timeout=30)
+			return
 		self.providerObj.iptv_service_provider = self.iptv_service_provider.value
 		self.providerObj.url = self.url.value
 		self.providerObj.refresh_interval = self.refresh_interval.value
@@ -430,12 +433,18 @@ class M3UIPTVProviderEdit(Setup):
 		self.providerObj.play_system = self.play_system.value
 		self.providerObj.ignore_vod = self.novod.value
 		self.providerObj.static_urls = self.staticurl.value
-		if not hasattr(self.providerObj, "onid") or getattr(self.providerObj, "onid") is None:
+		if getattr(self.providerObj, "onid", None) is None:
 			self.providerObj.onid = max([x.onid for x in providers.values() if hasattr(x, "onid")]) + 1 if len(providers) > 0 else 1000
-		if not self.edit and self.providerObj.scheme in providers:  # scheme is not unique
-			self.session.open(MessageBox, _("Scheme must be unique. \"%s\" is already in use. Please update this field.") % self.providerObj.scheme, MessageBox.TYPE_INFO, timeout=30)
-		else:
-			providers[self.providerObj.scheme] = self.providerObj
+		providers[self.providerObj.scheme] = self.providerObj
+		writeProviders()
+		self.close(True)
+
+	def keyRemove(self):
+		self.session.openWithCallback(self.keyRemoveCallback, MessageBox, _("Are you sure you want to permanently remove provider \"%s\" from your configuration?") % self.providerObj.scheme, MessageBox.TYPE_YESNO)
+
+	def keyRemoveCallback(self, answer=None):
+		if answer:
+			del providers[self.providerObj.scheme]
 			writeProviders()
 			self.close(True)
 
