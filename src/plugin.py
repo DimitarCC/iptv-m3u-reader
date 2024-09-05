@@ -71,10 +71,10 @@ def writeProviders():
 	for key, val in providers.items():
 		xml.append("\t<provider>\n")
 		xml.append(f"\t\t<servicename>{val.iptv_service_provider}</servicename>\n")
-		xml.append(f"\t\t<url>{val.url.replace("&", "&amp;")}</url>\n")
+		xml.append(f"\t\t<url>{val.url.replace('&', '&amp;')}</url>\n")
 		xml.append(f"\t\t<refresh_interval>{val.refresh_interval}</refresh_interval>\n")
-		xml.append(f"\t\t<novod>{"on" if val.ignore_vod else "off"}</novod>\n")
-		xml.append(f"\t\t<staticurl>{"on" if val.static_urls else "off"}</staticurl>\n")
+		xml.append(f"\t\t<novod>{'on' if val.ignore_vod else 'off'}</novod>\n")
+		xml.append(f"\t\t<staticurl>{'on' if val.static_urls else 'off'}</staticurl>\n")
 		xml.append(f"\t\t<filter>{val.search_criteria}</filter>\n")
 		xml.append(f"\t\t<scheme>{val.scheme}</scheme>\n")
 		xml.append(f"\t\t<system>{val.play_system}</system>\n")
