@@ -1,3 +1,6 @@
+# for localized messages
+from . import _
+
 from sys import modules
 from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner
 from Plugins.Plugin import PluginDescriptor
