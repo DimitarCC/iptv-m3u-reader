@@ -63,8 +63,10 @@ class IPTVProcessor():
 					match = re.search(condition, line)
 					isFallbackMatch = True
 				if match:
-					sid = match.group(1)
+					sid = match.group(1).replace(":", "%3a")
 					ch_name = match.group(2) if not isFallbackMatch else sid
+					if not sid:
+						sid = ch_name.replace(":", "%3a")
 					url = ""
 					if self.static_urls:
 						found_url = False
@@ -119,6 +121,7 @@ class IPTVProcessor():
 			if is_check_network_val != "off":
 				socket.setdefaulttimeout(int(is_check_network_val))
 				socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
+			channelForSearch = channelForSearch.replace("%3a", ":")
 			channelSID = self.search_criteria.replace("{SID}", channelForSearch)
 			prov = self
 			cache_time = 0
@@ -145,7 +148,7 @@ class IPTVProcessor():
 			for line in playlist.splitlines():
 				line = line.strip()  # just in case there is surrounding white space present
 				if line.startswith("#EXTINF:"):
-					findurl = channelSID in line
+					findurl = (channelSID in line) or (("," + channelForSearch) in line)
 				elif findurl and line.startswith(("http://", "https://")):
 					iptv_url = line.replace(":", "%3a")
 					nref_new = origRef + ":" + iptv_url + ":" + orig_name + "•" + prov.iptv_service_provider
