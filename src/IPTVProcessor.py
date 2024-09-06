@@ -130,7 +130,7 @@ class IPTVProcessor():
 			nref_new = nref.toString()
 			cur_time = time()
 			time_delta = prov.last_exec and cur_time - prov.last_exec or None
-			if prov.refresh_interval > -1 and time_delta and  time_delta < cache_time:
+			if (prov.refresh_interval == -1 and prov.playlist) or (prov.refresh_interval > 0 and time_delta and  time_delta < cache_time):
 				playlist = prov.playlist
 			else:
 				req = urllib.request.Request(prov.url, headers={'User-Agent' : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"}) 
