@@ -37,7 +37,6 @@ class IPTVProcessor():
 		if is_check_network_val != "off":
 			socket.setdefaulttimeout(int(is_check_network_val))
 			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
-		print("URLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL: " + self.url)
 		req = urllib.request.Request(self.url, headers={'User-Agent' : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"}) 
 		req_timeout_val = config.plugins.m3uiptv.req_timeout.value
 		if req_timeout_val != "off":
@@ -46,7 +45,7 @@ class IPTVProcessor():
 			response = urllib.request.urlopen(req)
 		playlist = response.read().decode('utf-8')
 		self.playlist = playlist
-		playlist_splitted = playlist.split("\n")
+		playlist_splitted = playlist.splitlines()
 		tsid = 1000
 		services = []
 		line_nr = 0
@@ -56,9 +55,16 @@ class IPTVProcessor():
 			if line.startswith("#EXTINF:"):
 				condition = re.escape(self.search_criteria).replace("\\{SID\\}", "(.*?)") + r".*,(.*)"
 				match = re.search(condition, line)
+				isFallbackMatch = False
+				if not match:
+					# Probably the format of the playlist is not m3u+ or for some reason it doesnt contain
+					# tvg-id, tvg-name and other similar tags. In this case try matching by the name of service
+					condition = r".*,(.*)"
+					match = re.search(condition, line)
+					isFallbackMatch = True
 				if match:
 					sid = match.group(1)
-					ch_name = match.group(2)
+					ch_name = match.group(2) if not isFallbackMatch else sid
 					url = ""
 					if self.static_urls:
 						found_url = False
@@ -72,7 +78,7 @@ class IPTVProcessor():
 							else:
 								break
 					else:
-						url = self.scheme + "%3a//" + sid.replace(" ", "_").replace(":", "__")
+						url = self.scheme + "%3a//" + sid
 					stype = "1"
 					if "UHD" in ch_name or "4K" in ch_name:
 						stype = "1F"
