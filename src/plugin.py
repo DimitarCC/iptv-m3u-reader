@@ -422,23 +422,23 @@ class M3UIPTVManagerConfig(Screen):
 class M3UIPTVProviderEdit(Setup):
 	def __init__(self, session, provider=None):
 		self.edit = provider in providers
-		self.providerObj = providers.get(provider, IPTVProcessor())
-		self.type = ConfigSelection(default=self.providerObj.type, choices=[("M3U", _("M3U/M3U8")), ("Xtreeme", _("Xtreme Codes"))])
-		self.iptv_service_provider = ConfigText(default=self.providerObj.iptv_service_provider, fixed_size=False)
-		self.url = ConfigText(default=self.providerObj.url, fixed_size=False)
+		providerObj = providers.get(provider, IPTVProcessor())
+		self.type = ConfigSelection(default=providerObj.type, choices=[("M3U", _("M3U/M3U8")), ("Xtreeme", _("Xtreme Codes"))])
+		self.iptv_service_provider = ConfigText(default=providerObj.iptv_service_provider, fixed_size=False)
+		self.url = ConfigText(default=providerObj.url, fixed_size=False)
 		refresh_interval_choices = [(-1, _("off"))] + [(i, ngettext("%d hour", "%d hours", i) % i) for i in [1, 2, 3, 4, 5, 6, 12, 24]] 
-		self.refresh_interval = ConfigSelection(default=self.providerObj.refresh_interval, choices=refresh_interval_choices)
-		self.novod = ConfigYesNo(default=self.providerObj.ignore_vod)
-		self.staticurl = ConfigYesNo(default=self.providerObj.static_urls)
-		self.search_criteria = ConfigText(default=self.providerObj.search_criteria, fixed_size=False)
-		self.scheme = ConfigText(default=self.providerObj.scheme, fixed_size=False)
-		self.username = ConfigText(default=self.providerObj.username, fixed_size=False)
-		self.password = ConfigPassword(default=self.providerObj.password, fixed_size=False)
+		self.refresh_interval = ConfigSelection(default=providerObj.refresh_interval, choices=refresh_interval_choices)
+		self.novod = ConfigYesNo(default=providerObj.ignore_vod)
+		self.staticurl = ConfigYesNo(default=providerObj.static_urls)
+		self.search_criteria = ConfigText(default=providerObj.search_criteria, fixed_size=False)
+		self.scheme = ConfigText(default=providerObj.scheme, fixed_size=False)
+		self.username = ConfigText(default=providerObj.username, fixed_size=False)
+		self.password = ConfigPassword(default=providerObj.password, fixed_size=False)
 		play_system_choices = [("1", "DVB"), ("4097", "GStreamer")]
 		if isPluginInstalled("ServiceApp"):
 			play_system_choices.append(("5002", "Exteplayer3"))
-		self.play_system = ConfigSelection(default=self.providerObj.play_system, choices=play_system_choices)
-		Setup.__init__(self, session, yellow_button={"text": _("Delete provider \"%s\"") % self.providerObj.iptv_service_provider, "helptext": _("Permanently remove provider \"%s\" from your configuration.") % self.providerObj.iptv_service_provider, "function": self.keyRemove} if self.edit else None)
+		self.play_system = ConfigSelection(default=providerObj.play_system, choices=play_system_choices)
+		Setup.__init__(self, session, yellow_button={"text": _("Delete provider \"%s\"") % providerObj.iptv_service_provider, "helptext": _("Permanently remove provider \"%s\" from your configuration.") % providerObj.iptv_service_provider, "function": self.keyRemove} if self.edit else None)
 		self.title = _("M3UIPTVManager") + " - " + (_("edit provider") if self.edit else _("add new provider"))
 
 	def createSetup(self):
@@ -486,11 +486,11 @@ class M3UIPTVProviderEdit(Setup):
 		self.close(True)
 
 	def keyRemove(self):
-		self.session.openWithCallback(self.keyRemoveCallback, MessageBox, _("Are you sure you want to permanently remove provider \"%s\" from your configuration?") % self.providerObj.scheme, MessageBox.TYPE_YESNO)
+		self.session.openWithCallback(self.keyRemoveCallback, MessageBox, _("Are you sure you want to permanently remove provider \"%s\" from your configuration?") % self.scheme.value, MessageBox.TYPE_YESNO)
 
 	def keyRemoveCallback(self, answer=None):
 		if answer:
-			del providers[self.providerObj.scheme]
+			del providers[self.scheme.value]
 			writeProviders()
 			self.close(True)
 
