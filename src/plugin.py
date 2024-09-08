@@ -423,7 +423,7 @@ class M3UIPTVProviderEdit(Setup):
 	def __init__(self, session, provider=None):
 		self.edit = provider in providers
 		self.providerObj = providers.get(provider, IPTVProcessor())
-		self.type = ConfigSelection(default=self.providerObj.type, choices=[("M3U", "M3U/M3U8"), ("Xtreeme", "Xtreme Codes")])
+		self.type = ConfigSelection(default=self.providerObj.type, choices=[("M3U", _("M3U/M3U8")), ("Xtreeme", _("Xtreme Codes"))])
 		self.iptv_service_provider = ConfigText(default=self.providerObj.iptv_service_provider, fixed_size=False)
 		self.url = ConfigText(default=self.providerObj.url, fixed_size=False)
 		refresh_interval_choices = [(-1, _("off"))] + [(i, ngettext("%d hour", "%d hours", i) % i) for i in [1, 2, 3, 4, 5, 6, 12, 24]] 
@@ -443,35 +443,45 @@ class M3UIPTVProviderEdit(Setup):
 
 	def createSetup(self):
 		configlist = []
-		configlist.append((_("Provider Type"), self.type, _("Specify the provider type.")))
+		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited. 
+			configlist.append((_("Provider Type"), self.type, _("Specify the provider type.")))
 		configlist.append((_("Provider name"), self.iptv_service_provider, _("Specify the provider user friendly name that will be used for the bouquet name and for displaying in the infobar.")))
 		configlist.append(("URL", self.url, _("The playlist URL (*.m3u; *.m3u8)")))
-		configlist.append((_("Refresh interval"), self.refresh_interval, _("Interval in which the playlist will be automatically updated")))
+		if self.type.value == "M3U":
+			configlist.append((_("Refresh interval"), self.refresh_interval, _("Interval in which the playlist will be automatically updated")))
+			configlist.append((_("Use static URLs"), self.staticurl, _("If enabled URL will be static and not aliases. That means if the URL of a service changes in the playlist bouquet entry will stop working.")))
+			configlist.append((_("Filter"), self.search_criteria, _("The search criter by which the service will be searched in the playlist file.")))
+		else:
+			configlist.append((_("Username"), self.username, _("Desc.")))
+			configlist.append((_("Password"), self.password, _("Desc")))
 		configlist.append((_("Skip VOD entries"), self.novod, _("Skip VOD entries in the playlist")))
-		configlist.append((_("Use static URLs"), self.staticurl, _("If enabled URL will be static and not aliases. That means if the URL of a service changes in the playlist bouquet entry will stop working.")))
-		configlist.append((_("Filter"), self.search_criteria, _("The search criter by which the service will be searched in the playlist file.")))
 		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited. 
 			configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
 		configlist.append((_("Playback system"), self.play_system, _("The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3")))
 		self["config"].list = configlist
 
 	def keySave(self):
-		if not self.iptv_service_provider.value or not self.url.value or not self.scheme.value or not self.edit and self.scheme.value in providers:  # empty mandatory fields or scheme is not unique
+		if not self.iptv_service_provider.value or not self.url.value or not self.scheme.value or not self.edit and self.scheme.value in providers or self.type.value == "Xtreeme" and (not self.username.value or not self.password.value):  # empty mandatory fields or scheme is not unique
 			msg = _("Scheme must be unique. \"%s\" is already in use. Please update this field.") % self.scheme.value if not self.edit and self.scheme.value and self.scheme.value in providers else _("All fields must be filled in.")
 			self.session.open(MessageBox, msg, MessageBox.TYPE_ERROR, timeout=30)
 			return
-		self.providerObj.iptv_service_provider = self.iptv_service_provider.value
-		self.providerObj.url = self.url.value
-		self.providerObj.refresh_interval = self.refresh_interval.value
-		self.providerObj.search_criteria = self.search_criteria.value
-		self.providerObj.iptv_service_provider = self.iptv_service_provider.value
-		self.providerObj.scheme = self.scheme.value
-		self.providerObj.play_system = self.play_system.value
-		self.providerObj.ignore_vod = self.novod.value
-		self.providerObj.static_urls = self.staticurl.value
-		if getattr(self.providerObj, "onid", None) is None:
-			self.providerObj.onid = max([x.onid for x in providers.values() if hasattr(x, "onid")]) + 1 if len(providers) > 0 else 1000
-		providers[self.providerObj.scheme] = self.providerObj
+		providerObj = M3UProvider() if self.type.value == "M3U" else XtreemProvider()
+		providerObj.iptv_service_provider = self.iptv_service_provider.value
+		providerObj.url = self.url.value
+		providerObj.iptv_service_provider = self.iptv_service_provider.value
+		providerObj.scheme = self.scheme.value
+		providerObj.play_system = self.play_system.value
+		providerObj.ignore_vod = self.novod.value
+		if self.type.value == "M3U":
+			providerObj.refresh_interval = self.refresh_interval.value
+			providerObj.static_urls = self.staticurl.value
+			providerObj.search_criteria = self.search_criteria.value
+		else:
+			providerObj.username = self.username.value
+			providerObj.password = self.password.value
+		if getattr(providerObj, "onid", None) is None:
+			providerObj.onid = max([x.onid for x in providers.values() if hasattr(x, "onid")]) + 1 if len(providers) > 0 else 1000
+		providers[self.scheme.value] = providerObj
 		writeProviders()
 		self.close(True)
 

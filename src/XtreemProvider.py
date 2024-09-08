@@ -11,6 +11,8 @@ db = eDVBDB.getInstance()
 class XtreemProvider(IPTVProcessor):
 	def __init__(self):
 		IPTVProcessor.__init__(self)
+		self.type = "Xtreem"
+		self.refresh_interval = -1
 		self.username = ""
 		self.password = ""
 		

@@ -14,18 +14,9 @@ db = eDVBDB.getInstance()
 class M3UProvider(IPTVProcessor):
 	def __init__(self):
 		IPTVProcessor.__init__(self)
-		self.last_exec = None
 		self.playlist = None
 		self.isPlayBackup = False
-		self.iptv_service_provider = ""
-		self.url = ""
 		self.offset = 0
-		self.refresh_interval = 1
-		self.scheme = ""
-		self.search_criteria = "tvg-id=\"{SID}\""
-		self.play_system = "4097"
-		self.static_urls = False
-		self.ignore_vod = True
 		
 	def storePlaylistAndGenBouquet(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
