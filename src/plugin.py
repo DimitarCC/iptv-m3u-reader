@@ -2,6 +2,8 @@ from sys import modules
 from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner
 from Plugins.Plugin import PluginDescriptor
 from .M3UProvider import M3UProvider
+from .IPTVProcessor import IPTVProcessor
+from .XtreemProvider import XtreemProvider
 from .IPTVProviders import providers
 from .IPTVProviders import processService as processIPTVService
 from Screens.Screen import Screen
@@ -12,7 +14,7 @@ from Screens.Setup import Setup
 from Screens.Menu import Menu
 from Screens.MessageBox import MessageBox
 from Components.ActionMap import ActionMap
-from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigText
+from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigText, ConfigPassword
 from Components.ParentalControl import parentalControl
 from Components.Sources.StaticText import StaticText
 from Components.Sources.List import List
@@ -62,6 +64,21 @@ def readProviders():
 				providerObj.onid = onid
 				providers[providerObj.scheme] = providerObj
 				onid += 1
+			for provider in elem.findall("xtreemprovider"):
+				providerObj = XtreemProvider()
+				providerObj.type = "Xtreem"
+				providerObj.scheme = provider.find("scheme").text
+				providerObj.iptv_service_provider = provider.find("servicename").text
+				providerObj.url = provider.find("url").text.replace("&amp;", "&")
+				providerObj.refresh_interval = int(provider.find("refresh_interval").text)
+				providerObj.username = provider.find("username").text
+				providerObj.password = provider.find("password").text
+				providerObj.play_system = provider.find("system").text
+				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
+				providerObj.onid = onid
+				providers[providerObj.scheme] = providerObj
+				onid += 1
+
 	fd.close()
 
 
@@ -69,16 +86,28 @@ def writeProviders():
 	xml = []
 	xml.append("<providers>\n")
 	for key, val in providers.items():
-		xml.append("\t<provider>\n")
-		xml.append(f"\t\t<servicename>{val.iptv_service_provider}</servicename>\n")
-		xml.append(f"\t\t<url>{val.url.replace('&', '&amp;')}</url>\n")
-		xml.append(f"\t\t<refresh_interval>{val.refresh_interval}</refresh_interval>\n")
-		xml.append(f"\t\t<novod>{'on' if val.ignore_vod else 'off'}</novod>\n")
-		xml.append(f"\t\t<staticurl>{'on' if val.static_urls else 'off'}</staticurl>\n")
-		xml.append(f"\t\t<filter>{val.search_criteria}</filter>\n")
-		xml.append(f"\t\t<scheme>{val.scheme}</scheme>\n")
-		xml.append(f"\t\t<system>{val.play_system}</system>\n")
-		xml.append("\t</provider>\n")
+		if isinstance(val, M3UProvider):
+			xml.append("\t<provider>\n")
+			xml.append(f"\t\t<servicename>{val.iptv_service_provider}</servicename>\n")
+			xml.append(f"\t\t<url>{val.url.replace('&', '&amp;')}</url>\n")
+			xml.append(f"\t\t<refresh_interval>{val.refresh_interval}</refresh_interval>\n")
+			xml.append(f"\t\t<novod>{'on' if val.ignore_vod else 'off'}</novod>\n")
+			xml.append(f"\t\t<staticurl>{'on' if val.static_urls else 'off'}</staticurl>\n")
+			xml.append(f"\t\t<filter>{val.search_criteria}</filter>\n")
+			xml.append(f"\t\t<scheme>{val.scheme}</scheme>\n")
+			xml.append(f"\t\t<system>{val.play_system}</system>\n")
+			xml.append("\t</provider>\n")
+		else:
+			xml.append("\t<xtreemprovider>\n")
+			xml.append(f"\t\t<servicename>{val.iptv_service_provider}</servicename>\n")
+			xml.append(f"\t\t<url>{val.url.replace('&', '&amp;')}</url>\n")
+			xml.append(f"\t\t<refresh_interval>{val.refresh_interval}</refresh_interval>\n")
+			xml.append(f"\t\t<novod>{'on' if val.ignore_vod else 'off'}</novod>\n")
+			xml.append(f"\t\t<username>{val.username}</username>\n")
+			xml.append(f"\t\t<password>{val.password}</password>\n")
+			xml.append(f"\t\t<scheme>{val.scheme}</scheme>\n")
+			xml.append(f"\t\t<system>{val.play_system}</system>\n")
+			xml.append("\t</xtreemprovider>\n")
 	xml.append("</providers>\n")
 	makedirs(path.dirname(USER_IPTV_PROVIDERS_FILE), exist_ok=True)  # create config folder recursive if not exists
 	with write_lock:
@@ -390,7 +419,8 @@ class M3UIPTVManagerConfig(Screen):
 class M3UIPTVProviderEdit(Setup):
 	def __init__(self, session, provider=None):
 		self.edit = provider in providers
-		self.providerObj = providers.get(provider, M3UProvider())
+		self.providerObj = providers.get(provider, IPTVProcessor())
+		self.type = ConfigSelection(default=self.providerObj.type, choices=[("M3U", "M3U/M3U8"), ("Xtreeme", "Xtreme Codes")])
 		self.iptv_service_provider = ConfigText(default=self.providerObj.iptv_service_provider, fixed_size=False)
 		self.url = ConfigText(default=self.providerObj.url, fixed_size=False)
 		refresh_interval_choices = [(-1, _("off"))] + [(i, ngettext("%d hour", "%d hours", i) % i) for i in [1, 2, 3, 4, 5, 6, 12, 24]] 
@@ -399,6 +429,8 @@ class M3UIPTVProviderEdit(Setup):
 		self.staticurl = ConfigYesNo(default=self.providerObj.static_urls)
 		self.search_criteria = ConfigText(default=self.providerObj.search_criteria, fixed_size=False)
 		self.scheme = ConfigText(default=self.providerObj.scheme, fixed_size=False)
+		self.username = ConfigText(default=self.providerObj.username, fixed_size=False)
+		self.password = ConfigPassword(default=self.providerObj.password, fixed_size=False)
 		play_system_choices = [("1", "DVB"), ("4097", "GStreamer")]
 		if isPluginInstalled("ServiceApp"):
 			play_system_choices.append(("5002", "Exteplayer3"))
@@ -408,6 +440,7 @@ class M3UIPTVProviderEdit(Setup):
 
 	def createSetup(self):
 		configlist = []
+		configlist.append((_("Provider Type"), self.type, _("Specify the provider type.")))
 		configlist.append((_("Provider name"), self.iptv_service_provider, _("Specify the provider user friendly name that will be used for the bouquet name and for displaying in the infobar.")))
 		configlist.append(("URL", self.url, _("The playlist URL (*.m3u; *.m3u8)")))
 		configlist.append((_("Refresh interval"), self.refresh_interval, _("Interval in which the playlist will be automatically updated")))
