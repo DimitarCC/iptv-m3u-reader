@@ -443,17 +443,18 @@ class M3UIPTVProviderEdit(Setup):
 
 	def createSetup(self):
 		configlist = []
-		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited. 
+		if not self.edit:  # Only show when adding a provider so to select the output type.
 			configlist.append((_("Provider Type"), self.type, _("Specify the provider type.")))
 		configlist.append((_("Provider name"), self.iptv_service_provider, _("Specify the provider user friendly name that will be used for the bouquet name and for displaying in the infobar.")))
-		configlist.append(("URL", self.url, _("The playlist URL (*.m3u; *.m3u8)")))
+		configlist.append(("URL", self.url, _("The playlist URL (*.m3u; *.m3u8) or the Xtreme codes server URL.")))
 		if self.type.value == "M3U":
-			configlist.append((_("Refresh interval"), self.refresh_interval, _("Interval in which the playlist will be automatically updated")))
 			configlist.append((_("Use static URLs"), self.staticurl, _("If enabled URL will be static and not aliases. That means if the URL of a service changes in the playlist bouquet entry will stop working.")))
+			if not self.staticurl.value:
+				configlist.append((_("Refresh interval"), self.refresh_interval, _("Interval in which the playlist will be automatically updated")))
 			configlist.append((_("Filter"), self.search_criteria, _("The search criter by which the service will be searched in the playlist file.")))
 		else:
-			configlist.append((_("Username"), self.username, _("Desc.")))
-			configlist.append((_("Password"), self.password, _("Desc")))
+			configlist.append((_("Username"), self.username, _("User name used for authenticating in Xtreme codes server.")))
+			configlist.append((_("Password"), self.password, _("Password used for authenticating in Xtreme codes server.")))
 		configlist.append((_("Skip VOD entries"), self.novod, _("Skip VOD entries in the playlist")))
 		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited. 
 			configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
