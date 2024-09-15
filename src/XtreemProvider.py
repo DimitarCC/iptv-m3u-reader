@@ -14,8 +14,6 @@ class XtreemProvider(IPTVProcessor):
 		IPTVProcessor.__init__(self)
 		self.type = "Xtreem"
 		self.refresh_interval = -1
-		self.username = ""
-		self.password = ""
 		self.vod_movies = []
 		
 	def storePlaylistAndGenBouquet(self):

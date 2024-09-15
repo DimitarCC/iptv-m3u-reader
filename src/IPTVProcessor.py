@@ -16,7 +16,6 @@ class IPTVProcessor():
 		self.static_urls = False  # used by M3UProvider, default here for Setup
 		self.username = ""  # used by XtreemProvider, default here for Setup
 		self.password = ""  # used by XtreemProvider, default here for Setup
-		self.vod_movies = [] # used by XtreemProvider, default here for Setup
 		
 	def getPlaylistAndGenBouquet(self, callback=None):
 		if callback:
