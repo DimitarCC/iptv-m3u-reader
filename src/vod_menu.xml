@@ -1,0 +1,14 @@
+<menu key="vod_menu" level="0" text="Video On Demand">
+	<item key="vod_movies" level="0" text="Movies" description="VoD Movies.">
+		<code>
+from Plugins.SystemPlugins.M3UIPTV.plugin import M3UIPTVVoDMovies
+self.session.open(M3UIPTVVoDMovies)
+		</code>
+	</item>
+	<item key="vod_series" level="0" text="TV Shows" description="Video On Demand TV Shows listing.">
+		<code>
+from Plugins.SystemPlugins.M3UIPTV.plugin import M3UIPTVManagerConfig
+self.session.open(M3UIPTVManagerConfig)
+		</code>
+	</item>
+</menu>

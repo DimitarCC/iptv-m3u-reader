@@ -10,8 +10,8 @@ from .XtreemProvider import XtreemProvider
 from .IPTVProviders import providers
 from .IPTVProviders import processService as processIPTVService
 from Screens.Screen import Screen
-from Screens.InfoBar import InfoBar
-from Screens.InfoBarGenerics import streamrelay
+from Screens.InfoBar import InfoBar, MoviePlayer
+from Screens.InfoBarGenerics import streamrelay, setResumePoint
 from Screens.PictureInPicture import PictureInPicture
 from Screens.Setup import Setup
 from Screens.Menu import Menu
@@ -46,6 +46,10 @@ file = open("%s/menu.xml" % path.dirname(modules[__name__].__file__), 'r')
 mdom = xml.etree.cElementTree.parse(file)
 file.close()
 
+file_vod = open("%s/vod_menu.xml" % path.dirname(modules[__name__].__file__), 'r')
+mdom_vod = xml.etree.cElementTree.parse(file_vod)
+file_vod.close()
+
 
 def readProviders():
 	if not fileExists(USER_IPTV_PROVIDERS_FILE):
@@ -79,6 +83,8 @@ def readProviders():
 				providerObj.play_system = provider.find("system").text
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.onid = onid
+				if not providerObj.ignore_vod:
+					providerObj.getVoDMovies()
 				providers[providerObj.scheme] = providerObj
 				onid += 1
 
@@ -131,7 +137,10 @@ def injectIntoNavigation():
 	NavigationInstance.instance.recordService = recordServiceWithIPTV.__get__(NavigationInstance.instance, Navigation)
 	NavigationInstance.instance.getCurrentlyPlayingServiceOrGroup = getCurrentlyPlayingServiceOrGroup.__get__(NavigationInstance.instance, Navigation)
 	PictureInPicture.playService = playServiceWithIPTVPiP
+	#Screens.InfoBarGenerics.isMoviePlayerInfobar = isMoviePlayerInfoBar
 
+#def isMoviePlayerInfoBar(self):
+#	return self.__class__.__name__ in ("MoviePlayer", "VoDMoviePlayer")
 
 def getCurrentlyPlayingServiceOrGroup(self):
 	return self.originalPlayingServiceReference or self.currentlyPlayingServiceOrGroup
@@ -345,6 +354,89 @@ def recordServiceWithIPTV(self, ref, simulate=False):
 			print("[Navigation] record returned non-zero")
 	return service
 
+class VoDMoviePlayer(MoviePlayer):
+	def __init__(self, session, service, slist=None, lastservice=None):
+		MoviePlayer.__init__(self, session, service=service, slist=slist, lastservice=lastservice)
+		self.skinName = ["VoDMoviePlayer", "MoviePlayer"]
+
+	def leavePlayer(self):
+		setResumePoint(self.session)
+		self.handleLeave("quit")
+
+	def leavePlayerOnExit(self):
+		if self.shown:
+			self.hide()
+		else:
+			self.leavePlayer()
+
+	def up(self):
+		pass
+
+	def down(self):
+		pass
+
+
+class M3UIPTVVoDMovies(Screen):
+	skin = ["""
+		<screen name="M3UIPTVVoDMovies" position="center,center" size="%d,%d">
+			<panel name="__DynamicColorButtonTemplate__"/>
+			<widget source="list" render="Listbox" position="%d,%d" size="%d,%d" scrollbarMode="showOnDemand">
+				<convert type="TemplatedMultiContent">
+					{"template": [
+							MultiContentEntryText(pos = (%d,%d), size = (%d,%d), flags = RT_HALIGN_LEFT, text = 1), # index 0 is the MenuText,
+						],
+					"fonts": [gFont("Regular",%d)],
+					"itemHeight":%d
+					}
+				</convert>
+			</widget>
+			<widget source="description" render="Label" position="%d,%d" zPosition="10" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1" />
+		</screen>""",
+			610, 410,  # screen
+			15, 60, 580, 286,  # Listbox
+			2, 0, 330, 26,  # template
+			22,  # fonts
+			26,  # ItemHeight
+			5, 360, 600, 50, 22,  # description
+			]  # noqa: E124
+
+	def __init__(self, session):
+		Screen.__init__(self, session)
+		self.setTitle(_("VoD Movies"))
+		self["list"] = List([])
+		self.buildList()
+		self["key_red"] = StaticText(_("Close"))
+		# self["key_green"] = StaticText(_(""))
+		# self["key_yellow"] = StaticText(_(""))
+		# self["key_blue"] = StaticText(_(""))
+		self["description"] = StaticText(_("Press OK to play selected movie"))
+
+		self["actions"] = ActionMap(["SetupActions", "ColorActions",],
+			{
+				"cancel": self.close,  # KEY_RED / KEY_EXIT
+				# "save": self.green,  # KEY_GREEN
+				"ok": self.playMovie,
+				# "yellow": self.yellow,
+				# "blue": self.blue,
+			}, -1)  # noqa: E123
+
+	def buildList(self):
+		allmovies = []
+
+		for provider in providers:
+			allmovies += providers[provider].vod_movies
+
+		allmovies.reverse()
+
+		self["list"].setList([(movie, movie.name) for movie in allmovies])
+
+	def playMovie(self):
+		if current := self["list"].getCurrent():
+			infobar = InfoBar.instance
+			if infobar:
+				LastService = self.session.nav.getCurrentlyPlayingServiceOrGroup()
+				ref = eServiceReference("4097:0:1:9999:1009:1:CCCC0000:0:0:0:%s:%s" % (current[0].url.replace(":", "%3a"), current[0].name))
+				self.session.open(VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
 
 class M3UIPTVManagerConfig(Screen):
 	skin = ["""
@@ -526,16 +618,26 @@ class IPTVPluginConfig(Setup):
 def M3UIPTVMenu(session, close=None, **kwargs):
 	session.openWithCallback(boundFunction(M3UIPTVMenuCallback, close), Menu, mdom.getroot())
 
-
 def M3UIPTVMenuCallback(close, answer=None):
 	if close and answer:
 		close(True)
 
+def M3UIPTVVoDMenu(session, close=None, **kwargs):
+	session.openWithCallback(boundFunction(M3UIPTVVoDMenuCallback, close), Menu, mdom_vod.getroot())
+
+def M3UIPTVVoDMenuCallback(close, answer=None):
+	if close and answer:
+		close(True)
 
 def startSetup(menuid):
 	if menuid != "setup":
 		return []
-	return [(_("IPTV"), M3UIPTVMenu, "iptvmenu", 22)]
+	return [(_("IPTV"), M3UIPTVMenu, "iptvmenu", 9)]
+
+def startVoDSetup(menuid):
+	if menuid != "mainmenu":
+		return []
+	return [(_("Video On Demand"), M3UIPTVVoDMenu, "iptv_vod_menu", 2)]
 
 
 def sessionstart(reason, **kwargs):
@@ -546,7 +648,10 @@ def sessionstart(reason, **kwargs):
 
 def Plugins(path, **kwargs):
 	try:
-		return [PluginDescriptor(where=PluginDescriptor.WHERE_SESSIONSTART, fnc=sessionstart, needsRestart=False), PluginDescriptor(where=PluginDescriptor.WHERE_MENU, needsRestart=False, fnc=startSetup)]
+		return [PluginDescriptor(where=PluginDescriptor.WHERE_SESSIONSTART, fnc=sessionstart, needsRestart=False),
+		  PluginDescriptor(where=PluginDescriptor.WHERE_MENU, needsRestart=False, fnc=startSetup),
+		  PluginDescriptor(where=PluginDescriptor.WHERE_MENU, needsRestart=False, fnc=startVoDSetup)
+		  ]
 	except ImportError:
 		return PluginDescriptor()
 
