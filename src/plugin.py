@@ -2,16 +2,20 @@
 from . import _
 
 from sys import modules
+from time import time
 from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner
 from Plugins.Plugin import PluginDescriptor
 from .M3UProvider import M3UProvider
 from .IPTVProcessor import IPTVProcessor
 from .XtreemProvider import XtreemProvider
+from .StalkerProvider import StalkerProvider
 from .IPTVProviders import providers
 from .IPTVProviders import processService as processIPTVService
+from .VoDItem import VoDItem
+from .Variables import USER_IPTV_PROVIDERS_FILE
 from Screens.Screen import Screen
 from Screens.InfoBar import InfoBar, MoviePlayer
-from Screens.InfoBarGenerics import streamrelay, setResumePoint
+from Screens.InfoBarGenerics import streamrelay, saveResumePoints, resumePointCache, resumePointCacheLast, delResumePoint
 from Screens.PictureInPicture import PictureInPicture
 from Screens.Setup import Setup
 from Screens.Menu import Menu
@@ -21,8 +25,9 @@ from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelec
 from Components.ParentalControl import parentalControl
 from Components.Sources.StaticText import StaticText
 from Components.Sources.List import List
+from Components.Sources.Progress import Progress
 from Components.SystemInfo import SystemInfo
-from Tools.Directories import resolveFilename, SCOPE_CONFIG, fileExists, isPluginInstalled
+from Tools.Directories import fileExists, isPluginInstalled
 from Tools.BoundFunction import boundFunction
 from Navigation import Navigation
 
@@ -33,13 +38,12 @@ from xml.etree.cElementTree import iterparse
 import threading
 write_lock = threading.Lock()
 
-USER_IPTV_PROVIDERS_FILE = path.realpath(resolveFilename(SCOPE_CONFIG)) + "/M3UIPTV/providers.xml"
-
 config.plugins.m3uiptv = ConfigSubsection()
 config.plugins.m3uiptv.enabled = ConfigYesNo(default=True)
 choicelist = [("off", _("off"))] + [(str(i), ngettext("%d second", "%d seconds", i) % i) for i in [1, 2, 3, 5, 7, 10]] 
 config.plugins.m3uiptv.check_internet = ConfigSelection(default="2", choices=choicelist)
 config.plugins.m3uiptv.req_timeout = ConfigSelection(default="2", choices=choicelist)
+config.plugins.m3uiptv.inmenu = ConfigYesNo(default=True)
 
 
 file = open("%s/menu.xml" % path.dirname(modules[__name__].__file__), 'r')
@@ -84,12 +88,26 @@ def readProviders():
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.onid = onid
 				if not providerObj.ignore_vod:
-					providerObj.getVoDMovies()
+					providerObj.loadVoDMoviesFromFile()
+				providers[providerObj.scheme] = providerObj
+				onid += 1
+			for provider in elem.findall("stalkerprovider"):
+				providerObj = StalkerProvider()
+				providerObj.type = "Stalker"
+				providerObj.scheme = provider.find("scheme").text
+				providerObj.iptv_service_provider = provider.find("servicename").text
+				providerObj.url = provider.find("url").text.replace("&amp;", "&")
+				providerObj.refresh_interval = int(provider.find("refresh_interval").text)
+				providerObj.mac = provider.find("mac").text
+				providerObj.play_system = provider.find("system").text
+				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
+				providerObj.onid = onid
+				if not providerObj.ignore_vod:
+					providerObj.loadVoDMoviesFromFile()
 				providers[providerObj.scheme] = providerObj
 				onid += 1
 
 	fd.close()
-
 
 def writeProviders():
 	xml = []
@@ -106,7 +124,7 @@ def writeProviders():
 			xml.append(f"\t\t<scheme>{val.scheme}</scheme>\n")
 			xml.append(f"\t\t<system>{val.play_system}</system>\n")
 			xml.append("\t</provider>\n")
-		else:
+		elif isinstance(val, XtreemProvider):
 			xml.append("\t<xtreemprovider>\n")
 			xml.append(f"\t\t<servicename>{val.iptv_service_provider}</servicename>\n")
 			xml.append(f"\t\t<url>{val.url.replace('&', '&amp;')}</url>\n")
@@ -117,6 +135,16 @@ def writeProviders():
 			xml.append(f"\t\t<scheme>{val.scheme}</scheme>\n")
 			xml.append(f"\t\t<system>{val.play_system}</system>\n")
 			xml.append("\t</xtreemprovider>\n")
+		else:
+			xml.append("\t<stalkerprovider>\n")
+			xml.append(f"\t\t<servicename>{val.iptv_service_provider}</servicename>\n")
+			xml.append(f"\t\t<url>{val.url.replace('&', '&amp;')}</url>\n")
+			xml.append(f"\t\t<refresh_interval>{val.refresh_interval}</refresh_interval>\n")
+			xml.append(f"\t\t<novod>{'on' if val.ignore_vod else 'off'}</novod>\n")
+			xml.append(f"\t\t<mac>{val.mac}</mac>\n")
+			xml.append(f"\t\t<scheme>{val.scheme}</scheme>\n")
+			xml.append(f"\t\t<system>{val.play_system}</system>\n")
+			xml.append("\t</stalkerprovider>\n")
 	xml.append("</providers>\n")
 	makedirs(path.dirname(USER_IPTV_PROVIDERS_FILE), exist_ok=True)  # create config folder recursive if not exists
 	with write_lock:
@@ -360,7 +388,7 @@ class VoDMoviePlayer(MoviePlayer):
 		self.skinName = ["VoDMoviePlayer", "MoviePlayer"]
 
 	def leavePlayer(self):
-		setResumePoint(self.session)
+		self.setResumePoint()
 		self.handleLeave("quit")
 
 	def leavePlayerOnExit(self):
@@ -368,6 +396,35 @@ class VoDMoviePlayer(MoviePlayer):
 			self.hide()
 		else:
 			self.leavePlayer()
+
+	def setResumePoint(self):
+		global resumePointCache, resumePointCacheLast
+		service = self.session.nav.getCurrentService()
+		ref = self.session.nav.getCurrentlyPlayingServiceOrGroup()
+		if (service is not None) and (ref is not None):
+			seek = service.seek()
+			if seek:
+				pos = seek.getPlayPosition()
+				if not pos[0]:
+					key = ref.toString()
+					lru = int(time())
+					sl = seek.getLength()
+					if sl:
+						sl = sl[1]
+					else:
+						sl = None
+					resumePointCache[key] = [lru, pos[1], sl]
+					saveResumePoints()
+	
+	def doEofInternal(self, playing):
+		if not self.execing:
+			return
+		if not playing:
+			return
+		ref = self.session.nav.getCurrentlyPlayingServiceOrGroup()
+		if ref:
+			delResumePoint(ref)
+		self.handleLeave("quit")
 
 	def up(self):
 		pass
@@ -466,6 +523,11 @@ class M3UIPTVManagerConfig(Screen):
 		Screen.__init__(self, session)
 		self.setTitle(_("M3U IPTV Manager - providers"))
 		self["list"] = List([])
+		self["progress"] = Progress()
+		self.progress_timer = eTimer()
+		self.progress_timer.callback.append(self.onProgressTimer)
+		self.progress_timer.start(1000)
+		self.onProgressTimer()
 		self.buildList()
 		self["key_red"] = StaticText(_("Close"))
 		self["key_green"] = StaticText(_("Add provider"))
@@ -481,6 +543,23 @@ class M3UIPTVManagerConfig(Screen):
 				"yellow": self.generateBouquet,
 				"blue": self.generateEpgimportMapping,
 			}, -1)  # noqa: E123
+		
+	def onProgressTimer(self):
+		print("PROGRESS TIMER TRIGGERED")
+		providers_updating = 0
+		providers_overal_progress = 0
+		for provider in providers:
+			prov = providers[provider]
+			if prov.progress_percentage > -1:
+				providers_updating += 1
+				providers_overal_progress += prov.progress_percentage
+
+		if providers_updating == 0:
+			self.progress_timer.stop()
+		else:
+			print("PROGRESS VALUE UPDATED: %d//%d = %d" % (providers_overal_progress, providers_updating, int(providers_overal_progress // providers_updating)))
+			progress_val = int(providers_overal_progress // providers_updating)
+			self["progress"].value = progress_val if progress_val >= 0 else 0
 
 	def buildList(self):
 		self["list"].list = [(provider, providers[provider].iptv_service_provider) for provider in providers]
@@ -500,25 +579,36 @@ class M3UIPTVManagerConfig(Screen):
 		if current := self["list"].getCurrent():
 			provider = current[0]
 			providerObj = providers[provider]
+			providerObj.progress_percentage = 0
+			self.progress_timer.stop()
+			self.progress_timer.start(1000)
 			try:
+				providerObj.onBouquetCreated.append(self.onBouquetCreated)
 				providerObj.getPlaylistAndGenBouquet()
-				self.session.open(MessageBox, _("\"%s\" bouquet has been generated succesfully") % providerObj.iptv_service_provider, MessageBox.TYPE_INFO, timeout=5)
 			except Exception as ex:
-				print("EXCEPTION: " + str(ex))
+				print("[M3UIPTV] Error has occured during bouquet creation\r\n\r\n" + str(ex))
 				self.session.open(MessageBox, _("Unable to create bouquet \"%s\"!\nPossible reason can be no network available.") % providerObj.iptv_service_provider, MessageBox.TYPE_ERROR, timeout=5)
 
 	def generateEpgimportMapping(self):
 		self.session.open(MessageBox, _("EPG Import mapping coming soon"), MessageBox.TYPE_INFO, timeout=3)
+
+	def onBouquetCreated(self, providerObj, error):
+		if not hasattr(self, "session") or not self.session:
+			return
+		if error:
+			self.session.open(MessageBox, _("Unable to create bouquet \"%s\"!\nPossible reason can be no network available.") % providerObj.iptv_service_provider, MessageBox.TYPE_ERROR, timeout=5)
+		else:
+			self.session.open(MessageBox, _("\"%s\" bouquet has been generated succesfully") % providerObj.iptv_service_provider, MessageBox.TYPE_INFO, timeout=5)
 
 
 class M3UIPTVProviderEdit(Setup):
 	def __init__(self, session, provider=None):
 		self.edit = provider in providers
 		providerObj = providers.get(provider, IPTVProcessor())
-		self.type = ConfigSelection(default=providerObj.type, choices=[("M3U", _("M3U/M3U8")), ("Xtreeme", _("Xtreme Codes"))])
+		self.type = ConfigSelection(default=providerObj.type, choices=[("M3U", _("M3U/M3U8")), ("Xtreeme", _("Xtreme Codes")), ("Stalker", _("Stalker portal"))])
 		self.iptv_service_provider = ConfigText(default=providerObj.iptv_service_provider, fixed_size=False)
 		self.url = ConfigText(default=providerObj.url, fixed_size=False)
-		refresh_interval_choices = [(-1, _("off"))] + [(i, ngettext("%d hour", "%d hours", i) % i) for i in [1, 2, 3, 4, 5, 6, 12, 24]] 
+		refresh_interval_choices = [(-1, _("off")), (0, _("on"))] + [(i, ngettext("%d hour", "%d hours", i) % i) for i in [1, 2, 3, 4, 5, 6, 12, 24]] 
 		self.refresh_interval = ConfigSelection(default=providerObj.refresh_interval, choices=refresh_interval_choices)
 		self.novod = ConfigYesNo(default=providerObj.ignore_vod)
 		self.staticurl = ConfigYesNo(default=providerObj.static_urls)
@@ -526,6 +616,7 @@ class M3UIPTVProviderEdit(Setup):
 		self.scheme = ConfigText(default=providerObj.scheme, fixed_size=False)
 		self.username = ConfigText(default=providerObj.username, fixed_size=False)
 		self.password = ConfigPassword(default=providerObj.password, fixed_size=False)
+		self.mac = ConfigText(default=providerObj.mac, fixed_size=False)
 		play_system_choices = [("1", "DVB"), ("4097", "GStreamer")]
 		if isPluginInstalled("ServiceApp"):
 			play_system_choices.append(("5002", "Exteplayer3"))
@@ -544,9 +635,12 @@ class M3UIPTVProviderEdit(Setup):
 			if not self.staticurl.value:
 				configlist.append((_("Refresh interval"), self.refresh_interval, _("Interval in which the playlist will be automatically updated")))
 			configlist.append((_("Filter"), self.search_criteria, _("The search criter by which the service will be searched in the playlist file.")))
-		else:
+		elif self.type.value == "Xtreem":
 			configlist.append((_("Username"), self.username, _("User name used for authenticating in Xtreme codes server.")))
 			configlist.append((_("Password"), self.password, _("Password used for authenticating in Xtreme codes server.")))
+		else:
+			configlist.append((_("MAC address"), self.mac, _("MAC address used for authenticating in Stalker portal.")))
+
 		configlist.append((_("Skip VOD entries"), self.novod, _("Skip VOD entries in the playlist")))
 		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited. 
 			configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
@@ -558,7 +652,12 @@ class M3UIPTVProviderEdit(Setup):
 			msg = _("Scheme must be unique. \"%s\" is already in use. Please update this field.") % self.scheme.value if not self.edit and self.scheme.value and self.scheme.value in providers else _("All fields must be filled in.")
 			self.session.open(MessageBox, msg, MessageBox.TYPE_ERROR, timeout=30)
 			return
-		providerObj = M3UProvider() if self.type.value == "M3U" else XtreemProvider()
+		if self.type.value == "M3U":
+			providerObj = M3UProvider() 
+		elif self.type.value == "Xtreeme":
+			providerObj = XtreemProvider() 
+		else:
+			providerObj = StalkerProvider() 
 		providerObj.iptv_service_provider = self.iptv_service_provider.value
 		providerObj.url = self.url.value
 		providerObj.iptv_service_provider = self.iptv_service_provider.value
@@ -569,9 +668,12 @@ class M3UIPTVProviderEdit(Setup):
 			providerObj.refresh_interval = self.refresh_interval.value
 			providerObj.static_urls = self.staticurl.value
 			providerObj.search_criteria = self.search_criteria.value
-		else:
+		elif self.type.value == "Xtreeme":
 			providerObj.username = self.username.value
 			providerObj.password = self.password.value
+		else:
+			providerObj.mac = self.mac.value
+
 		if getattr(providerObj, "onid", None) is None:
 			providerObj.onid = max([x.onid for x in providers.values() if hasattr(x, "onid")]) + 1 if len(providers) > 0 else 1000
 		providers[self.scheme.value] = providerObj
@@ -598,6 +700,7 @@ class IPTVPluginConfig(Setup):
 		configlist.append((_("Enable IPTV manager") + " *", config.plugins.m3uiptv.enabled, _("Enable IPTV functionality and managment.")))
 		configlist.append((_("Check for Network"), config.plugins.m3uiptv.check_internet, _("Do a check is network available before try to retrieve the iptv playlist. If no network try backup services.")))
 		configlist.append((_("Request timeout"), config.plugins.m3uiptv.req_timeout, _("Timeout in seconds for the requests of getting playlist.")))
+		configlist.append((_("Show 'Video on Demand' menu entry") + " *", config.plugins.m3uiptv.inmenu, _("Allow showing of 'Video on Demand' menu entry in Main Menu.")))
 		configlist.append(("---",))
 		configlist.append((_("Recordings - convert IPTV servicetypes to  1"), config.recording.setstreamto1, _("Recording 4097, 5001 and 5002 streams not possible with external players, so convert recordings to servicetype 1.")))
 		configlist.append((_("Enable new GStreamer playback"), config.misc.usegstplaybin3, _("If enabled, the new GStreamer playback engine will be used.")))
@@ -637,7 +740,7 @@ def startSetup(menuid):
 def startVoDSetup(menuid):
 	if menuid != "mainmenu":
 		return []
-	return [(_("Video On Demand"), M3UIPTVVoDMenu, "iptv_vod_menu", 2)]
+	return [(_("Video on Demand"), M3UIPTVVoDMenu, "iptv_vod_menu", None)]
 
 
 def sessionstart(reason, **kwargs):
@@ -648,10 +751,13 @@ def sessionstart(reason, **kwargs):
 
 def Plugins(path, **kwargs):
 	try:
-		return [PluginDescriptor(where=PluginDescriptor.WHERE_SESSIONSTART, fnc=sessionstart, needsRestart=False),
-		  PluginDescriptor(where=PluginDescriptor.WHERE_MENU, needsRestart=False, fnc=startSetup),
-		  PluginDescriptor(where=PluginDescriptor.WHERE_MENU, needsRestart=False, fnc=startVoDSetup)
-		  ]
+		result = [PluginDescriptor(where=PluginDescriptor.WHERE_SESSIONSTART, fnc=sessionstart, needsRestart=False),
+		  		PluginDescriptor(where=PluginDescriptor.WHERE_MENU, needsRestart=False, fnc=startSetup)
+		]
+		if config.plugins.m3uiptv.inmenu.value:
+			result += [PluginDescriptor(where=PluginDescriptor.WHERE_MENU, needsRestart=False, fnc=startVoDSetup)]
+
+		return result
 	except ImportError:
 		return PluginDescriptor()
 

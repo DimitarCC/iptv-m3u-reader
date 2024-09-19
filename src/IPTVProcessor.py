@@ -1,5 +1,4 @@
 from twisted.internet import threads
-import twisted.python.runtime
 
 class IPTVProcessor():
 	def __init__(self):
@@ -16,6 +15,10 @@ class IPTVProcessor():
 		self.static_urls = False  # used by M3UProvider, default here for Setup
 		self.username = ""  # used by XtreemProvider, default here for Setup
 		self.password = ""  # used by XtreemProvider, default here for Setup
+		self.mac = ""  # used by StalkerProvider, default here for Setup
+		self.vod_movies = []
+		self.onBouquetCreated = []
+		self.progress_percentage = -1
 		
 	def getPlaylistAndGenBouquet(self, callback=None):
 		if callback:
@@ -29,5 +32,12 @@ class IPTVProcessor():
 	def getVoDMovies(self):
 		pass
 
+	def loadVoDMoviesFromFile(self):
+		pass
+
 	def processService(self, nref, iptvinfodata, callback=None):
 		return nref, nref, False
+	
+	def bouquetCreated(self, error):
+		for f in self.onBouquetCreated:
+			f(self, error)

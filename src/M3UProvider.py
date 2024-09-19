@@ -3,11 +3,11 @@ from ServiceReference import ServiceReference
 from Components.config import config
 from time import time
 from twisted.internet import threads
-import twisted.python.runtime
 import socket
 import urllib
 import re
 from .IPTVProcessor import IPTVProcessor
+from .Variables import USER_AGENT
 
 db = eDVBDB.getInstance()
 
@@ -17,13 +17,14 @@ class M3UProvider(IPTVProcessor):
 		self.playlist = None
 		self.isPlayBackup = False
 		self.offset = 0
+		self.progress_percentage = -1
 		
 	def storePlaylistAndGenBouquet(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
 		if is_check_network_val != "off":
 			socket.setdefaulttimeout(int(is_check_network_val))
 			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
-		req = urllib.request.Request(self.url, headers={'User-Agent' : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"}) 
+		req = urllib.request.Request(self.url, headers={'User-Agent' : USER_AGENT}) 
 		req_timeout_val = config.plugins.m3uiptv.req_timeout.value
 		if req_timeout_val != "off":
 			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
@@ -77,6 +78,7 @@ class M3UProvider(IPTVProcessor):
 					services.append(sref)
 			line_nr += 1
 		db.addOrUpdateBouquet(self.iptv_service_provider, services, 1)
+		self.bouquetCreated(None)
 
 	def processService(self, nref, iptvinfodata, callback=None):
 		splittedRef = nref.toString().split(":")
