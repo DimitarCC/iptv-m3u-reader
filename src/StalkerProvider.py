@@ -9,6 +9,7 @@ import time
 from .IPTVProcessor import IPTVProcessor
 from .VoDItem import VoDItem
 from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT
+from Tools.Directories import sanitizeFilename
 
 from os import fsync, rename
 
@@ -30,6 +31,7 @@ class StalkerProvider(IPTVProcessor):
 		self.refresh_interval = -1
 		self.vod_movies = []
 		self.progress_percentage = -1
+		self.create_groups = True
 		
 	def storePlaylistAndGenBouquet(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
@@ -42,28 +44,31 @@ class StalkerProvider(IPTVProcessor):
 		if token:
 			genres = self.get_genres(session, token)
 			# print("GETTING CHANNELS FOR GENRE %s/%s" % (genres[0]["genre_id"], genres[0]["name"]))
-			threads.deferToThread(self.get_channels, session, token, genres[0]["genre_id"]).addCallback(self.channels_callback)
+			threads.deferToThread(self.get_channels, session, token, genres).addCallback(self.channels_callback)
 
 
-	def channels_callback(self, channels):
+	def channels_callback(self, groups):
 		tsid = 1000
-		services = []
-		for service in channels:
-			surl = service.cmd
-			ch_name = service.name.replace(":", "|")
-			stype = "1"
-			if ("UHD" in ch_name or "4K" in ch_name) and not " HD" in ch_name:
-				stype = "1F"
-			elif "HD" in ch_name:
-				stype = "19"
-			sref = "%s:0:%s:%d:%d:1:CCCC0000:0:0:0:%s:%s•%s" % (self.play_system, stype, tsid, self.onid, surl.replace(":", "%3a"), ch_name, self.iptv_service_provider)
-			tsid += 1
-			services.append(sref)
+		for group in groups.values():
+			services = []
+			for service in group[1]:
+				surl = service.cmd
+				ch_name = service.name.replace(":", "|")
+				stype = "1"
+				if ("UHD" in ch_name or "4K" in ch_name) and not " HD" in ch_name:
+					stype = "1F"
+				elif "HD" in ch_name:
+					stype = "19"
+				sref = self.generateChannelReference(self.play_system, stype, tsid, surl.replace(":", "%3a"), ch_name)
+				tsid += 1
+				services.append(sref)
+
+			bfilename =  sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{group[0]}.tv".replace(" ", "").replace("(", "").replace(")", ""))
+			db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + group[0], bfilename, services, False)
 
 		if not self.ignore_vod:
 			self.getVoDMovies()
 
-		db.addOrUpdateBouquet(self.iptv_service_provider, services, 1)
 		self.bouquetCreated(None)
 
 	def get_token(self, session):
@@ -97,48 +102,59 @@ class StalkerProvider(IPTVProcessor):
 			print("EXCEPTION: " + str(ex))
 			pass
 
-	def get_channels(self, session, token, genre_id):
+	def get_channels_for_group(self, services, session, cookies, headers, genre_id):
+		page_number = 1
+		while True:
+			time.sleep(0.05)
+			url = f"{self.url}/portal.php?type=itv&action=get_ordered_list&genre={genre_id}&fav=0&p={page_number}&JsHttpRequest=1-xml&from_ch_id=0"
+			try:
+				response = session.get(url, cookies=cookies, headers=headers)
+			except:
+				time.sleep(3)
+				response = session.get(url, cookies=cookies, headers=headers)
+			if response.status_code != 200:
+				time.sleep(3)
+				response = session.get(url, cookies=cookies, headers=headers)
+
+			if response.status_code == 200:
+				print("GETTING CHANNELS FOR PAGE %d" % page_number)
+				try:
+					response_json = response.json()
+					channels_data = response_json["js"]["data"]
+					
+					for channel in channels_data:
+						surl = channel["cmd"].replace("ffmpeg ", "")
+						if self.play_system != "1":
+							surl = surl.replace("extension=ts","extension=m3u8")
+						services.append(Channel(channel["id"], channel["name"], channel["cmd"].replace("ffmpeg ", "")))
+					total_items = response_json["js"]["total_items"]
+					if len(services) >= total_items:
+						break
+					page_number += 1
+				except ValueError:
+					print("EXCEPTION: Invalid JSON format in response")
+			else:
+				print(f"EXCEPTION: IPTV Request failed for page {page_number}")
+
+	def get_channels(self, session, token, genres):
+		groups = {}
 		try:
-			channels = []
+			for group in genres:
+				groups[group["genre_id"]] = (group["name"], [])
+
 			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
 			headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
-			page_number = 1
-			while True:
-				time.sleep(0.05)
-				url = f"{self.url}/portal.php?type=itv&action=get_ordered_list&genre={genre_id}&fav=0&p={page_number}&JsHttpRequest=1-xml&from_ch_id=0"
-				try:
-					response = session.get(url, cookies=cookies, headers=headers)
-				except:
-					time.sleep(3)
-					response = session.get(url, cookies=cookies, headers=headers)
-				if response.status_code != 200:
-					time.sleep(3)
-					response = session.get(url, cookies=cookies, headers=headers)
+			i = 0
+			for	group in genres:
+				genre_id = group["genre_id"]
+				if genre_id != "*":
+					self.get_channels_for_group(groups[genre_id][1], session, cookies, headers, genre_id)
+					print("GENERATE CHANNELS FOR GROUP %d/%d" % (i, len(genres)))
+					self.progress_percentage = int((i/len(genres)) * 100)
+				i += 1
 
-				if response.status_code == 200:
-					print("GETTING CHANNELS FOR PAGE %d" % page_number)
-					try:
-						response_json = response.json()
-						channels_data = response_json["js"]["data"]
-						
-						for channel in channels_data:
-							surl = channel["cmd"].replace("ffmpeg ", "")
-							if self.play_system != "1":
-								surl = surl.replace("extension=ts","extension=m3u8")
-							channels.append(Channel(channel["id"], channel["name"], channel["cmd"].replace("ffmpeg ", "")))
-						total_items = response_json["js"]["total_items"]
-						if len(channels) >= total_items:
-							self.progress_percentage = -1
-							break
-						print("CURRENT PROGRESS: (%d//%d)*100 = %d" % (len(channels), total_items, (len(channels)/total_items) * 100))
-						self.progress_percentage = int((len(channels)/total_items) * 100)
-						page_number += 1
-					except ValueError:
-						print("EXCEPTION: Invalid JSON format in response")
-				else:
-					print(f"EXCEPTION: IPTV Request failed for page {page_number}")
-
-			return channels
+			self.progress_percentage = -1
+			return groups
 		except Exception as ex:
 			print("EXCEPTION: " + str(ex))
 			self.bouquetCreated(ex)

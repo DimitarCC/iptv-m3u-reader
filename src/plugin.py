@@ -77,7 +77,7 @@ def readProviders():
 				onid += 1
 			for provider in elem.findall("xtreemprovider"):
 				providerObj = XtreemProvider()
-				providerObj.type = "Xtreem"
+				providerObj.type = "Xtreeme"
 				providerObj.scheme = provider.find("scheme").text
 				providerObj.iptv_service_provider = provider.find("servicename").text
 				providerObj.url = provider.find("url").text.replace("&amp;", "&")
@@ -85,6 +85,7 @@ def readProviders():
 				providerObj.username = provider.find("username").text
 				providerObj.password = provider.find("password").text
 				providerObj.play_system = provider.find("system").text
+				providerObj.create_groups = provider.find("groups") is not None and provider.find("groups").text == "on"
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.onid = onid
 				if not providerObj.ignore_vod:
@@ -100,6 +101,7 @@ def readProviders():
 				providerObj.refresh_interval = int(provider.find("refresh_interval").text)
 				providerObj.mac = provider.find("mac").text
 				providerObj.play_system = provider.find("system").text
+				providerObj.create_groups = provider.find("groups") is not None and provider.find("groups").text == "on"
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.onid = onid
 				if not providerObj.ignore_vod:
@@ -130,6 +132,7 @@ def writeProviders():
 			xml.append(f"\t\t<url>{val.url.replace('&', '&amp;')}</url>\n")
 			xml.append(f"\t\t<refresh_interval>{val.refresh_interval}</refresh_interval>\n")
 			xml.append(f"\t\t<novod>{'on' if val.ignore_vod else 'off'}</novod>\n")
+			xml.append(f"\t\t<groups>{'on' if val.ignore_vod else 'off'}</groups>\n")
 			xml.append(f"\t\t<username>{val.username}</username>\n")
 			xml.append(f"\t\t<password>{val.password}</password>\n")
 			xml.append(f"\t\t<scheme>{val.scheme}</scheme>\n")
@@ -141,6 +144,7 @@ def writeProviders():
 			xml.append(f"\t\t<url>{val.url.replace('&', '&amp;')}</url>\n")
 			xml.append(f"\t\t<refresh_interval>{val.refresh_interval}</refresh_interval>\n")
 			xml.append(f"\t\t<novod>{'on' if val.ignore_vod else 'off'}</novod>\n")
+			xml.append(f"\t\t<groups>{'on' if val.ignore_vod else 'off'}</groups>\n")
 			xml.append(f"\t\t<mac>{val.mac}</mac>\n")
 			xml.append(f"\t\t<scheme>{val.scheme}</scheme>\n")
 			xml.append(f"\t\t<system>{val.play_system}</system>\n")
@@ -586,7 +590,8 @@ class M3UIPTVManagerConfig(Screen):
 				providerObj.onBouquetCreated.append(self.onBouquetCreated)
 				providerObj.getPlaylistAndGenBouquet()
 			except Exception as ex:
-				print("[M3UIPTV] Error has occured during bouquet creation\r\n\r\n" + str(ex))
+				self.progress_timer.stop()
+				print("[M3UIPTV] Error has occured during bouquet creation: " + str(ex))
 				self.session.open(MessageBox, _("Unable to create bouquet \"%s\"!\nPossible reason can be no network available.") % providerObj.iptv_service_provider, MessageBox.TYPE_ERROR, timeout=5)
 
 	def generateEpgimportMapping(self):
@@ -595,6 +600,7 @@ class M3UIPTVManagerConfig(Screen):
 	def onBouquetCreated(self, providerObj, error):
 		if not hasattr(self, "session") or not self.session:
 			return
+		self.progress_timer.stop()
 		if error:
 			self.session.open(MessageBox, _("Unable to create bouquet \"%s\"!\nPossible reason can be no network available.") % providerObj.iptv_service_provider, MessageBox.TYPE_ERROR, timeout=5)
 		else:
@@ -611,6 +617,7 @@ class M3UIPTVProviderEdit(Setup):
 		refresh_interval_choices = [(-1, _("off")), (0, _("on"))] + [(i, ngettext("%d hour", "%d hours", i) % i) for i in [1, 2, 3, 4, 5, 6, 12, 24]] 
 		self.refresh_interval = ConfigSelection(default=providerObj.refresh_interval, choices=refresh_interval_choices)
 		self.novod = ConfigYesNo(default=providerObj.ignore_vod)
+		self.create_groups = ConfigYesNo(default=providerObj.create_groups)
 		self.staticurl = ConfigYesNo(default=providerObj.static_urls)
 		self.search_criteria = ConfigText(default=providerObj.search_criteria, fixed_size=False)
 		self.scheme = ConfigText(default=providerObj.scheme, fixed_size=False)
@@ -635,13 +642,14 @@ class M3UIPTVProviderEdit(Setup):
 			if not self.staticurl.value:
 				configlist.append((_("Refresh interval"), self.refresh_interval, _("Interval in which the playlist will be automatically updated")))
 			configlist.append((_("Filter"), self.search_criteria, _("The search criter by which the service will be searched in the playlist file.")))
-		elif self.type.value == "Xtreem":
+		elif self.type.value == "Xtreeme":
 			configlist.append((_("Username"), self.username, _("User name used for authenticating in Xtreme codes server.")))
 			configlist.append((_("Password"), self.password, _("Password used for authenticating in Xtreme codes server.")))
 		else:
 			configlist.append((_("MAC address"), self.mac, _("MAC address used for authenticating in Stalker portal.")))
 
 		configlist.append((_("Skip VOD entries"), self.novod, _("Skip VOD entries in the playlist")))
+
 		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited. 
 			configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
 		configlist.append((_("Playback system"), self.play_system, _("The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3")))
@@ -652,6 +660,7 @@ class M3UIPTVProviderEdit(Setup):
 			msg = _("Scheme must be unique. \"%s\" is already in use. Please update this field.") % self.scheme.value if not self.edit and self.scheme.value and self.scheme.value in providers else _("All fields must be filled in.")
 			self.session.open(MessageBox, msg, MessageBox.TYPE_ERROR, timeout=30)
 			return
+
 		if self.type.value == "M3U":
 			providerObj = M3UProvider() 
 		elif self.type.value == "Xtreeme":
@@ -671,8 +680,10 @@ class M3UIPTVProviderEdit(Setup):
 		elif self.type.value == "Xtreeme":
 			providerObj.username = self.username.value
 			providerObj.password = self.password.value
+			providerObj.create_groups = self.create_groups.value
 		else:
 			providerObj.mac = self.mac.value
+			providerObj.create_groups = self.create_groups.value
 
 		if getattr(providerObj, "onid", None) is None:
 			providerObj.onid = max([x.onid for x in providers.values() if hasattr(x, "onid")]) + 1 if len(providers) > 0 else 1000

@@ -18,6 +18,7 @@ class M3UProvider(IPTVProcessor):
 		self.isPlayBackup = False
 		self.offset = 0
 		self.progress_percentage = -1
+		self.create_groups = False
 		
 	def storePlaylistAndGenBouquet(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
@@ -73,7 +74,7 @@ class M3UProvider(IPTVProcessor):
 						stype = "1F"
 					elif "HD" in ch_name:
 						stype = "19"
-					sref = "%s:0:%s:%d:%d:1:CCCC0000:0:0:0:%s:%s•%s" % (self.play_system, stype, tsid, self.onid, url, ch_name, self.iptv_service_provider)
+					sref = self.generateChannelReference(self.play_system, stype, tsid, url.replace(":", "%3a"), ch_name)
 					tsid += 1
 					services.append(sref)
 			line_nr += 1

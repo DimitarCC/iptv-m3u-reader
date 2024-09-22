@@ -7,6 +7,7 @@ import json
 from .IPTVProcessor import IPTVProcessor
 from .VoDItem import VoDItem
 from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT
+from Tools.Directories import sanitizeFilename
 
 from os import fsync, rename
 
@@ -18,10 +19,11 @@ db = eDVBDB.getInstance()
 class XtreemProvider(IPTVProcessor):
 	def __init__(self):
 		IPTVProcessor.__init__(self)
-		self.type = "Xtreem"
+		self.type = "Xtreeme"
 		self.refresh_interval = -1
 		self.vod_movies = []
 		self.progress_percentage = -1
+		self.create_groups = True
 		
 	def storePlaylistAndGenBouquet(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
@@ -38,7 +40,23 @@ class XtreemProvider(IPTVProcessor):
 		services_response = response.read()
 		services_json_obj = json.loads(services_response)
 		tsid = 1000
-		services = []
+		groups = {}
+
+		groups["EMPTY"] = ("UNCATEGORIZED", [])
+
+		url = "%s/player_api.php?username=%s&password=%s&action=get_live_categories" % (self.url, self.username, self.password)
+		req = urllib.request.Request(url, headers={'User-Agent' : USER_AGENT}) 
+		if req_timeout_val != "off":
+			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
+		else:
+			response = urllib.request.urlopen(req)
+
+		groups_response = response.read()
+		groups_json_obj = json.loads(groups_response)
+
+		for group in groups_json_obj:
+			groups[group["category_id"]] = (group["category_name"], [])
+
 		for service in services_json_obj:
 			surl = "%s/live/%s/%s/%s.%s" % (self.url, self.username, self.password, service["stream_id"], "ts" if self.play_system == "1" else "m3u8")
 			ch_name = service["name"].replace(":", "|")
@@ -47,14 +65,16 @@ class XtreemProvider(IPTVProcessor):
 				stype = "1F"
 			elif "HD" in ch_name:
 				stype = "19"
-			sref = "%s:0:%s:%d:%d:1:CCCC0000:0:0:0:%s:%s•%s" % (self.play_system, stype, tsid, self.onid, surl.replace(":", "%3a"), ch_name, self.iptv_service_provider)
+			sref = self.generateChannelReference(self.play_system, stype, tsid, surl.replace(":", "%3a"), ch_name)
 			tsid += 1
-			services.append(sref)
+			groups[(service["category_id"] if service["category_id"] else "EMPTY")][1].append(sref)
 
 		if not self.ignore_vod:
 			self.getVoDMovies()
 
-		db.addOrUpdateBouquet(self.iptv_service_provider, services, 1)
+		for groupItem in groups.values():
+			bfilename =  sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupItem[0]}.tv".replace(" ", "").replace("(", "").replace(")", ""))
+			db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + groupItem[0], bfilename, groupItem[1], False)
 		self.bouquetCreated(None)
 
 	def getVoDMovies(self):
