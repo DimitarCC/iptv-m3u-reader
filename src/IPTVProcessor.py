@@ -48,5 +48,6 @@ class IPTVProcessor():
 	def generateEPGImportFiles(self, groups):
 		pass
 
-	def generateEPGChannelReference(self, type, tsid):
-		return "%s:0:%s:%x:%x:1:CCCC0000:0:0:0:http%3a//m3u.iptv.com" % (self.play_system, type, tsid, self.onid)
+	def generateEPGChannelReference(self, original_sref):
+		split_ref = original_sref.split(":")
+		return "%s:http%3a//m3u.iptv.com" % (":".join(split_ref[:10]))
