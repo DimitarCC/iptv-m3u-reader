@@ -73,7 +73,7 @@ class XtreemProvider(IPTVProcessor):
 			self.getVoDMovies()
 
 		for groupItem in groups.values():
-			bfilename =  sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupItem[0]}.tv".replace(" ", "").replace("(", "").replace(")", ""))
+			bfilename =  sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupItem[0]}.tv".replace(" ", "").replace("(", "").replace(")", "").replace("&", ""))
 			db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + groupItem[0], bfilename, groupItem[1], False)
 		self.bouquetCreated(None)
 

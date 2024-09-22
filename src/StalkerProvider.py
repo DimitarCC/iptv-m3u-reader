@@ -63,7 +63,7 @@ class StalkerProvider(IPTVProcessor):
 				tsid += 1
 				services.append(sref)
 
-			bfilename =  sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{group[0]}.tv".replace(" ", "").replace("(", "").replace(")", ""))
+			bfilename =  sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{group[0]}.tv".replace(" ", "").replace("(", "").replace(")", "").replace("&", ""))
 			db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + group[0], bfilename, services, False)
 
 		if not self.ignore_vod:
