@@ -27,7 +27,7 @@ from Components.Sources.StaticText import StaticText
 from Components.Sources.List import List
 from Components.Sources.Progress import Progress
 from Components.SystemInfo import SystemInfo
-from Tools.Directories import fileExists, isPluginInstalled
+from Tools.Directories import fileExists, isPluginInstalled, sanitizeFilename
 from Tools.BoundFunction import boundFunction
 from Navigation import Navigation
 
@@ -656,6 +656,7 @@ class M3UIPTVProviderEdit(Setup):
 		self["config"].list = configlist
 
 	def keySave(self):
+		self.scheme.value = sanitizeFilename(self.scheme.value)
 		if not self.iptv_service_provider.value or not self.url.value or not self.scheme.value or not self.edit and self.scheme.value in providers or self.type.value == "Xtreeme" and (not self.username.value or not self.password.value):  # empty mandatory fields or scheme is not unique
 			msg = _("Scheme must be unique. \"%s\" is already in use. Please update this field.") % self.scheme.value if not self.edit and self.scheme.value and self.scheme.value in providers else _("All fields must be filled in.")
 			self.session.open(MessageBox, msg, MessageBox.TYPE_ERROR, timeout=30)
