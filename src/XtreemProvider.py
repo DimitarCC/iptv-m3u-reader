@@ -65,7 +65,7 @@ class XtreemProvider(IPTVProcessor):
 				stype = "1F"
 			elif "HD" in ch_name:
 				stype = "19"
-			sref = self.generateChannelReference(self.play_system, stype, tsid, surl.replace(":", "%3a"), ch_name)
+			sref = self.generateChannelReference(stype, tsid, surl.replace(":", "%3a"), ch_name)
 			tsid += 1
 			groups[(service["category_id"] if service["category_id"] else "EMPTY")][1].append(sref)
 

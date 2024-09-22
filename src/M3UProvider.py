@@ -74,7 +74,7 @@ class M3UProvider(IPTVProcessor):
 						stype = "1F"
 					elif "HD" in ch_name:
 						stype = "19"
-					sref = self.generateChannelReference(self.play_system, stype, tsid, url.replace(":", "%3a"), ch_name)
+					sref = self.generateChannelReference(stype, tsid, url.replace(":", "%3a"), ch_name)
 					tsid += 1
 					services.append(sref)
 			line_nr += 1
