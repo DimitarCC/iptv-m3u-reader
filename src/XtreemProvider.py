@@ -60,6 +60,7 @@ class XtreemProvider(IPTVProcessor):
 		for service in services_json_obj:
 			surl = "%s/live/%s/%s/%s.%s" % (self.url, self.username, self.password, service["stream_id"], "ts" if self.play_system == "1" else "m3u8")
 			ch_name = service["name"].replace(":", "|")
+			epg_id = service["epg_channel_id"]
 			stype = "1"
 			if ("UHD" in ch_name or "4K" in ch_name) and not " HD" in ch_name:
 				stype = "1F"
@@ -67,14 +68,17 @@ class XtreemProvider(IPTVProcessor):
 				stype = "19"
 			sref = self.generateChannelReference(stype, tsid, surl.replace(":", "%3a"), ch_name)
 			tsid += 1
-			groups[(service["category_id"] if service["category_id"] else "EMPTY")][1].append(sref)
+			groups[(service["category_id"] if service["category_id"] else "EMPTY")][1].append((sref, epg_id))
 
 		if not self.ignore_vod:
 			self.getVoDMovies()
 
 		for groupItem in groups.values():
 			bfilename =  sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupItem[0]}.tv".replace(" ", "").replace("(", "").replace(")", "").replace("&", ""))
-			db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + groupItem[0], bfilename, groupItem[1], False)
+			services = []
+			for x in groupItem[1]:
+				services.append(x[0])
+			db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + groupItem[0], bfilename, services, False)
 		self.bouquetCreated(None)
 
 	def getVoDMovies(self):

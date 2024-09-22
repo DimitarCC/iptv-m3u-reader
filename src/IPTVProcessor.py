@@ -44,6 +44,9 @@ class IPTVProcessor():
 			f(self, error)
 	def generateChannelReference(self, type, tsid, url, name):
 		return "%s:0:%s:%x:%x:1:CCCC0000:0:0:0:%s:%s•%s" % (self.play_system, type, tsid, self.onid, url.replace(":", "%3a"), name, self.iptv_service_provider)
+	
+	def generateEPGImportFiles(self, groups):
+		pass
 
 	def generateEPGChannelReference(self, type, tsid):
 		return "%s:0:%s:%x:%x:1:CCCC0000:0:0:0:http%3a//m3u.iptv.com" % (self.play_system, type, tsid, self.onid)
