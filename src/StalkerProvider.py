@@ -31,7 +31,7 @@ class StalkerProvider(IPTVProcessor):
 		self.refresh_interval = -1
 		self.vod_movies = []
 		self.progress_percentage = -1
-		self.create_groups = True
+		self.create_epg = False
 		
 	def storePlaylistAndGenBouquet(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value

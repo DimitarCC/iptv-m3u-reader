@@ -22,7 +22,7 @@ class XtreemProvider(IPTVProcessor):
 		self.refresh_interval = -1
 		self.vod_movies = []
 		self.progress_percentage = -1
-		self.create_groups = True
+		self.create_epg = True
 		
 	def getEpgUrl(self):
 		return "%s/xmltv.php?username=%s&password=%s" % (self.url, self.username, self.password)
@@ -75,7 +75,7 @@ class XtreemProvider(IPTVProcessor):
 		if not self.ignore_vod:
 			self.getVoDMovies()
 
-		self.removeBouquets(sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.".replace(" ", "").replace("(", "").replace(")", "").replace("&", "")))
+		self.removeBouquets()
 
 		for groupItem in groups.values():
 			if groupItem[1]:  # don't create the bouquet if there are no sevices

@@ -1,5 +1,7 @@
 from twisted.internet import threads
 from .epgimport_helper import epgimport_helper
+from Tools.Directories import sanitizeFilename
+import re
 
 
 class IPTVProcessor():
@@ -12,7 +14,7 @@ class IPTVProcessor():
 		self.ignore_vod = True 
 		self.iptv_service_provider = ""
 		self.last_exec = None
-		self.create_groups = True
+		self.create_epg = True
 		self.refresh_interval = 1  # used by M3UProvider, default here for Setup
 		self.search_criteria = "tvg-id=\"{SID}\""  # used by M3UProvider, default here for Setup
 		self.static_urls = False  # used by M3UProvider, default here for Setup
@@ -48,7 +50,12 @@ class IPTVProcessor():
 	def generateChannelReference(self, type, tsid, url, name):
 		return "%s:0:%s:%x:%x:1:CCCC0000:0:0:0:%s:%s•%s" % (self.play_system, type, tsid, self.onid, url.replace(":", "%3a"), name, self.iptv_service_provider)
 	
+	def getEpgUrl(self):
+		return ""
+	
 	def generateEPGImportFiles(self, groups):
+		if not self.create_epg:
+			return
 		epghelper = epgimport_helper(self)
 		epghelper.createSourcesFile()
 		epghelper.createChannelsFile(groups)
@@ -60,6 +67,7 @@ class IPTVProcessor():
 	def generateEPGChannelReference(self, original_sref):
 		return f"{':'.join(original_sref.split(':', 10)[:10])}%s:http%3a//m3u.iptv.com"
 
-	def removeBouquets(self, prefix):
+	def removeBouquets(self):
 		from enigma import eDVBDB
-		eDVBDB.getInstance().removeBouquet(prefix)
+		search_bouquets_criteria = re.escape(sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.".replace(" ", "").replace("(", "").replace(")", "").replace("&", ""))) + r".*[.]tv"
+		eDVBDB.getInstance().removeBouquet(search_bouquets_criteria)

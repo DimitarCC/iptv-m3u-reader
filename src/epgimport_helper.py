@@ -28,6 +28,9 @@ class epgimport_helper():
 		return os.path.join(EPGIMPORTPATH, 'm3uiptv.%s.channels.xml' % self.provider.scheme)
 	
 	def createSourcesFile(self):
+		if not EPGImport:
+			return
+
 		sources_out = [
 			'<sources>',
 			' <sourcecat sourcecatname="M3UIPTV plugin">',
@@ -41,6 +44,9 @@ class epgimport_helper():
 			f.write("\n".join(sources_out))
 
 	def createChannelsFile(self, groups):
+		if not EPGImport:
+			return
+
 		channels_out = ['<channels>']
 		for group in groups:
 			channels_out.append(f' <!-- {groups[group][0]} -->')

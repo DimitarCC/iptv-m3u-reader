@@ -85,7 +85,7 @@ def readProviders():
 				providerObj.username = provider.find("username").text
 				providerObj.password = provider.find("password").text
 				providerObj.play_system = provider.find("system").text
-				providerObj.create_groups = provider.find("groups") is not None and provider.find("groups").text == "on"
+				providerObj.create_epg = provider.find("epg") is not None and provider.find("epg").text == "on"
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.onid = onid
 				if not providerObj.ignore_vod:
@@ -101,7 +101,7 @@ def readProviders():
 				providerObj.refresh_interval = int(provider.find("refresh_interval").text)
 				providerObj.mac = provider.find("mac").text
 				providerObj.play_system = provider.find("system").text
-				providerObj.create_groups = provider.find("groups") is not None and provider.find("groups").text == "on"
+				providerObj.create_epg = provider.find("epg") is not None and provider.find("epg").text == "on"
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.onid = onid
 				if not providerObj.ignore_vod:
@@ -536,7 +536,7 @@ class M3UIPTVManagerConfig(Screen):
 		self["key_red"] = StaticText(_("Close"))
 		self["key_green"] = StaticText(_("Add provider"))
 		self["key_yellow"] = StaticText(_("Generate bouquet"))
-		self["key_blue"] = StaticText(_("Generate epgimport mappings"))
+		#self["key_blue"] = StaticText(_("Generate epgimport mappings"))
 		self["description"] = StaticText(_("Press OK to edit the currently selected provider"))
 
 		self["actions"] = ActionMap(["SetupActions", "ColorActions",],
@@ -545,11 +545,10 @@ class M3UIPTVManagerConfig(Screen):
 				"save": self.addProvider,  # KEY_GREEN
 				"ok": self.editProvider,
 				"yellow": self.generateBouquet,
-				"blue": self.generateEpgimportMapping,
+				#"blue": self.generateEpgimportMapping,
 			}, -1)  # noqa: E123
 		
 	def onProgressTimer(self):
-		print("PROGRESS TIMER TRIGGERED")
 		providers_updating = 0
 		providers_overal_progress = 0
 		for provider in providers:
@@ -561,7 +560,7 @@ class M3UIPTVManagerConfig(Screen):
 		if providers_updating == 0:
 			self.progress_timer.stop()
 		else:
-			print("PROGRESS VALUE UPDATED: %d//%d = %d" % (providers_overal_progress, providers_updating, int(providers_overal_progress // providers_updating)))
+			#print("PROGRESS VALUE UPDATED: %d//%d = %d" % (providers_overal_progress, providers_updating, int(providers_overal_progress // providers_updating)))
 			progress_val = int(providers_overal_progress // providers_updating)
 			self["progress"].value = progress_val if progress_val >= 0 else 0
 
@@ -594,8 +593,8 @@ class M3UIPTVManagerConfig(Screen):
 				print("[M3UIPTV] Error has occured during bouquet creation: " + str(ex))
 				self.session.open(MessageBox, _("Unable to create bouquet \"%s\"!\nPossible reason can be no network available.") % providerObj.iptv_service_provider, MessageBox.TYPE_ERROR, timeout=5)
 
-	def generateEpgimportMapping(self):
-		self.session.open(MessageBox, _("EPG Import mapping coming soon"), MessageBox.TYPE_INFO, timeout=3)
+	#def generateEpgimportMapping(self):
+	#	self.session.open(MessageBox, _("EPG Import mapping coming soon"), MessageBox.TYPE_INFO, timeout=3)
 
 	def onBouquetCreated(self, providerObj, error):
 		if not hasattr(self, "session") or not self.session:
@@ -617,7 +616,7 @@ class M3UIPTVProviderEdit(Setup):
 		refresh_interval_choices = [(-1, _("off")), (0, _("on"))] + [(i, ngettext("%d hour", "%d hours", i) % i) for i in [1, 2, 3, 4, 5, 6, 12, 24]] 
 		self.refresh_interval = ConfigSelection(default=providerObj.refresh_interval, choices=refresh_interval_choices)
 		self.novod = ConfigYesNo(default=providerObj.ignore_vod)
-		self.create_groups = ConfigYesNo(default=providerObj.create_groups)
+		self.create_epg = ConfigYesNo(default=providerObj.create_epg)
 		self.staticurl = ConfigYesNo(default=providerObj.static_urls)
 		self.search_criteria = ConfigText(default=providerObj.search_criteria, fixed_size=False)
 		self.scheme = ConfigText(default=providerObj.scheme, fixed_size=False)
@@ -649,6 +648,7 @@ class M3UIPTVProviderEdit(Setup):
 			configlist.append((_("MAC address"), self.mac, _("MAC address used for authenticating in Stalker portal.")))
 
 		configlist.append((_("Skip VOD entries"), self.novod, _("Skip VOD entries in the playlist")))
+		configlist.append((_("Generate EPG files for EPGImport plugin"), self.create_epg, _("Creates files needed for importing EPG via EPGImport plugin")))
 
 		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited. 
 			configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
@@ -681,10 +681,10 @@ class M3UIPTVProviderEdit(Setup):
 		elif self.type.value == "Xtreeme":
 			providerObj.username = self.username.value
 			providerObj.password = self.password.value
-			providerObj.create_groups = self.create_groups.value
+			providerObj.create_epg = self.create_epg.value
 		else:
 			providerObj.mac = self.mac.value
-			providerObj.create_groups = self.create_groups.value
+			providerObj.create_epg = self.create_epg.value
 
 		if getattr(providerObj, "onid", None) is None:
 			providerObj.onid = max([x.onid for x in providers.values() if hasattr(x, "onid")]) + 1 if len(providers) > 0 else 1000
@@ -697,6 +697,8 @@ class M3UIPTVProviderEdit(Setup):
 
 	def keyRemoveCallback(self, answer=None):
 		if answer:
+			providerObj = providers[self.scheme.value]
+			providerObj.removeBouquets()
 			del providers[self.scheme.value]
 			writeProviders()
 			self.close(True)
