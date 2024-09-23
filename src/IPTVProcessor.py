@@ -61,13 +61,5 @@ class IPTVProcessor():
 		return f"{':'.join(original_sref.split(':', 10)[:10])}%s:http%3a//m3u.iptv.com"
 
 	def removeBouquets(self, prefix):
-		from enigma import eServiceReference, eServiceCenter, eDVBDB
-		if list := eServiceCenter.getInstance().list(eServiceReference('1:7:1:0:0:0:0:0:0:0:FROM BOUQUET "bouquets.tv" ORDER BY bouquet')):
-			while (s := list.getNext()) and s.valid():
-				s = list.getNext()
-				if s.flags & eServiceReference.isDirectory:
-					bouquet = s.getPath().replace('FROM BOUQUET "', "").replace('" ORDER BY bouquet', "")
-					print("removeBouquets bouquet '%s'" % bouquet)
-					if bouquet.startswith(prefix):
-						eDVBDB.getInstance().removeBouquet(bouquet)
-						print("removeBouquets removed bouquet '%s'" % bouquet)
+		from enigma import eDVBDB
+		eDVBDB.getInstance().removeBouquet(prefix)
