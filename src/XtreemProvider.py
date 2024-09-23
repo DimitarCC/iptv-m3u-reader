@@ -1,13 +1,12 @@
 from enigma import eDVBDB
 from Components.config import config
-from Tools.Directories import fileExists
+from Tools.Directories import fileExists, sanitizeFilename
 import socket
 import urllib
 import json
 from .IPTVProcessor import IPTVProcessor
 from .VoDItem import VoDItem
 from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT
-from Tools.Directories import sanitizeFilename
 
 from os import fsync, rename
 
@@ -25,6 +24,9 @@ class XtreemProvider(IPTVProcessor):
 		self.progress_percentage = -1
 		self.create_groups = True
 		
+	def getEpgUrl(self):
+		return "%s/xmltv.php?username=%s&password=%s" % (self.url, self.username, self.password)
+
 	def storePlaylistAndGenBouquet(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
 		if is_check_network_val != "off":
@@ -42,8 +44,6 @@ class XtreemProvider(IPTVProcessor):
 		tsid = 1000
 		groups = {}
 
-		groups["EMPTY"] = ("UNCATEGORIZED", [])
-
 		url = "%s/player_api.php?username=%s&password=%s&action=get_live_categories" % (self.url, self.username, self.password)
 		req = urllib.request.Request(url, headers={'User-Agent' : USER_AGENT}) 
 		if req_timeout_val != "off":
@@ -57,6 +57,8 @@ class XtreemProvider(IPTVProcessor):
 		for group in groups_json_obj:
 			groups[group["category_id"]] = (group["category_name"], [])
 
+		groups["EMPTY"] = ("UNCATEGORIZED", [])  # put "EMPTY" in last place
+
 		for service in services_json_obj:
 			surl = "%s/live/%s/%s/%s.%s" % (self.url, self.username, self.password, service["stream_id"], "ts" if self.play_system == "1" else "m3u8")
 			ch_name = service["name"].replace(":", "|")
@@ -68,18 +70,22 @@ class XtreemProvider(IPTVProcessor):
 				stype = "19"
 			sref = self.generateChannelReference(stype, tsid, surl.replace(":", "%3a"), ch_name)
 			tsid += 1
-			groups[(service["category_id"] if service["category_id"] else "EMPTY")][1].append((sref, epg_id))
+			groups[service["category_id"] if service["category_id"] else "EMPTY"][1].append((sref, epg_id, ch_name))
 
 		if not self.ignore_vod:
 			self.getVoDMovies()
 
+		self.removeBouquets(sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.".replace(" ", "").replace("(", "").replace(")", "").replace("&", "")))
+
 		for groupItem in groups.values():
-			bfilename =  sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupItem[0]}.tv".replace(" ", "").replace("(", "").replace(")", "").replace("&", ""))
-			services = []
-			for x in groupItem[1]:
-				services.append(x[0])
-			db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + groupItem[0], bfilename, services, False)
+			if groupItem[1]:  # don't create the bouquet if there are no sevices
+				bfilename =  sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupItem[0]}.tv".replace(" ", "").replace("(", "").replace(")", "").replace("&", ""))
+				services = []
+				for x in groupItem[1]:
+					services.append(x[0])
+				db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + groupItem[0], bfilename, services, False)
 		self.bouquetCreated(None)
+		self.generateEPGImportFiles(groups)
 
 	def getVoDMovies(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value

@@ -1,4 +1,6 @@
 from twisted.internet import threads
+from .epgimport_helper import epgimport_helper
+
 
 class IPTVProcessor():
 	def __init__(self):
@@ -42,12 +44,30 @@ class IPTVProcessor():
 	def bouquetCreated(self, error):
 		for f in self.onBouquetCreated:
 			f(self, error)
+
 	def generateChannelReference(self, type, tsid, url, name):
 		return "%s:0:%s:%x:%x:1:CCCC0000:0:0:0:%s:%s•%s" % (self.play_system, type, tsid, self.onid, url.replace(":", "%3a"), name, self.iptv_service_provider)
 	
 	def generateEPGImportFiles(self, groups):
-		pass
+		epghelper = epgimport_helper(self)
+		epghelper.createSourcesFile()
+		epghelper.createChannelsFile(groups)
+
+		#  not working yet
+		# epghelper.importepg()  # just here for testing
+
 
 	def generateEPGChannelReference(self, original_sref):
-		split_ref = original_sref.split(":")
-		return "%s:http%3a//m3u.iptv.com" % (":".join(split_ref[:10]))
+		return f"{':'.join(original_sref.split(':', 10)[:10])}%s:http%3a//m3u.iptv.com"
+
+	def removeBouquets(self, prefix):
+		from enigma import eServiceReference, eServiceCenter, eDVBDB
+		if list := eServiceCenter.getInstance().list(eServiceReference('1:7:1:0:0:0:0:0:0:0:FROM BOUQUET "bouquets.tv" ORDER BY bouquet')):
+			while (s := list.getNext()) and s.valid():
+				s = list.getNext()
+				if s.flags & eServiceReference.isDirectory:
+					bouquet = s.getPath().replace('FROM BOUQUET "', "").replace('" ORDER BY bouquet', "")
+					print("removeBouquets bouquet '%s'" % bouquet)
+					if bouquet.startswith(prefix):
+						eDVBDB.getInstance().removeBouquet(bouquet)
+						print("removeBouquets removed bouquet '%s'" % bouquet)
