@@ -65,7 +65,7 @@ class IPTVProcessor():
 
 
 	def generateEPGChannelReference(self, original_sref):
-		return f"{':'.join(original_sref.split(':', 10)[:10])}%s:http%3a//m3u.iptv.com"
+		return f"{':'.join(original_sref.split(':', 10)[:10])}:http%3a//m3u.iptv.com"
 
 	def removeBouquets(self):
 		from enigma import eDVBDB

@@ -32,6 +32,7 @@ class epgimport_helper():
 			return
 
 		sources_out = [
+			'<?xml version="1.0" encoding="utf-8"?>', 
 			'<sources>',
 			' <sourcecat sourcecatname="M3UIPTV plugin">',
 			'  <source type="gen_xmltv" nocheck="1" channels="%s">' % self.getChannelsFilename(),
@@ -47,12 +48,12 @@ class epgimport_helper():
 		if not EPGImport:
 			return
 
-		channels_out = ['<channels>']
+		channels_out = ['<?xml version="1.0" encoding="utf-8"?>', '<channels>']
 		for group in groups:
 			channels_out.append(f' <!-- {groups[group][0]} -->')
 			for service in groups[group][1]:
 				sref, epg_id, ch_name = service
-				channels_out.append(f' <channel id="{epg_id}>{self.provider.generateEPGChannelReference(sref)}</channel> <!-- {ch_name} -->')
+				channels_out.append(f' <channel id="{epg_id}">{self.provider.generateEPGChannelReference(sref)}</channel> <!-- {ch_name.replace("--", "")} -->')
 		channels_out.append('</channels>')
 		with open(os.path.join(self.getChannelsFilename()), "w") as f:
 			f.write("\n".join(channels_out))
