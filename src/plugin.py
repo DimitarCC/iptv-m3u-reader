@@ -648,9 +648,10 @@ class M3UIPTVProviderEdit(Setup):
 			configlist.append((_("Password"), self.password, _("Password used for authenticating in Xtreme codes server.")))
 		else:
 			configlist.append((_("MAC address"), self.mac, _("MAC address used for authenticating in Stalker portal.")))
-
-		configlist.append((_("Skip VOD entries"), self.novod, _("Skip VOD entries in the playlist")))
-		configlist.append((_("Generate EPG files for EPGImport plugin"), self.create_epg, _("Creates files needed for importing EPG via EPGImport plugin")))
+		if self.type.value == "Xtreeme":
+			configlist.append((_("Skip VOD entries"), self.novod, _("Skip VOD entries in the playlist")))
+		if self.type.value != "M3U":
+			configlist.append((_("Generate EPG files for EPGImport plugin"), self.create_epg, _("Creates files needed for importing EPG via EPGImport plugin")))
 
 		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited. 
 			configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
