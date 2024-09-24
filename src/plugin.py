@@ -137,6 +137,7 @@ def writeProviders():
 			xml.append(f"\t\t<password>{val.password}</password>\n")
 			xml.append(f"\t\t<scheme>{val.scheme}</scheme>\n")
 			xml.append(f"\t\t<system>{val.play_system}</system>\n")
+			xml.append(f"\t\t<epg>{'on' if val.create_epg else 'off'}</epg>\n")
 			xml.append("\t</xtreemprovider>\n")
 		else:
 			xml.append("\t<stalkerprovider>\n")
@@ -148,6 +149,7 @@ def writeProviders():
 			xml.append(f"\t\t<mac>{val.mac}</mac>\n")
 			xml.append(f"\t\t<scheme>{val.scheme}</scheme>\n")
 			xml.append(f"\t\t<system>{val.play_system}</system>\n")
+			xml.append(f"\t\t<epg>{'on' if val.create_epg else 'off'}</epg>\n")
 			xml.append("\t</stalkerprovider>\n")
 	xml.append("</providers>\n")
 	makedirs(path.dirname(USER_IPTV_PROVIDERS_FILE), exist_ok=True)  # create config folder recursive if not exists
