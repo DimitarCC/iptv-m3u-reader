@@ -754,7 +754,7 @@ def startSetup(menuid):
 def startVoDSetup(menuid):
 	if menuid != "mainmenu":
 		return []
-	return [(_("Video on Demand"), M3UIPTVVoDMenu, "iptv_vod_menu", None)]
+	return [(_("Video on Demand"), M3UIPTVVoDMenu, "iptv_vod_menu", 100)]
 
 
 def sessionstart(reason, **kwargs):
