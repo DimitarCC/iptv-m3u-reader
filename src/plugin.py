@@ -530,6 +530,8 @@ class M3UIPTVManagerConfig(Screen):
 		self.setTitle(_("M3U IPTV Manager - providers"))
 		self["list"] = List([])
 		self["progress"] = Progress()
+		self.generate_timer = eTimer()
+		self.generate_timer.callback.append(self.generateBouquet)
 		self.progress_timer = eTimer()
 		self.progress_timer.callback.append(self.onProgressTimer)
 		self.progress_timer.start(1000)
@@ -540,15 +542,32 @@ class M3UIPTVManagerConfig(Screen):
 		self["key_yellow"] = StaticText(_("Generate bouquet"))
 		#self["key_blue"] = StaticText(_("Generate epgimport mappings"))
 		self["description"] = StaticText(_("Press OK to edit the currently selected provider"))
+		self.updateCallbacks()
+		self.onClose.append(self.__onClose)
 
 		self["actions"] = ActionMap(["SetupActions", "ColorActions",],
 			{
 				"cancel": self.close,  # KEY_RED / KEY_EXIT
 				"save": self.addProvider,  # KEY_GREEN
 				"ok": self.editProvider,
-				"yellow": self.generateBouquet,
+				"yellow": self.keyYellow,
 				#"blue": self.generateEpgimportMapping,
 			}, -1)  # noqa: E123
+
+	def __onClose(self):
+		self.removeCallbacks()
+
+	def removeCallbacks(self):
+		for provider in providers:
+			providerObj = providers[provider]
+			while self.updateDescription in providerObj.update_status_callback:
+				providerObj.update_status_callback.remove(self.updateDescription)
+		
+	def updateCallbacks(self):
+		for provider in providers:
+			providerObj = providers[provider]
+			if self.updateDescription not in providerObj.update_status_callback:
+				providerObj.update_status_callback.append(self.updateDescription)
 		
 	def onProgressTimer(self):
 		providers_updating = 0
@@ -578,7 +597,15 @@ class M3UIPTVManagerConfig(Screen):
 
 	def providerCallback(self, result=None):
 		if result:
+			self.updateCallbacks()
 			self.buildList()
+
+	def keyYellow(self):  # needed to force message update
+		if current := self["list"].getCurrent():
+			provider = current[0]
+			providerObj = providers[provider]
+			self.updateDescription(_("%s: starting bouquet creation") % providerObj.iptv_service_provider)
+			self.generate_timer.start(10, 1)
 
 	def generateBouquet(self):
 		if current := self["list"].getCurrent():
@@ -593,6 +620,7 @@ class M3UIPTVManagerConfig(Screen):
 			except Exception as ex:
 				self.progress_timer.stop()
 				print("[M3UIPTV] Error has occured during bouquet creation: " + str(ex))
+				self.updateDescription(_("%s: an error occured during bouquet creation") % providerObj.iptv_service_provider)
 				self.session.open(MessageBox, _("Unable to create bouquet \"%s\"!\nPossible reason can be no network available.") % providerObj.iptv_service_provider, MessageBox.TYPE_ERROR, timeout=5)
 
 	#def generateEpgimportMapping(self):
@@ -603,9 +631,18 @@ class M3UIPTVManagerConfig(Screen):
 			return
 		self.progress_timer.stop()
 		if error:
+			self.updateDescription(_("%s: unable to create bouquet") % providerObj.iptv_service_provider)
 			self.session.open(MessageBox, _("Unable to create bouquet \"%s\"!\nPossible reason can be no network available.") % providerObj.iptv_service_provider, MessageBox.TYPE_ERROR, timeout=5)
 		else:
-			self.session.open(MessageBox, _("\"%s\" bouquet has been generated succesfully") % providerObj.iptv_service_provider, MessageBox.TYPE_INFO, timeout=5)
+			self.updateDescription(_("%s: bouquet generated successfully ") % providerObj.iptv_service_provider)
+			self.session.open(MessageBox, _("\"%s\" bouquet has been generated successfully") % providerObj.iptv_service_provider, MessageBox.TYPE_INFO, timeout=5)
+		self["actions"].setEnabled(True)
+
+	def updateDescription(self, desc):
+		try:
+			self["description"].text = desc
+		except KeyError:  # if MessageBox is open
+			pass
 
 
 class M3UIPTVProviderEdit(Setup):

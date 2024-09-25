@@ -24,7 +24,8 @@ class IPTVProcessor():
 		self.vod_movies = []
 		self.onBouquetCreated = []
 		self.progress_percentage = -1
-		
+		self.update_status_callback = []  # for passing messages
+
 	def getPlaylistAndGenBouquet(self, callback=None):
 		if callback:
 			threads.deferToThread(self.storePlaylistAndGenBouquet).addCallback(callback)
@@ -60,8 +61,7 @@ class IPTVProcessor():
 		epghelper.createSourcesFile()
 		epghelper.createChannelsFile(groups)
 
-		#  not working yet
-		# epghelper.importepg()  # just here for testing
+		epghelper.importepg()  # auto epg update after bouquet generation
 
 
 	def generateEPGChannelReference(self, original_sref):

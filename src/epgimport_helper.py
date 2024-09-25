@@ -1,7 +1,7 @@
 import os
 from xml.sax.saxutils import escape
 
-from enigma import eEPGCache
+from enigma import eEPGCache, eTimer
 
 try:
 	import Plugins.Extensions.EPGImport.EPGConfig as EPGConfig
@@ -16,6 +16,8 @@ EPGIMPORTPATH = '/etc/epgimport/'
 class epgimport_helper():
 	def __init__(self, provider):
 		self.provider = provider
+		self.update_status_timer = eTimer()
+		self.update_status_timer.callback.append(self.update_status)
 
 	@staticmethod
 	def xml_escape(string):
@@ -61,11 +63,27 @@ class epgimport_helper():
 	#  not working yet
 	def importepg(self):
 		if EPGImport and EPGConfig and os.path.exists(f := self.getSourcesFilename()):
-			epgimport = EPGImport.EPGImport(eEPGCache.getInstance(), lambda x: True)
-			epgimport.sources = [EPGConfig.enumSourcesFile(f)]
-			epgimport.onDone = self.epgimport_done
-			epgimport.beginImport()
+			self.update_status_timer.start(1000)
+			self.epgimport = EPGImport.EPGImport(eEPGCache.getInstance(), lambda x: True)
+			self.epgimport.sources = [s for s in self.epgimport_sources([f])]
+			self.epgimport.onDone = self.epgimport_done
+			self.epgimport.beginImport()
+
+	def update_status(self):
+		if self.epgimport and self.epgimport.isImportRunning():
+			for f in self.provider.update_status_callback:
+				f(_("EPG Import: Importing %s %s events") % (self.epgimport.source.description, self.epgimport.eventCount))
+			
+
+	def epgimport_sources(self, sourcefiles):
+	    for sourcefile in sourcefiles:
+	        try:
+	            for s in EPGConfig.enumSourcesFile(sourcefile):
+	                yield s
+	        except Exception as e:
+	            print('[e2m3u2b] Failed to open epg source ', sourcefile, ' Error: ', e, file=log)
 
 	def epgimport_done(self, reboot=False, epgfile=None):
-		print('epgimport of "%s" finished' % self.provider.iptv_service_provider)
-		
+		self.update_status_timer.stop()
+		for f in self.provider.update_status_callback:
+			f(_("EPG Import: Importing events for %s completed") % self.provider.iptv_service_provider)

@@ -84,8 +84,8 @@ class XtreemProvider(IPTVProcessor):
 				for x in groupItem[1]:
 					services.append(x[0])
 				db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + groupItem[0], bfilename, services, False)
-		self.bouquetCreated(None)
 		self.generateEPGImportFiles(groups)
+		self.bouquetCreated(None)
 
 	def getVoDMovies(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
