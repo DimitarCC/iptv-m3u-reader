@@ -61,6 +61,9 @@ class XtreemProvider(IPTVProcessor):
 
 		for service in services_json_obj:
 			surl = "%s/live/%s/%s/%s.%s" % (self.url, self.username, self.password, service["stream_id"], "ts" if self.play_system == "1" else "m3u8")
+			catchup_days = service["tv_archive_duration"]
+			if catchup_days:
+				self.constructCatchupSufix(str(catchup_days), surl, "xc")
 			ch_name = service["name"].replace(":", "|")
 			epg_id = service["epg_channel_id"]
 			stype = "1"

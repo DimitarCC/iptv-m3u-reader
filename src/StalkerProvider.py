@@ -19,10 +19,11 @@ write_lock = threading.Lock()
 db = eDVBDB.getInstance()
 
 class Channel():
-	def __init__(self, id, name, cmd):
+	def __init__(self, id, name, cmd, catchup_days):
 		self.id = id
 		self.name = name
 		self.cmd = cmd
+		self.catchup_days = catchup_days
 
 class StalkerProvider(IPTVProcessor):
 	def __init__(self):
@@ -53,6 +54,9 @@ class StalkerProvider(IPTVProcessor):
 			services = []
 			for service in group[1]:
 				surl = service.cmd
+				catchup_days = service.catchup_days
+				if catchup_days:
+					self.constructCatchupSufix(str(catchup_days), surl, "stalker")
 				ch_name = service.name.replace(":", "|")
 				stype = "1"
 				if ("UHD" in ch_name or "4K" in ch_name) and not " HD" in ch_name:
@@ -126,7 +130,7 @@ class StalkerProvider(IPTVProcessor):
 						surl = channel["cmd"].replace("ffmpeg ", "")
 						if self.play_system != "1":
 							surl = surl.replace("extension=ts","extension=m3u8")
-						services.append(Channel(channel["id"], channel["name"], channel["cmd"].replace("ffmpeg ", "")))
+						services.append(Channel(channel["id"], channel["name"], channel["cmd"].replace("ffmpeg ", ""), channel["tv_archive_duration"]))
 					total_items = response_json["js"]["total_items"]
 					if len(services) >= total_items:
 						break

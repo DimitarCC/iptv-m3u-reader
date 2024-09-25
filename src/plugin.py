@@ -3,7 +3,7 @@ from . import _
 
 from sys import modules
 from time import time
-from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner
+from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner, BT_SCALE
 from Plugins.Plugin import PluginDescriptor
 from .M3UProvider import M3UProvider
 from .IPTVProcessor import IPTVProcessor
@@ -27,13 +27,18 @@ from Components.Sources.StaticText import StaticText
 from Components.Sources.List import List
 from Components.Sources.Progress import Progress
 from Components.SystemInfo import SystemInfo
-from Tools.Directories import fileExists, isPluginInstalled, sanitizeFilename
+from Components.EpgListGrid import EPGListGrid
+from Tools.Directories import fileExists, isPluginInstalled, sanitizeFilename, resolveFilename, SCOPE_CURRENT_SKIN
+from Tools.LoadPixmap import LoadPixmap
 from Tools.BoundFunction import boundFunction
 from Navigation import Navigation
+from Components.MultiContent import MultiContentEntryText, MultiContentEntryPixmapAlphaBlend
 
 from os import path, fsync, rename, makedirs
 import xml
 from xml.etree.cElementTree import iterparse
+import re
+import datetime
 
 import threading
 write_lock = threading.Lock()
@@ -171,10 +176,48 @@ def injectIntoNavigation():
 	NavigationInstance.instance.recordService = recordServiceWithIPTV.__get__(NavigationInstance.instance, Navigation)
 	NavigationInstance.instance.getCurrentlyPlayingServiceOrGroup = getCurrentlyPlayingServiceOrGroup.__get__(NavigationInstance.instance, Navigation)
 	PictureInPicture.playService = playServiceWithIPTVPiP
+	if injectCatchupIcon not in EPGListGrid.buildEntryExtensionFunctions:
+		EPGListGrid.buildEntryExtensionFunctions.append(injectCatchupIcon)
+	__init_orig__ = EPGListGrid.__init__
+	def __init_new__(self, *args, **kwargs):
+		self.catchUpIcon = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/catchup.png"))
+		__init_orig__(self, *args, **kwargs)
+	EPGListGrid.__init__ = __init_new__
+	
+
+
 	#Screens.InfoBarGenerics.isMoviePlayerInfobar = isMoviePlayerInfoBar
 
 #def isMoviePlayerInfoBar(self):
 #	return self.__class__.__name__ in ("MoviePlayer", "VoDMoviePlayer")
+
+
+def injectCatchupIcon(res, obj, service, serviceName, events, picon, channel):
+	r2 = obj.eventRect
+	left = r2.left()
+	top = r2.top()
+	width = r2.width()
+	if events:
+		start = obj.timeBase
+		end = start + obj.timeEpochSecs
+		now = time()
+		for ev in events:
+			stime = ev[2]
+			duration = ev[3]
+			xpos, ewidth = obj.calcEventPosAndWidthHelper(stime, duration, start, end, width)
+			if "catchupdays=" in service and stime < now and obj.catchUpIcon:
+				pix_size = obj.catchUpIcon.size()
+				pix_width = pix_size.width()
+				pix_height = pix_size.height()
+				match = re.search(r"catchupdays=(\d*)", service)
+				catchup_days = int(match.groups(1)[0])
+				if now - stime <= datetime.timedelta(days=catchup_days).total_seconds():
+					res.append(MultiContentEntryPixmapAlphaBlend(
+									pos=(left + xpos + ewidth - pix_width - 5, top + 5),
+									size=(pix_width, pix_height),
+									png=obj.catchUpIcon,
+									flags=0))
+
 
 def getCurrentlyPlayingServiceOrGroup(self):
 	return self.originalPlayingServiceReference or self.currentlyPlayingServiceOrGroup
@@ -516,6 +559,7 @@ class M3UIPTVManagerConfig(Screen):
 				</convert>
 			</widget>
 			<widget source="description" render="Label" position="%d,%d" zPosition="10" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1" />
+		 	<widget source="progress" render="Progress" position="%d,%d" size="%d,%d" backgroundColor="background" foregroundColor="blue" zPosition="11" borderWidth="0" borderColor="grey" cornerRadius="%d"/>
 		</screen>""",
 			610, 410,  # screen
 			15, 60, 580, 286,  # Listbox
@@ -523,6 +567,7 @@ class M3UIPTVManagerConfig(Screen):
 			22,  # fonts
 			26,  # ItemHeight
 			5, 360, 600, 50, 22,  # description
+			5, 360, 600, 6, 3,  # progress
 			]  # noqa: E124
 
 	def __init__(self, session):

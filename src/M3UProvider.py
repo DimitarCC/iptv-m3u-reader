@@ -56,10 +56,8 @@ class M3UProvider(IPTVProcessor):
 					ch_name = match.group(2) if not isFallbackMatch else sid
 					if not sid:
 						sid = ch_name.replace(":", "%3a")
-					match = re.search(r".*tvg-rec=\"(\d*)\".*", line)
-					if match:
-						captchup_addon = "|*|append|%s" % (match.groups(1))
 					url = ""
+					match = re.search(r".*tvg-rec=\"(\d*)\".*", line)
 					if self.static_urls:
 						found_url = False
 						next_line_nr = line_nr + 1
@@ -68,11 +66,13 @@ class M3UProvider(IPTVProcessor):
 								next_line = playlist_splitted[next_line_nr].strip()
 								if next_line.startswith(("http://", "https://")):
 									url = next_line.replace(":", "%3a")
+									self.constructCatchupSufix(match.groups(1)[0] if match else None, url, "append")
 									found_url = True
 							else:
 								break
 					else:
 						url = self.scheme + "%3a//" + sid
+						self.constructCatchupSufix(match.groups(1)[0] if match else None, url, "append")
 					stype = "1"
 					if "UHD" in ch_name or "4K" in ch_name:
 						stype = "1F"
@@ -89,7 +89,7 @@ class M3UProvider(IPTVProcessor):
 		splittedRef = nref.toString().split(":")
 		sRef = nref and ServiceReference(nref.toString())
 		origRef = ":".join(splittedRef[:10])
-		iptvInfoDataSplit = iptvinfodata[0].split("|*|")
+		iptvInfoDataSplit = iptvinfodata.split("?")
 		channelForSearch = iptvInfoDataSplit[0].split(":")[0]
 		orig_name = sRef and sRef.getServiceName()
 		backup_ref = nref.toString()

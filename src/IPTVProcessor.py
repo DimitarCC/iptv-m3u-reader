@@ -67,6 +67,11 @@ class IPTVProcessor():
 
 	def generateEPGChannelReference(self, original_sref):
 		return f"{':'.join(original_sref.split(':', 10)[:10])}:http%3a//m3u.iptv.com"
+	
+	def constructCatchupSufix(self, days, url, catchup_type):
+		if days:
+			captchup_addon = "%scatchuptype=%s&catchupdays=%s" % ("&" if "?" in url else "?", catchup_type, days)
+			url += captchup_addon
 
 	def removeBouquets(self):
 		from enigma import eDVBDB

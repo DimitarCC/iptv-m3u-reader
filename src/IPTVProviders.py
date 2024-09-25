@@ -9,7 +9,7 @@ def processService(nref, callback, event=None):
 		if len(url_data) < 2:
 			return nref, nref, False
 		iptv_service = url_data[0]
-		iptvinfodata = url_data[1].split("@")
+		iptvinfodata = url_data[1]
 		if not iptv_service in providers:
 			return nref, nref, False
 		prov = providers[iptv_service]
