@@ -25,7 +25,8 @@ class IPTVProcessor():
 		self.onBouquetCreated = []
 		self.progress_percentage = -1
 		self.update_status_callback = []  # for passing messages
-
+		self.epg_url = ""
+		
 	def getPlaylistAndGenBouquet(self, callback=None):
 		if callback:
 			threads.deferToThread(self.storePlaylistAndGenBouquet).addCallback(callback)

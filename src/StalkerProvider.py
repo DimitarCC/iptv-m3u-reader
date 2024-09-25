@@ -81,7 +81,7 @@ class StalkerProvider(IPTVProcessor):
 			if token:
 				return token
 		except Exception as ex:
-			print("EXCEPTION: " + str(ex))
+			print("[M3UIPTV] [Stalker] Error getting token: " + str(ex))
 			pass
 
 	def get_genres(self, session, token):
@@ -99,7 +99,7 @@ class StalkerProvider(IPTVProcessor):
 					genres.append({'name': name, 'category_type': 'IPTV', 'genre_id': gid})
 				return genres
 		except Exception as ex:
-			print("EXCEPTION: " + str(ex))
+			print("[M3UIPTV] [Stalker] Error getting genres: " + str(ex))
 			pass
 
 	def get_channels_for_group(self, services, session, cookies, headers, genre_id):
@@ -117,7 +117,7 @@ class StalkerProvider(IPTVProcessor):
 				response = session.get(url, cookies=cookies, headers=headers)
 
 			if response.status_code == 200:
-				print("GETTING CHANNELS FOR PAGE %d" % page_number)
+				#print("[M3UIPTV] GETTING CHANNELS FOR PAGE %d" % page_number)
 				try:
 					response_json = response.json()
 					channels_data = response_json["js"]["data"]
@@ -132,9 +132,9 @@ class StalkerProvider(IPTVProcessor):
 						break
 					page_number += 1
 				except ValueError:
-					print("EXCEPTION: Invalid JSON format in response")
+					print("[M3UIPTV] [Stalker] Invalid JSON format in response")
 			else:
-				print(f"EXCEPTION: IPTV Request failed for page {page_number}")
+				print(f"[M3UIPTV] [Stalker] IPTV Request failed for page {page_number}")
 
 	def get_channels(self, session, token, genres):
 		groups = {}
@@ -149,14 +149,14 @@ class StalkerProvider(IPTVProcessor):
 				genre_id = group["genre_id"]
 				if genre_id != "*":
 					self.get_channels_for_group(groups[genre_id][1], session, cookies, headers, genre_id)
-					print("GENERATE CHANNELS FOR GROUP %d/%d" % (i, len(genres)))
+					#print("[M3UIPTV] [Stalker] GENERATE CHANNELS FOR GROUP %d/%d" % (i, len(genres)))
 					self.progress_percentage = int((i/len(genres)) * 100)
 				i += 1
 
 			self.progress_percentage = -1
 			return groups
 		except Exception as ex:
-			print("EXCEPTION: " + str(ex))
+			print("[M3UIPTV] [Stalker] Error getting channels: " + str(ex))
 			self.bouquetCreated(ex)
 			pass
 

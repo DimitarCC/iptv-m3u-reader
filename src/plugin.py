@@ -219,7 +219,7 @@ def playServiceWithIPTVPiP(self, service):
 		return False
 
 
-def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False, adjust=True):
+def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False, adjust=True, event=None):
 	from Components.ServiceEventTracker import InfoBarCount
 	InfoBarInstance = InfoBarCount == 1 and InfoBar.instance
 	
@@ -293,7 +293,7 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 			playref = streamrelay.streamrelayChecker(playref)
 			is_dynamic = False
 			if callable(processIPTVService):
-				playref, old_ref, is_dynamic = processIPTVService(playref, self.playRealService)
+				playref, old_ref, is_dynamic = processIPTVService(playref, self.playRealService, event)
 				if InfoBarInstance:
 					InfoBarInstance.session.screen["Event_Now"].updateSource(playref)
 					InfoBarInstance.session.screen["Event_Next"].updateSource(playref)
@@ -581,7 +581,6 @@ class M3UIPTVManagerConfig(Screen):
 		if providers_updating == 0:
 			self.progress_timer.stop()
 		else:
-			#print("PROGRESS VALUE UPDATED: %d//%d = %d" % (providers_overal_progress, providers_updating, int(providers_overal_progress // providers_updating)))
 			progress_val = int(providers_overal_progress // providers_updating)
 			self["progress"].value = progress_val if progress_val >= 0 else 0
 
@@ -619,6 +618,7 @@ class M3UIPTVManagerConfig(Screen):
 				providerObj.getPlaylistAndGenBouquet()
 			except Exception as ex:
 				self.progress_timer.stop()
+				self["progress"].value = -1
 				print("[M3UIPTV] Error has occured during bouquet creation: " + str(ex))
 				self.updateDescription(_("%s: an error occured during bouquet creation") % providerObj.iptv_service_provider)
 				self.session.open(MessageBox, _("Unable to create bouquet \"%s\"!\nPossible reason can be no network available.") % providerObj.iptv_service_provider, MessageBox.TYPE_ERROR, timeout=5)
@@ -630,6 +630,7 @@ class M3UIPTVManagerConfig(Screen):
 		if not hasattr(self, "session") or not self.session:
 			return
 		self.progress_timer.stop()
+		self["progress"].value = -1
 		if error:
 			self.updateDescription(_("%s: unable to create bouquet") % providerObj.iptv_service_provider)
 			self.session.open(MessageBox, _("Unable to create bouquet \"%s\"!\nPossible reason can be no network available.") % providerObj.iptv_service_provider, MessageBox.TYPE_ERROR, timeout=5)
@@ -789,7 +790,7 @@ def M3UIPTVVoDMenuCallback(close, answer=None):
 def startSetup(menuid):
 	if menuid != "setup":
 		return []
-	return [(_("IPTV"), M3UIPTVMenu, "iptvmenu", 9)]
+	return [(_("IPTV"), M3UIPTVMenu, "iptvmenu", 10)]
 
 def startVoDSetup(menuid):
 	if menuid != "mainmenu":

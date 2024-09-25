@@ -1,6 +1,6 @@
 providers = dict()
 
-def processService(nref, callback):
+def processService(nref, callback, event=None):
 	sRef = nref.toString()
 	if sRef.find("%3a//") > -1 and sRef.find("127.0.0.1") == -1:
 		splittedRef = nref.toString().split(":")
@@ -13,7 +13,7 @@ def processService(nref, callback):
 		if not iptv_service in providers:
 			return nref, nref, False
 		prov = providers[iptv_service]
-		ref, old_ref, is_dynamic = prov.processService(nref, iptvinfodata, callback)
+		ref, old_ref, is_dynamic = prov.processService(nref, iptvinfodata, callback, event)
 		return ref, old_ref, not prov.isPlayBackup 
 	else:
 		return nref, nref, False

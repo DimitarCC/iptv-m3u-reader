@@ -37,6 +37,7 @@ class M3UProvider(IPTVProcessor):
 		tsid = 1000
 		services = []
 		line_nr = 0
+		captchup_addon = ""
 		for line in playlist_splitted:
 			if self.ignore_vod and "group-title=\"VOD" in line:
 				continue
@@ -55,6 +56,9 @@ class M3UProvider(IPTVProcessor):
 					ch_name = match.group(2) if not isFallbackMatch else sid
 					if not sid:
 						sid = ch_name.replace(":", "%3a")
+					match = re.search(r".*tvg-rec=\"(\d*)\".*", line)
+					if match:
+						captchup_addon = "|*|append|%s" % (match.groups(1))
 					url = ""
 					if self.static_urls:
 						found_url = False
@@ -81,17 +85,12 @@ class M3UProvider(IPTVProcessor):
 		db.addOrUpdateBouquet(self.iptv_service_provider, services, 1)
 		self.bouquetCreated(None)
 
-	def processService(self, nref, iptvinfodata, callback=None):
+	def processService(self, nref, iptvinfodata, callback=None, event=None):
 		splittedRef = nref.toString().split(":")
 		sRef = nref and ServiceReference(nref.toString())
 		origRef = ":".join(splittedRef[:10])
 		iptvInfoDataSplit = iptvinfodata[0].split("|*|")
 		channelForSearch = iptvInfoDataSplit[0].split(":")[0]
-		#catchUpDays = 0
-		#if len(iptvInfoDataSplit) > 1:
-		#	catchUpDays = int(iptvInfoDataSplit[1])
-		#print "[IPTV] channelForSearch = " + channelForSearch
-		#print "[IPTV] orig_name = " + orig_name
 		orig_name = sRef and sRef.getServiceName()
 		backup_ref = nref.toString()
 		try:
@@ -99,12 +98,12 @@ class M3UProvider(IPTVProcessor):
 		except:
 			pass
 		if callback:
-			threads.deferToThread(self.processDownloadPlaylist, nref, channelForSearch, origRef, backup_ref, orig_name).addCallback(callback)
+			threads.deferToThread(self.processDownloadPlaylist, nref, channelForSearch, origRef, backup_ref, orig_name, event).addCallback(callback)
 		else:
-			return self.processDownloadPlaylist(nref, channelForSearch, origRef, backup_ref, orig_name) , nref, False
+			return self.processDownloadPlaylist(nref, channelForSearch, origRef, backup_ref, orig_name, event) , nref, False
 		return nref, nref, True
 		
-	def processDownloadPlaylist(self, nref, channelForSearch, origRef, backup_ref, orig_name):
+	def processDownloadPlaylist(self, nref, channelForSearch, origRef, backup_ref, orig_name, event=None):
 		try:
 			is_check_network_val = config.plugins.m3uiptv.check_internet.value
 			if is_check_network_val != "off":
@@ -146,7 +145,7 @@ class M3UProvider(IPTVProcessor):
 			self.isPlayBackup = False
 			return self.nnref#, nref
 		except Exception as ex:
-			print("EXCEPTION: " + str(ex))
+			print("[M3UIPTV] [M3U] Error downloading playlist: " + str(ex))
 			self.isPlayBackup = True
 			self.nnref = eServiceReference(backup_ref + ":")
 			return self.nnref#, nref
