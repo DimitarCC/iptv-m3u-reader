@@ -105,22 +105,13 @@ class XtreemProvider(IPTVProcessor):
 		vod_response = response.read()
 		dest_file = USER_IPTV_VOD_MOVIES_FILE % self.scheme
 		with write_lock:
-			f = open(dest_file + ".writing", 'w')
-			f.write(vod_response.decode('utf-8'))
+			f = open(dest_file + ".writing", 'wb')
+			f.write(vod_response)
 			f.flush()
 			fsync(f.fileno())
 			f.close()
 			rename(dest_file + ".writing", dest_file)
-
-		vod_json_obj = json.loads(vod_response)
-		self.vod_movies = []
-		for movie in vod_json_obj:
-			name = movie["name"]
-			ext = movie["container_extension"]
-			id = movie["stream_id"]
-			url = "%s/movie/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
-			vod_item = VoDItem(url, name)
-			self.vod_movies.append(vod_item)
+		self.makeVodListFromJson(vod_response)
 
 	def loadVoDMoviesFromFile(self):
 		vodFile = USER_IPTV_VOD_MOVIES_FILE % self.scheme
@@ -130,6 +121,9 @@ class XtreemProvider(IPTVProcessor):
 		fd = open(vodFile, 'rb')
 		json_string = fd.read()
 		fd.close()
+		self.makeVodListFromJson(json_string)
+
+	def makeVodListFromJson(self, json_string):
 		vod_json_obj = json.loads(json_string)
 		self.vod_movies = []
 		for movie in vod_json_obj:
@@ -139,3 +133,4 @@ class XtreemProvider(IPTVProcessor):
 			url = "%s/movie/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
 			vod_item = VoDItem(url, name)
 			self.vod_movies.append(vod_item)
+
