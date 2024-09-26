@@ -121,7 +121,6 @@ class XtreemProvider(IPTVProcessor):
 			url = "%s/movie/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
 			vod_item = VoDItem(url, name)
 			self.vod_movies.append(vod_item)
-		self.vod_movies.reverse()
 
 	def loadVoDMoviesFromFile(self):
 		vodFile = USER_IPTV_VOD_MOVIES_FILE % self.scheme
@@ -140,4 +139,3 @@ class XtreemProvider(IPTVProcessor):
 			url = "%s/movie/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
 			vod_item = VoDItem(url, name)
 			self.vod_movies.append(vod_item)
-		self.vod_movies.reverse()

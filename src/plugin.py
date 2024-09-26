@@ -532,8 +532,6 @@ class M3UIPTVVoDMovies(Screen):
 		for provider in providers:
 			allmovies += providers[provider].vod_movies
 
-		allmovies.reverse()
-
 		self["list"].setList([(movie, movie.name) for movie in allmovies])
 
 	def playMovie(self):

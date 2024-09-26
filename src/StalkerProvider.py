@@ -195,7 +195,6 @@ class StalkerProvider(IPTVProcessor):
 		# 	url = "%s/movie/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
 		# 	vod_item = VoDItem(url, name)
 		# 	self.vod_movies.append(vod_item)
-		# self.vod_movies.reverse()
 		pass
 
 	def loadVoDMoviesFromFile(self):
@@ -215,4 +214,3 @@ class StalkerProvider(IPTVProcessor):
 			url = "%s/movie/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
 			vod_item = VoDItem(url, name)
 			self.vod_movies.append(vod_item)
-		self.vod_movies.reverse()
