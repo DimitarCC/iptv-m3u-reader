@@ -1,7 +1,17 @@
 from twisted.internet import threads
 from .epgimport_helper import epgimport_helper
-from Tools.Directories import sanitizeFilename
+from .Variables import USER_AGENT
+from .VoDItem import VoDItem
+from Components.config import config
+from Tools.Directories import sanitizeFilename, fileExists
+from os import fsync, rename
 import re
+import json
+import socket
+import urllib
+import threading
+
+write_lock = threading.Lock()
 
 
 class IPTVProcessor():
@@ -26,6 +36,7 @@ class IPTVProcessor():
 		self.progress_percentage = -1
 		self.update_status_callback = []  # for passing messages
 		self.epg_url = ""
+		self.categories = {}
 		
 	def getPlaylistAndGenBouquet(self, callback=None):
 		if callback:
@@ -39,8 +50,48 @@ class IPTVProcessor():
 	def getVoDMovies(self):
 		pass
 
+	def getCategories(self):
+		pass
+
 	def loadVoDMoviesFromFile(self):
 		pass
+
+	def getJsonUrl(self, url, dest_file):
+		is_check_network_val = config.plugins.m3uiptv.check_internet.value
+		if is_check_network_val != "off":
+			socket.setdefaulttimeout(int(is_check_network_val))
+			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
+		req = urllib.request.Request(url, headers={'User-Agent' : USER_AGENT}) 
+		req_timeout_val = config.plugins.m3uiptv.req_timeout.value
+		if req_timeout_val != "off":
+			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
+		else:
+			response = urllib.request.urlopen(req)
+		vod_response = response.read()
+		with write_lock:
+			f = open(dest_file + ".writing", 'wb')
+			f.write(vod_response)
+			f.flush()
+			fsync(f.fileno())
+			f.close()
+			rename(dest_file + ".writing", dest_file)
+		return vod_response
+
+	def loadJsonFromFile(self, source_file):
+		if not fileExists(source_file):
+			return
+		return open(source_file, 'rb').read()
+
+	def makeVodListFromJson(self, json_string):
+		if json_string:
+			vod_json_obj = json.loads(json_string)
+			for movie in vod_json_obj:
+				name = movie["name"]
+				ext = movie["container_extension"]
+				id = movie["stream_id"]
+				url = "%s/movie/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
+				vod_item = VoDItem(url, name)
+				self.vod_movies.append(vod_item)
 
 	def processService(self, nref, iptvinfodata, callback=None):
 		return nref, nref, False

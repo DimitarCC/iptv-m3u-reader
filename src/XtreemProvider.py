@@ -5,13 +5,7 @@ import socket
 import urllib
 import json
 from .IPTVProcessor import IPTVProcessor
-from .VoDItem import VoDItem
-from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT
-
-from os import fsync, rename
-
-import threading
-write_lock = threading.Lock()
+from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, USER_IPTV_CATEGORIES_FILE
 
 db = eDVBDB.getInstance()
 
@@ -76,6 +70,7 @@ class XtreemProvider(IPTVProcessor):
 			groups[service["category_id"] if service["category_id"] else "EMPTY"][1].append((sref, epg_id, ch_name))
 
 		if not self.ignore_vod:
+			# self.getVoDCategories()
 			self.getVoDMovies()
 
 		self.removeBouquets()
@@ -91,46 +86,15 @@ class XtreemProvider(IPTVProcessor):
 		self.bouquetCreated(None)
 
 	def getVoDMovies(self):
-		is_check_network_val = config.plugins.m3uiptv.check_internet.value
-		if is_check_network_val != "off":
-			socket.setdefaulttimeout(int(is_check_network_val))
-			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
+		self.vod_movies = []
 		url = "%s/player_api.php?username=%s&password=%s&action=get_vod_streams" % (self.url, self.username, self.password)
-		req = urllib.request.Request(url, headers={'User-Agent' : USER_AGENT}) 
-		req_timeout_val = config.plugins.m3uiptv.req_timeout.value
-		if req_timeout_val != "off":
-			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
-		else:
-			response = urllib.request.urlopen(req)
-		vod_response = response.read()
 		dest_file = USER_IPTV_VOD_MOVIES_FILE % self.scheme
-		with write_lock:
-			f = open(dest_file + ".writing", 'wb')
-			f.write(vod_response)
-			f.flush()
-			fsync(f.fileno())
-			f.close()
-			rename(dest_file + ".writing", dest_file)
-		self.makeVodListFromJson(vod_response)
-
-	def loadVoDMoviesFromFile(self):
-		vodFile = USER_IPTV_VOD_MOVIES_FILE % self.scheme
-		if not fileExists(vodFile):
-			self.vod_movies = []
-			return
-		fd = open(vodFile, 'rb')
-		json_string = fd.read()
-		fd.close()
+		json_string = self.getJsonUrl(url, dest_file)
 		self.makeVodListFromJson(json_string)
 
-	def makeVodListFromJson(self, json_string):
-		vod_json_obj = json.loads(json_string)
+	def loadVoDMoviesFromFile(self):
 		self.vod_movies = []
-		for movie in vod_json_obj:
-			name = movie["name"]
-			ext = movie["container_extension"]
-			id = movie["stream_id"]
-			url = "%s/movie/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
-			vod_item = VoDItem(url, name)
-			self.vod_movies.append(vod_item)
+		vodFile = USER_IPTV_VOD_MOVIES_FILE % self.scheme
+		json_string = self.loadJsonFromFile(vodFile)
+		self.makeVodListFromJson(json_string)
 
