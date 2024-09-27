@@ -133,12 +133,21 @@ class M3UProvider(IPTVProcessor):
 					prov.last_exec = cur_time
 
 			findurl = False
+			catchup_source = ""
 			for line in playlist.splitlines():
 				line = line.strip()  # just in case there is surrounding white space present
 				if line.startswith("#EXTINF:"):
 					findurl = (channelSID in line) or (("," + channelForSearch) in line)
+					match = re.search(r"catchup-source=\"(.*)\"\scatchup-days=", line)
+					if match:
+						catchup_source = match.groups(1)[0]
+					else:
+						catchup_source = ""
 				elif findurl and line.startswith(("http://", "https://")):
-					iptv_url = line.replace(":", "%3a")
+					if event and catchup_source:
+						iptv_url = catchup_source.replace(":", "%3a")
+					else:
+						iptv_url = line.replace(":", "%3a")
 					nref_new = origRef + ":" + iptv_url + ":" + orig_name + "•" + prov.iptv_service_provider
 					break
 			self.nnref = eServiceReference(nref_new)
