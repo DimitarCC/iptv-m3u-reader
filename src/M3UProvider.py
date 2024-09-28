@@ -7,7 +7,7 @@ import socket
 import urllib
 import re
 from .IPTVProcessor import IPTVProcessor
-from .Variables import USER_AGENT
+from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_TYPES
 
 db = eDVBDB.getInstance()
 
@@ -19,6 +19,9 @@ class M3UProvider(IPTVProcessor):
 		self.offset = 0
 		self.progress_percentage = -1
 		self.create_epg = True
+		self.catchup_type = CATCHUP_DEFAULT
+		self.play_system_vod = "4097"
+		self.play_system_catchup = self.play_system
 		
 	def storePlaylistAndGenBouquet(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
@@ -37,7 +40,7 @@ class M3UProvider(IPTVProcessor):
 		tsid = 1000
 		services = []
 		line_nr = 0
-		captchup_addon = ""
+		captchup_days = ""
 		for line in playlist_splitted:
 			if self.ignore_vod and "group-title=\"VOD" in line:
 				continue
@@ -58,6 +61,8 @@ class M3UProvider(IPTVProcessor):
 						sid = ch_name.replace(":", "%3a")
 					url = ""
 					match = re.search(r".*tvg-rec=\"(\d*)\".*", line)
+					if match:
+						captchup_days = match.groups(1)[0]
 					if self.static_urls:
 						found_url = False
 						next_line_nr = line_nr + 1
@@ -66,13 +71,15 @@ class M3UProvider(IPTVProcessor):
 								next_line = playlist_splitted[next_line_nr].strip()
 								if next_line.startswith(("http://", "https://")):
 									url = next_line.replace(":", "%3a")
-									self.constructCatchupSufix(match.groups(1)[0] if match else None, url, "append")
+									url = self.constructCatchupSufix(captchup_days, url, CATCHUP_TYPES[self.catchup_type])
+									captchup_days = ""
 									found_url = True
 							else:
 								break
 					else:
 						url = self.scheme + "%3a//" + sid
-						self.constructCatchupSufix(match.groups(1)[0] if match else None, url, "append")
+						url = self.constructCatchupSufix(captchup_days, url, CATCHUP_TYPES[self.catchup_type])
+						captchup_days = ""
 					stype = "1"
 					if "UHD" in ch_name or "4K" in ch_name:
 						stype = "1F"

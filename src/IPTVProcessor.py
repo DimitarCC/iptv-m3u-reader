@@ -1,6 +1,6 @@
 from twisted.internet import threads
 from .epgimport_helper import epgimport_helper
-from .Variables import USER_AGENT
+from .Variables import USER_AGENT, CATCHUP_DEFAULT
 from .VoDItem import VoDItem
 from Components.config import config
 from Tools.Directories import sanitizeFilename, fileExists
@@ -36,6 +36,9 @@ class IPTVProcessor():
 		self.progress_percentage = -1
 		self.update_status_callback = []  # for passing messages
 		self.epg_url = ""
+		self.catchup_type = CATCHUP_DEFAULT
+		self.play_system_vod = "4097"
+		self.play_system_catchup = self.play_system
 		self.categories = {}
 		
 	def getPlaylistAndGenBouquet(self, callback=None):
@@ -118,11 +121,12 @@ class IPTVProcessor():
 
 	def generateEPGChannelReference(self, original_sref):
 		return f"{':'.join(original_sref.split(':', 10)[:10])}:http%3a//m3u.iptv.com"
-	
+
 	def constructCatchupSufix(self, days, url, catchup_type):
-		if days:
+		if days.strip() and int(days) > 0:
 			captchup_addon = "%scatchuptype=%s&catchupdays=%s" % ("&" if "?" in url else "?", catchup_type, days)
-			url += captchup_addon
+			return url + captchup_addon
+		return url
 
 	def removeBouquets(self):
 		from enigma import eDVBDB

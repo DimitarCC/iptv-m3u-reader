@@ -5,7 +5,7 @@ import socket
 import urllib
 import json
 from .IPTVProcessor import IPTVProcessor
-from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, USER_IPTV_CATEGORIES_FILE
+from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, USER_IPTV_CATEGORIES_FILE, CATCHUP_XTREME, CATCHUP_XTREME_TEXT
 
 db = eDVBDB.getInstance()
 
@@ -17,6 +17,9 @@ class XtreemProvider(IPTVProcessor):
 		self.vod_movies = []
 		self.progress_percentage = -1
 		self.create_epg = True
+		self.catchup_type = CATCHUP_XTREME
+		self.play_system_vod = "4097"
+		self.play_system_catchup = self.play_system
 		
 	def getEpgUrl(self):
 		return "%s/xmltv.php?username=%s&password=%s" % (self.url, self.username, self.password)
@@ -57,7 +60,7 @@ class XtreemProvider(IPTVProcessor):
 			surl = "%s/live/%s/%s/%s.%s" % (self.url, self.username, self.password, service["stream_id"], "ts" if self.play_system == "1" else "m3u8")
 			catchup_days = service["tv_archive_duration"]
 			if catchup_days:
-				self.constructCatchupSufix(str(catchup_days), surl, "xc")
+				surl = self.constructCatchupSufix(str(catchup_days), surl, CATCHUP_XTREME_TEXT)
 			ch_name = service["name"].replace(":", "|")
 			epg_id = service["epg_channel_id"]
 			stype = "1"

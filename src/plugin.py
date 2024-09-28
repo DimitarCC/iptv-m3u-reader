@@ -479,7 +479,9 @@ class ArchiveMoviePlayer(MoviePlayer):
 	def __init__(self, session, service, slist=None, lastservice=None, event=None, orig_url="", start_orig=0, end_org=0, duration=0):
 		MoviePlayer.__init__(self, session, service=service, slist=slist, lastservice=lastservice)
 		self.skinName = ["ArchiveMoviePlayer", "MoviePlayer"]
+		self.onPlayStateChanged.append(self.__playStateChanged)
 		self["progress"] = Progress()
+		self.progress_change_interval = 1000
 		self.event = event
 		self.duration = duration
 		self.orig_url = orig_url
@@ -489,7 +491,7 @@ class ArchiveMoviePlayer(MoviePlayer):
 		self.duration_curr = duration
 		self.progress_timer = eTimer()
 		self.progress_timer.callback.append(self.onProgressTimer)
-		self.progress_timer.start(1000)
+		self.progress_timer.start(self.progress_change_interval)
 		self["progress"].value = 0
 		self["time_info"] = Label("")
 		self.onProgressTimer()
@@ -509,10 +511,19 @@ class ArchiveMoviePlayer(MoviePlayer):
 		self["progress"].value = progress_val if progress_val >= 0 else 0
 
 	def __evServiceStart(self):
-		self.progress_timer.start(1000)
+		self.progress_timer.start(self.progress_change_interval)
 
 	def __evServiceEnd(self):
 		self.progress_timer.stop()
+
+	def __playStateChanged(self, state):
+		playstateString = state[3]
+		if playstateString == '>':
+			self.progress_timer.start(self.progress_change_interval)
+		elif playstateString == '||':
+			self.progress_timer.stop()
+		elif playstateString == 'END':
+			self.progress_timer.stop()
 
 	def leavePlayer(self):
 		self.setResumePoint()

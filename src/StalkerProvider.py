@@ -5,7 +5,7 @@ from twisted.internet import threads
 import requests
 import time
 from .IPTVProcessor import IPTVProcessor
-from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT
+from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, CATCHUP_STALKER, CATCHUP_STALKER_TEXT
 from Tools.Directories import sanitizeFilename
 
 db = eDVBDB.getInstance()
@@ -25,6 +25,9 @@ class StalkerProvider(IPTVProcessor):
 		self.vod_movies = []
 		self.progress_percentage = -1
 		self.create_epg = False
+		self.catchup_type = CATCHUP_STALKER
+		self.play_system_vod = "4097"
+		self.play_system_catchup = self.play_system
 		
 	def storePlaylistAndGenBouquet(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
@@ -48,7 +51,7 @@ class StalkerProvider(IPTVProcessor):
 				surl = service.cmd
 				catchup_days = service.catchup_days
 				if catchup_days:
-					self.constructCatchupSufix(str(catchup_days), surl, "stalker")
+					surl = self.constructCatchupSufix(str(catchup_days), surl, CATCHUP_STALKER_TEXT)
 				ch_name = service.name.replace(":", "|")
 				stype = "1"
 				if ("UHD" in ch_name or "4K" in ch_name) and not " HD" in ch_name:
