@@ -85,7 +85,7 @@ def readProviders():
 				providerObj.scheme = provider.find("scheme").text
 				providerObj.play_system = provider.find("system").text
 				providerObj.play_system_catchup = provider.find("system_catchup").text if provider.find("system_catchup") is not None else providerObj.play_system
-				providerObj.catchup_type = provider.find("catchup_type").text if provider.find("catchup_type") else str(CATCHUP_DEFAULT)
+				providerObj.catchup_type = int(provider.find("catchup_type").text) if provider.find("catchup_type") is not None else str(CATCHUP_DEFAULT)
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.static_urls = provider.find("staticurl") is not None and provider.find("staticurl").text == "on"
 				providerObj.onid = onid
