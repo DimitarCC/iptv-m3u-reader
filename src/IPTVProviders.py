@@ -16,5 +16,5 @@ def processService(nref, callback, event=None):
 		ref, old_ref, is_dynamic = prov.processService(nref, iptvinfodata, callback, event)
 		return ref, old_ref, not prov.isPlayBackup, int(prov.play_system_catchup)
 	else:
-		return nref, nref, False
+		return nref, nref, False, nref.type
 	
