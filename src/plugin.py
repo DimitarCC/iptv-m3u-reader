@@ -501,14 +501,23 @@ class ArchiveMoviePlayer(MoviePlayer):
 
 
 	def onProgressTimer(self):
-		self.start_curr += 1
+		curr_pos = self.start_curr + self.getPosition()
 		len = self.duration
-		p = self.start_curr - self.start_orig
+		p = curr_pos - self.start_orig
 		r = self.duration - p
 		text = "+%d:%02d:%02d         %d:%02d:%02d         -%d:%02d:%02d" % (p / 3600, p % 3600 / 60, p % 60, len / 3600, len % 3600 / 60, len % 60, r / 3600, r % 3600 / 60, r % 60)
 		self["time_info"].setText(text)
 		progress_val = int((p / self.duration)*100)
 		self["progress"].value = progress_val if progress_val >= 0 else 0
+
+	def getPosition(self):
+		seek = self.getSeek()
+		if seek is None:
+			return None
+		pos = seek.getPlayPosition()
+		if pos[0]:
+			return 0
+		return pos[1] / 90000
 
 	def __evServiceStart(self):
 		if self.progress_timer:
@@ -557,7 +566,8 @@ class ArchiveMoviePlayer(MoviePlayer):
 			else:
 				self.setSeekState(self.SEEK_STATE_PLAY)
 		#seekable.seekRelative(pts < 0 and -1 or 1, abs(pts))
-		self.start_curr += pts
+		curr_pos = self.start_curr + self.getPosition()
+		self.start_curr = curr_pos + pts
 		self.duration_curr -= pts
 		newPlayref = eServiceReference(4097, 0, self.orig_url.replace("%3a", ":").replace("${start}", str(self.start_curr)).replace("${timestamp}", str(time())).replace("${duration}", str(self.duration_curr)))
 		newPlayref.setName(self.event.getEventName())
