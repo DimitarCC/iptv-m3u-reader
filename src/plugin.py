@@ -511,10 +511,12 @@ class ArchiveMoviePlayer(MoviePlayer):
 		self["progress"].value = progress_val if progress_val >= 0 else 0
 
 	def __evServiceStart(self):
-		self.progress_timer.start(self.progress_change_interval)
+		if self.progress_timer:
+			self.progress_timer.start(self.progress_change_interval)
 
 	def __evServiceEnd(self):
-		self.progress_timer.stop()
+		if self.progress_timer:
+			self.progress_timer.stop()
 
 	def __playStateChanged(self, state):
 		playstateString = state[3]
@@ -525,8 +527,16 @@ class ArchiveMoviePlayer(MoviePlayer):
 		elif playstateString == 'END':
 			self.progress_timer.stop()
 
+	def destroy(self):
+		if self.progress_timer:
+			self.progress_timer.stop()
+			self.progress_timer.callback.remove(self.onProgressTimer)
+
 	def leavePlayer(self):
 		self.setResumePoint()
+		if self.progress_timer:
+			self.progress_timer.stop()
+			self.progress_timer.callback.remove(self.onProgressTimer)
 		self.handleLeave("quit")
 
 	def leavePlayerOnExit(self):
