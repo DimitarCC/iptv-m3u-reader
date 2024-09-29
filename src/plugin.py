@@ -6,13 +6,13 @@ from time import time
 from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner, BT_SCALE, iPlayableService
 from Plugins.Plugin import PluginDescriptor
 from .M3UProvider import M3UProvider
-from .IPTVProcessor import IPTVProcessor
+from .IPTVProcessor import IPTVProcessor, constructCatchUpUrl
 from .XtreemProvider import XtreemProvider
 from .StalkerProvider import StalkerProvider
 from .IPTVProviders import providers
 from .IPTVProviders import processService as processIPTVService
 from .VoDItem import VoDItem
-from .Variables import USER_IPTV_PROVIDERS_FILE
+from .Variables import USER_IPTV_PROVIDERS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_STALKER
 from Screens.Screen import Screen
 from Screens.InfoBar import InfoBar, MoviePlayer
 from Screens.InfoBarGenerics import streamrelay, saveResumePoints, resumePointCache, resumePointCacheLast, delResumePoint
@@ -41,7 +41,7 @@ from Tools.Directories import fileExists, isPluginInstalled, sanitizeFilename, r
 from Tools.LoadPixmap import LoadPixmap
 from Tools.BoundFunction import boundFunction
 from Navigation import Navigation
-from Components.MultiContent import MultiContentEntryText, MultiContentEntryPixmapAlphaBlend
+from Components.MultiContent import MultiContentEntryPixmapAlphaBlend
 
 from os import path, fsync, rename, makedirs
 import xml
@@ -84,6 +84,8 @@ def readProviders():
 				providerObj.search_criteria = provider.find("filter").text
 				providerObj.scheme = provider.find("scheme").text
 				providerObj.play_system = provider.find("system").text
+				providerObj.play_system_catchup = provider.find("system_catchup").text if provider.find("system_catchup") is not None else providerObj.play_system
+				providerObj.catchup_type = provider.find("catchup_type").text if provider.find("catchup_type") else str(CATCHUP_DEFAULT)
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.static_urls = provider.find("staticurl") is not None and provider.find("staticurl").text == "on"
 				providerObj.onid = onid
@@ -99,6 +101,7 @@ def readProviders():
 				providerObj.username = provider.find("username").text
 				providerObj.password = provider.find("password").text
 				providerObj.play_system = provider.find("system").text
+				providerObj.play_system_catchup = provider.find("system_catchup").text if provider.find("system_catchup") is not None else providerObj.play_system
 				providerObj.create_epg = provider.find("epg") is not None and provider.find("epg").text == "on"
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.onid = onid
@@ -115,6 +118,7 @@ def readProviders():
 				providerObj.refresh_interval = int(provider.find("refresh_interval").text)
 				providerObj.mac = provider.find("mac").text
 				providerObj.play_system = provider.find("system").text
+				providerObj.play_system_catchup = provider.find("system_catchup").text if provider.find("system_catchup") is not None else providerObj.play_system
 				providerObj.create_epg = provider.find("epg") is not None and provider.find("epg").text == "on"
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.onid = onid
@@ -139,6 +143,8 @@ def writeProviders():
 			xml.append(f"\t\t<filter>{val.search_criteria}</filter>\n")
 			xml.append(f"\t\t<scheme>{val.scheme}</scheme>\n")
 			xml.append(f"\t\t<system>{val.play_system}</system>\n")
+			xml.append(f"\t\t<system_catchup>{val.play_system_catchup}</system_catchup>\n")
+			xml.append(f"\t\t<catchup_type>{val.catchup_type}</catchup_type>\n")
 			xml.append("\t</provider>\n")
 		elif isinstance(val, XtreemProvider):
 			xml.append("\t<xtreemprovider>\n")
@@ -151,6 +157,7 @@ def writeProviders():
 			xml.append(f"\t\t<password>{val.password}</password>\n")
 			xml.append(f"\t\t<scheme>{val.scheme}</scheme>\n")
 			xml.append(f"\t\t<system>{val.play_system}</system>\n")
+			xml.append(f"\t\t<system_catchup>{val.play_system_catchup}</system_catchup>\n")
 			xml.append(f"\t\t<epg>{'on' if val.create_epg else 'off'}</epg>\n")
 			xml.append("\t</xtreemprovider>\n")
 		else:
@@ -163,6 +170,7 @@ def writeProviders():
 			xml.append(f"\t\t<mac>{val.mac}</mac>\n")
 			xml.append(f"\t\t<scheme>{val.scheme}</scheme>\n")
 			xml.append(f"\t\t<system>{val.play_system}</system>\n")
+			xml.append(f"\t\t<system_catchup>{val.play_system_catchup}</system_catchup>\n")
 			xml.append(f"\t\t<epg>{'on' if val.create_epg else 'off'}</epg>\n")
 			xml.append("\t</stalkerprovider>\n")
 	xml.append("</providers>\n")
@@ -179,11 +187,9 @@ def writeProviders():
 # Function for overwrite some functions from Navigation.py so to inject own code
 def injectIntoNavigation():
 	import NavigationInstance
-	Navigation.originalPlayingServiceReference = None
 	NavigationInstance.instance.playService  = playServiceWithIPTV.__get__(NavigationInstance.instance, Navigation)
 	NavigationInstance.instance.playRealService = playRealService.__get__(NavigationInstance.instance, Navigation)
 	NavigationInstance.instance.recordService = recordServiceWithIPTV.__get__(NavigationInstance.instance, Navigation)
-	NavigationInstance.instance.getCurrentlyPlayingServiceOrGroup = getCurrentlyPlayingServiceOrGroup.__get__(NavigationInstance.instance, Navigation)
 	PictureInPicture.playService = playServiceWithIPTVPiP
 	if EPGListGrid:
 		if injectCatchupIcon not in EPGListGrid.buildEntryExtensionFunctions:
@@ -191,6 +197,8 @@ def injectIntoNavigation():
 		__init_orig__ = EPGListGrid.__init__
 		def __init_new__(self, *args, **kwargs):
 			self.catchUpIcon = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/catchup.png"))
+			if not self.catchUpIcon:
+				self.catchUpIcon = LoadPixmap("/usr/lib/enigma2/python/Plugins/SystemPlugins/M3UIPTV/catchup.png")
 			__init_orig__(self, *args, **kwargs)
 		EPGListGrid.__init__ = __init_new__
 
@@ -218,7 +226,7 @@ def injectIntoNavigation():
 def playArchiveEntry(self):
 	now = time()
 	event, service = self["list"].getCurrent()[:2]
-	playref, old_ref, is_dynamic = processIPTVService(service, None, event)
+	playref, old_ref, is_dynamic, catchup_ref_type = processIPTVService(service, None, event)
 	sref = playref.toString()
 	if event is not None:
 		stime = event.getBeginTime()
@@ -229,12 +237,13 @@ def playArchiveEntry(self):
 				duration = event.getDuration()
 				sref_split = sref.split(":")
 				url = sref_split[10:][0]
-				playref = eServiceReference(4097, 0, url.replace("%3a", ":").replace("${start}", str(stime)).replace("${timestamp}", str(now)).replace("${duration}", str(duration)))
+				url = constructCatchUpUrl(service.toString(), url, stime, stime+duration, duration)
+				playref = eServiceReference(catchup_ref_type, 0, url)
 				playref.setName(event.getEventName())
 				infobar = InfoBar.instance
 				if infobar:
 					LastService = self.session.nav.getCurrentlyPlayingServiceOrGroup()
-					self.session.open(ArchiveMoviePlayer, playref, slist=infobar.servicelist, lastservice=LastService, event=event, orig_url=url, start_orig=stime, end_org=stime+duration, duration=duration)
+					self.session.open(ArchiveMoviePlayer, playref, sref_ret=sref, slist=infobar.servicelist, lastservice=LastService, event=event, orig_url=url, start_orig=stime, end_org=stime+duration, duration=duration, catchup_ref_type=catchup_ref_type, orig_sref=service.toString())
 
 def injectCatchupIcon(res, obj, service, serviceName, events, picon, channel):
 	r2 = obj.eventRect
@@ -261,11 +270,6 @@ def injectCatchupIcon(res, obj, service, serviceName, events, picon, channel):
 									size=(pix_width, pix_height),
 									png=obj.catchUpIcon,
 									flags=0))
-
-
-def getCurrentlyPlayingServiceOrGroup(self):
-	return self.originalPlayingServiceReference or self.currentlyPlayingServiceOrGroup
-
 
 def playServiceWithIPTVPiP(self, service):
 		if service is None:
@@ -331,7 +335,6 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 		
 	self.currentlyPlayingServiceReference = ref
 	self.currentlyPlayingServiceOrGroup = ref
-	self.originalPlayingServiceReference = ref
 	
 	if InfoBarInstance:
 		InfoBarInstance.session.screen["CurrentService"].newService(ref)
@@ -380,7 +383,7 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 			playref = streamrelay.streamrelayChecker(playref)
 			is_dynamic = False
 			if callable(processIPTVService):
-				playref, old_ref, is_dynamic = processIPTVService(playref, self.playRealService, event)
+				playref, old_ref, is_dynamic, ref_type = processIPTVService(playref, self.playRealService, event)
 				if InfoBarInstance:
 					InfoBarInstance.session.screen["Event_Now"].updateSource(playref)
 					InfoBarInstance.session.screen["Event_Next"].updateSource(playref)
@@ -476,15 +479,18 @@ def recordServiceWithIPTV(self, ref, simulate=False):
 	return service
 
 class ArchiveMoviePlayer(MoviePlayer):
-	def __init__(self, session, service, slist=None, lastservice=None, event=None, orig_url="", start_orig=0, end_org=0, duration=0):
+	def __init__(self, session, service, sref_ret="", slist=None, lastservice=None, event=None, orig_sref="", orig_url="", start_orig=0, end_org=0, duration=0, catchup_ref_type=4097):
 		MoviePlayer.__init__(self, session, service=service, slist=slist, lastservice=lastservice)
 		self.skinName = ["ArchiveMoviePlayer", "MoviePlayer"]
 		self.onPlayStateChanged.append(self.__playStateChanged)
 		self["progress"] = Progress()
 		self.progress_change_interval = 1000
+		self.catchup_ref_type = catchup_ref_type
 		self.event = event
+		self.orig_sref = orig_sref
 		self.duration = duration
 		self.orig_url = orig_url
+		self.sref_ret = sref_ret
 		self.start_orig = start_orig
 		self.end_orig = end_org
 		self.start_curr = start_orig
@@ -569,7 +575,10 @@ class ArchiveMoviePlayer(MoviePlayer):
 		curr_pos = self.start_curr + self.getPosition()
 		self.start_curr = curr_pos + pts
 		self.duration_curr -= pts
-		newPlayref = eServiceReference(4097, 0, self.orig_url.replace("%3a", ":").replace("${start}", str(self.start_curr)).replace("${timestamp}", str(time())).replace("${duration}", str(self.duration_curr)))
+		sref_split = self.sref_ret.split(":")
+		sref_ret = sref_split[10:][0]
+		url = constructCatchUpUrl(self.orig_sref, sref_ret, self.start_curr, self.start_curr+self.duration_curr, self.duration_curr)
+		newPlayref = eServiceReference(self.catchup_ref_type, 0, url)
 		newPlayref.setName(self.event.getEventName())
 		self.session.nav.playService(newPlayref)
 		self.onProgressTimer()
@@ -890,6 +899,9 @@ class M3UIPTVProviderEdit(Setup):
 		if isPluginInstalled("ServiceApp"):
 			play_system_choices.append(("5002", "Exteplayer3"))
 		self.play_system = ConfigSelection(default=providerObj.play_system, choices=play_system_choices)
+		self.play_system_catchup = ConfigSelection(default=providerObj.play_system_catchup, choices=play_system_choices)
+		catchup_type_choices = [(CATCHUP_DEFAULT, _("Standart")), (CATCHUP_APPEND, _("Append")), (CATCHUP_SHIFT, _("Shift")), (CATCHUP_XTREME, _("Xtreme Codes")), (CATCHUP_STALKER, _("Stalker"))]
+		self.catchup_type = ConfigSelection(default=providerObj.catchup_type, choices=catchup_type_choices)
 		Setup.__init__(self, session, yellow_button={"text": _("Delete provider \"%s\"") % providerObj.iptv_service_provider, "helptext": _("Permanently remove provider \"%s\" from your configuration.") % providerObj.iptv_service_provider, "function": self.keyRemove} if self.edit else None)
 		self.title = _("M3UIPTVManager") + " - " + (_("edit provider") if self.edit else _("add new provider"))
 
@@ -917,6 +929,9 @@ class M3UIPTVProviderEdit(Setup):
 		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited. 
 			configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
 		configlist.append((_("Playback system"), self.play_system, _("The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3")))
+		configlist.append((_("Playback system for Catchup/Archive"), self.play_system_catchup, _("The player used for playing Catchup/Archive. Can be DVB, GStreamer, HiSilicon, Extplayer3")))
+		if self.type.value == "M3U":
+			configlist.append((_("Catchup Type"), self.catchup_type, _("The catchup API used.")))
 		self["config"].list = configlist
 
 	def keySave(self):
@@ -938,10 +953,12 @@ class M3UIPTVProviderEdit(Setup):
 		providerObj.scheme = self.scheme.value
 		providerObj.play_system = self.play_system.value
 		providerObj.ignore_vod = self.novod.value
+		providerObj.play_system_catchup = self.play_system_catchup.value
 		if self.type.value == "M3U":
 			providerObj.refresh_interval = self.refresh_interval.value
 			providerObj.static_urls = self.staticurl.value
 			providerObj.search_criteria = self.search_criteria.value
+			providerObj.catchup_type = self.catchup_type.value
 		elif self.type.value == "Xtreeme":
 			providerObj.username = self.username.value
 			providerObj.password = self.password.value

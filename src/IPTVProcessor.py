@@ -1,6 +1,6 @@
 from twisted.internet import threads
 from .epgimport_helper import epgimport_helper
-from .Variables import USER_AGENT, CATCHUP_DEFAULT
+from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT
 from .VoDItem import VoDItem
 from Components.config import config
 from Tools.Directories import sanitizeFilename, fileExists
@@ -10,13 +10,41 @@ import json
 import socket
 import urllib
 import threading
+from time import time
 
 write_lock = threading.Lock()
+
+def constructCatchUpUrl(sref, url_play, stime, etime, duration):
+	now = time()
+	catchup_type = None
+	match = re.search(r"catchuptype\=(.*?)[&]", sref)
+	if match:
+		catchup_type = match.groups(1)[0]
+
+	if catchup_type == CATCHUP_DEFAULT_TEXT:
+		return url_play.replace("%3a", ":").replace("${start}", str(stime)).replace("${timestamp}", str(now)).replace("${duration}", str(duration))
+	elif catchup_type == CATCHUP_APPEND_TEXT:
+		pass
+	elif catchup_type == CATCHUP_SHIFT_TEXT:
+		sref_split = sref.split(":")
+		url = sref_split[10:][0]
+		return f"{url}&utc={str(stime)}&lutc={str(etime)}"
+	elif catchup_type == CATCHUP_XTREME_TEXT:
+		sref_split = sref.split(":")
+		url = sref_split[10:][0]
+		match = re.search(r"[\/]\d*\.ts|[\/]\d*\.m3u8", url)
+		if match:
+			end_s = match.group(0)
+			url = url.replace("/live/", "/timeshift/").replace(end_s, f"/{duration}/{stime.strftime("%Y-%m-%d:%H-%M")}{end_s}")
+		return url
+	elif catchup_type == CATCHUP_STALKER_TEXT:
+		pass
+	return url_play
 
 
 class IPTVProcessor():
 	def __init__(self):
-		self.type = "M3U" # default type M3U. Possible Types: M3U, Xtreem
+		self.type = "M3U" # default type M3U. Possible Types: M3U, Xtreem, Stalker
 		self.url = ""
 		self.scheme = ""
 		self.isPlayBackup = False
