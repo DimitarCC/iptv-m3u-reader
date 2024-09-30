@@ -519,7 +519,7 @@ class ArchiveMoviePlayer(MoviePlayer):
 	def getPosition(self):
 		seek = self.getSeek()
 		if seek is None:
-			return None
+			return 0
 		pos = seek.getPlayPosition()
 		if pos[0]:
 			return 0

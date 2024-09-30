@@ -74,6 +74,8 @@ class M3UProvider(IPTVProcessor):
 									url = self.constructCatchupSufix(captchup_days, url, CATCHUP_TYPES[self.catchup_type])
 									captchup_days = ""
 									found_url = True
+								else:
+									next_line_nr += 1
 							else:
 								break
 					else:
