@@ -277,7 +277,7 @@ def playServiceWithIPTVPiP(self, service):
 		from Screens.InfoBarGenerics import streamrelay
 		from .IPTVProviders import processService
 		ref = streamrelay.streamrelayChecker(service)
-		ref, old_ref, is_dynamic = processService(ref, None)
+		ref = processService(ref, None)[0]
 		if ref:
 			if SystemInfo["CanNotDoSimultaneousTranscodeAndPIP"] and StreamServiceList:
 				self.pipservice = None
