@@ -73,13 +73,13 @@ class XtreemProvider(IPTVProcessor):
 			groups[service["category_id"] if service["category_id"] else "EMPTY"][1].append((sref, epg_id, ch_name))
 
 		if not self.ignore_vod:
-			# self.getVoDCategories()
+			self.getCategories()
 			self.getVoDMovies()
 
 		self.removeBouquets()
 
 		for groupItem in groups.values():
-			if groupItem[1]:  # don't create the bouquet if there are no sevices
+			if groupItem[1]:  # don't create the bouquet if there are no services
 				bfilename =  sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupItem[0]}.tv".replace(" ", "").replace("(", "").replace(")", "").replace("&", ""))
 				services = []
 				for x in groupItem[1]:
@@ -100,4 +100,22 @@ class XtreemProvider(IPTVProcessor):
 		vodFile = USER_IPTV_VOD_MOVIES_FILE % self.scheme
 		json_string = self.loadJsonFromFile(vodFile)
 		self.makeVodListFromJson(json_string)
+
+	def getCategories(self):
+		url = "%s/player_api.php?username=%s&password=%s&action=get_vod_categories" % (self.url, self.username, self.password)
+		dest_file = USER_IPTV_CATEGORIES_FILE % self.scheme
+		json_string = self.getJsonUrl(url, dest_file)
+		self.makeCategoriesDictFromJson(json_string)
+
+	def loadCategoriesFromFile(self):
+		vodFile = USER_IPTV_CATEGORIES_FILE % self.scheme
+		json_string = self.loadJsonFromFile(vodFile)
+		self.makeCategoriesDictFromJson(json_string)
+
+	def makeCategoriesDictFromJson(self, json_string):
+		self.categories = {}
+		if json_string:
+			for category in json.loads(json_string):
+				self.categories[category["category_id"]] = category["category_name"]
+		print("makeCategoriesDictFromJson", self.categories)
 

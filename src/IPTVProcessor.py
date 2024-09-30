@@ -124,6 +124,12 @@ class IPTVProcessor():
 				vod_item = VoDItem(url, name)
 				self.vod_movies.append(vod_item)
 
+	def getCategories(self):
+		pass
+
+	def loadCategoriesFromFile(self):
+		pass
+
 	def processService(self, nref, iptvinfodata, callback=None):
 		return nref, nref, False
 	
