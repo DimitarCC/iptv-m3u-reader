@@ -673,6 +673,9 @@ class VoDMoviePlayer(MoviePlayer):
 
 
 class M3UIPTVVoDMovies(Screen):
+	MODE_CATEGORY = 0
+	MODE_MOVIE = 1
+
 	skin = ["""
 		<screen name="M3UIPTVVoDMovies" position="center,center" size="%d,%d">
 			<panel name="__DynamicColorButtonTemplate__"/>
@@ -690,7 +693,7 @@ class M3UIPTVVoDMovies(Screen):
 		</screen>""",
 			610, 410,  # screen
 			15, 60, 580, 286,  # Listbox
-			2, 0, 330, 26,  # template
+			2, 0, 590, 26,  # template
 			22,  # fonts
 			26,  # ItemHeight
 			5, 360, 600, 50, 22,  # description
@@ -698,31 +701,52 @@ class M3UIPTVVoDMovies(Screen):
 
 	def __init__(self, session):
 		Screen.__init__(self, session)
-		self.setTitle(_("VoD Movies"))
 		self["list"] = List([])
+		self["description"] = StaticText()
+		self.mode = self.MODE_CATEGORY
+		self.allmovies = []
+		for provider in providers:
+			self.allmovies += [movie for movie in providers[provider].vod_movies if movie.name is not None]
+		self.categories = []
+		for movie in self.allmovies:
+			if movie.category is not None and movie.category not in self.categories:
+				self.categories.append(movie.category)
+		self.categories.sort()
+		self.categories.insert(0, "All")
 		self.buildList()
-		self["key_red"] = StaticText(_("Close"))
+		self["key_red"] = StaticText(_("Cancel"))
 		# self["key_green"] = StaticText(_(""))
 		# self["key_yellow"] = StaticText(_(""))
 		# self["key_blue"] = StaticText(_(""))
-		self["description"] = StaticText(_("Press OK to play selected movie"))
 
 		self["actions"] = ActionMap(["SetupActions", "ColorActions",],
 			{
-				"cancel": self.close,  # KEY_RED / KEY_EXIT
+				"cancel": self.keyCancel,  # KEY_RED / KEY_EXIT
 				# "save": self.green,  # KEY_GREEN
-				"ok": self.playMovie,
+				"ok": self.keySelect,
 				# "yellow": self.yellow,
 				# "blue": self.blue,
 			}, -1)  # noqa: E123
 
-	def buildList(self):
-		allmovies = []
+	def keySelect(self):
+		if self.mode == self.MODE_CATEGORY:
+			if current := self["list"].getCurrent():
+				self.mode = self.MODE_MOVIE
+				self.buildList(current[0])
+		else:
+			self.mode = self.MODE_CATEGORY
+			self.playMovie()
+				
 
-		for provider in providers:
-			allmovies += providers[provider].vod_movies
-
-		self["list"].setList([(movie, movie.name) for movie in allmovies])
+	def buildList(self, category=None):
+		if self.mode == self.MODE_CATEGORY:
+			self.title = _("VoD Movie Categories")
+			self["description"].text = _("Press OK to select a category")
+			self["list"].setList([(x, x) for x in self.categories])
+		else:
+			self.title = _("VoD Movie Category: %s") % category
+			self["description"].text = _("Press OK to play selected movie")
+			self["list"].setList(sorted([(movie, movie.name) for movie in self.allmovies if category == "All" or category == movie.category], key=lambda x: x[1]))
 
 	def playMovie(self):
 		if current := self["list"].getCurrent():
@@ -730,7 +754,16 @@ class M3UIPTVVoDMovies(Screen):
 			if infobar:
 				LastService = self.session.nav.getCurrentlyPlayingServiceOrGroup()
 				ref = eServiceReference("4097:0:1:9999:1009:1:CCCC0000:0:0:0:%s:%s" % (current[0].url.replace(":", "%3a"), current[0].name))
-				self.session.open(VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
+				self.session.openWithCallback(self.buildList, VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
+
+	def keyCancel(self):
+		if self.mode == self.MODE_MOVIE:
+			self.mode = self.MODE_CATEGORY
+			self.buildList()
+		else:
+			self.close()
+			
+			
 
 class M3UIPTVManagerConfig(Screen):
 	skin = ["""

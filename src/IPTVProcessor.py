@@ -121,7 +121,7 @@ class IPTVProcessor():
 				ext = movie["container_extension"]
 				id = movie["stream_id"]
 				url = "%s/movie/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
-				vod_item = VoDItem(url, name)
+				vod_item = VoDItem(url, name, self.categories.get(movie.get("category_id")))
 				self.vod_movies.append(vod_item)
 
 	def getCategories(self):
