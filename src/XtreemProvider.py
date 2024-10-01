@@ -5,7 +5,7 @@ import socket
 import urllib
 import json
 from .IPTVProcessor import IPTVProcessor
-from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, USER_IPTV_CATEGORIES_FILE, CATCHUP_XTREME, CATCHUP_XTREME_TEXT
+from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, USER_IPTV_MOVIE_CATEGORIES_FILE, CATCHUP_XTREME, CATCHUP_XTREME_TEXT
 
 db = eDVBDB.getInstance()
 
@@ -73,7 +73,7 @@ class XtreemProvider(IPTVProcessor):
 			groups[service["category_id"] if service["category_id"] else "EMPTY"][1].append((sref, epg_id, ch_name))
 
 		if not self.ignore_vod:
-			self.getCategories()
+			self.getMovieCategories()
 			self.getVoDMovies()
 
 		self.removeBouquets()
@@ -101,21 +101,21 @@ class XtreemProvider(IPTVProcessor):
 		json_string = self.loadJsonFromFile(vodFile)
 		self.makeVodListFromJson(json_string)
 
-	def getCategories(self):
+	def getMovieCategories(self):
 		url = "%s/player_api.php?username=%s&password=%s&action=get_vod_categories" % (self.url, self.username, self.password)
-		dest_file = USER_IPTV_CATEGORIES_FILE % self.scheme
+		dest_file = USER_IPTV_MOVIE_CATEGORIES_FILE % self.scheme
 		json_string = self.getJsonUrl(url, dest_file)
-		self.makeCategoriesDictFromJson(json_string)
+		self.makeMovieCategoriesDictFromJson(json_string)
 
-	def loadCategoriesFromFile(self):
-		vodFile = USER_IPTV_CATEGORIES_FILE % self.scheme
+	def loadMovieCategoriesFromFile(self):
+		vodFile = USER_IPTV_MOVIE_CATEGORIES_FILE % self.scheme
 		json_string = self.loadJsonFromFile(vodFile)
-		self.makeCategoriesDictFromJson(json_string)
+		self.makeMovieCategoriesDictFromJson(json_string)
 
-	def makeCategoriesDictFromJson(self, json_string):
-		self.categories = {}
+	def makeMovieCategoriesDictFromJson(self, json_string):
+		self.movie_categories = {}
 		if json_string:
 			for category in json.loads(json_string):
-				self.categories[category["category_id"]] = category["category_name"]
-		print("makeCategoriesDictFromJson", self.categories)
+				self.movie_categories[category["category_id"]] = category["category_name"]
+		print("makeCategoriesDictFromJson", self.movie_categories)
 

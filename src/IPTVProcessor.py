@@ -67,7 +67,7 @@ class IPTVProcessor():
 		self.catchup_type = CATCHUP_DEFAULT
 		self.play_system_vod = "4097"
 		self.play_system_catchup = self.play_system
-		self.categories = {}
+		self.movie_categories = {}
 		
 	def getPlaylistAndGenBouquet(self, callback=None):
 		if callback:
@@ -81,7 +81,10 @@ class IPTVProcessor():
 	def getVoDMovies(self):
 		pass
 
-	def getCategories(self):
+	def getMovieCategories(self):
+		pass
+
+	def loadMovieCategoriesFromFile(self):
 		pass
 
 	def loadVoDMoviesFromFile(self):
@@ -123,12 +126,6 @@ class IPTVProcessor():
 				url = "%s/movie/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
 				vod_item = VoDItem(url, name, self.categories.get(movie.get("category_id")))
 				self.vod_movies.append(vod_item)
-
-	def getCategories(self):
-		pass
-
-	def loadCategoriesFromFile(self):
-		pass
 
 	def processService(self, nref, iptvinfodata, callback=None):
 		return nref, nref, False
