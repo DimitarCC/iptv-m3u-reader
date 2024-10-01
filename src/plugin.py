@@ -20,6 +20,7 @@ from Screens.PictureInPicture import PictureInPicture
 from Screens.Setup import Setup
 from Screens.Menu import Menu
 from Screens.MessageBox import MessageBox
+from Screens.VirtualKeyBoard import VirtualKeyBoard
 from Components.ActionMap import ActionMap, HelpableActionMap
 from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigText, ConfigPassword
 from Components.ParentalControl import parentalControl
@@ -674,6 +675,7 @@ class VoDMoviePlayer(MoviePlayer):
 class M3UIPTVVoDMovies(Screen):
 	MODE_CATEGORY = 0
 	MODE_MOVIE = 1
+	MODE_SEARCH = 2
 
 	skin = ["""
 		<screen name="M3UIPTVVoDMovies" position="center,center" size="%d,%d">
@@ -708,6 +710,8 @@ class M3UIPTVVoDMovies(Screen):
 			self.allmovies += [movie for movie in providers[provider].vod_movies if movie.name is not None]
 		self.category = "All"
 		self.categories = []
+		self.searchTexts = []
+		self.searchTerms = []
 		for movie in self.allmovies:
 			if movie.category is not None and movie.category not in self.categories:
 				self.categories.append(movie.category)
@@ -715,14 +719,14 @@ class M3UIPTVVoDMovies(Screen):
 		self.categories.insert(0, self.category)
 		self.buildList()
 		self["key_red"] = StaticText(_("Cancel"))
-		# self["key_green"] = StaticText(_(""))
+		self["key_green"] = StaticText(_("Search"))
 		# self["key_yellow"] = StaticText(_(""))
 		# self["key_blue"] = StaticText(_(""))
 
 		self["actions"] = ActionMap(["SetupActions", "ColorActions",],
 			{
 				"cancel": self.keyCancel,  # KEY_RED / KEY_EXIT
-				# "save": self.green,  # KEY_GREEN
+				"save": self.keySearch,  # KEY_GREEN
 				"ok": self.keySelect,
 				# "yellow": self.yellow,
 				# "blue": self.blue,
@@ -738,12 +742,35 @@ class M3UIPTVVoDMovies(Screen):
 		else:
 			self.mode = self.MODE_CATEGORY
 			self.playMovie()
-				
+
+	def keySearch(self):
+		self.session.openWithCallback(self.keySearchCallback, VirtualKeyBoard, title=_("VoD Movie: enter search terms"), text=" ".join(self.searchTerms))
+
+	def keySearchCallback(self, retval=None):
+		if retval is not None:
+			if not self.searchTexts:
+				self.searchTexts = [re.split(r"\b", movie.name.lower()) for movie in self.allmovies]
+			self.searchTerms = retval.lower().split()
+			self.mode = self.MODE_SEARCH
+			self.buildList()
+			self["list"].index = 0
+
+	def search(self, i):
+		count = 0
+		for t in self.searchTexts[i]:
+			for term in self.searchTerms:
+				if t.startswith(term):
+					count += 1
+		return count
 
 	def buildList(self):
-		if len(self.categories) == 1:  # go straight into movie mode if no categories are available
+		if len(self.categories) == 1 and self.mode == self.MODE_CATEGORY:  # go straight into movie mode if no categories are available
 			self.mode = self.MODE_MOVIE
-		if self.mode == self.MODE_CATEGORY:
+		if self.mode == self.MODE_SEARCH:
+			self.title = _("VoD Movie Search")
+			self["description"].text = _("Press OK to play selected movie")
+			self["list"].setList(sorted([(movie, movie.name, c) for i, movie in enumerate(self.allmovies) if (c := self.search(i))], key=lambda x: -x[2]))
+		elif self.mode == self.MODE_CATEGORY:
 			self.title = _("VoD Movie Categories")
 			self["description"].text = _("Press OK to select a category")
 			self["list"].setList([(x, x) for x in self.categories])
@@ -762,7 +789,7 @@ class M3UIPTVVoDMovies(Screen):
 				self.session.openWithCallback(self.buildList, VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
 
 	def keyCancel(self):
-		if len(self.categories) > 1 and self.mode == self.MODE_MOVIE:
+		if len(self.categories) > 1 and self.mode in (self.MODE_MOVIE, self.MODE_SEARCH):
 			self.mode = self.MODE_CATEGORY
 			self.buildList()
 		else:
