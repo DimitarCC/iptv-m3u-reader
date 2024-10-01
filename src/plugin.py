@@ -712,7 +712,7 @@ class M3UIPTVVoDMovies(Screen):
 		for movie in self.allmovies:
 			if movie.category is not None and movie.category not in self.categories:
 				self.categories.append(movie.category)
-		self.categories.sort()
+		self.categories.sort(key=lambda x: x.lower())
 		self.categories.insert(0, self.category)
 		self.buildList()
 		self["key_red"] = StaticText(_("Cancel"))
@@ -752,7 +752,7 @@ class M3UIPTVVoDMovies(Screen):
 		else:
 			self.title = _("VoD Movie Category: %s") % self.category
 			self["description"].text = _("Press OK to play selected movie")
-			self["list"].setList(sorted([(movie, movie.name) for movie in self.allmovies if self.category == "All" or self.category == movie.category], key=lambda x: x[1]))
+			self["list"].setList(sorted([(movie, movie.name) for movie in self.allmovies if self.category == "All" or self.category == movie.category], key=lambda x: x[1].lower()))
 
 	def playMovie(self):
 		if current := self["list"].getCurrent():
