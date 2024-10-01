@@ -106,7 +106,7 @@ def readProviders():
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.onid = onid
 				if not providerObj.ignore_vod:
-					providerObj.loadCategoriesFromFile()
+					providerObj.loadMovieCategoriesFromFile()
 					providerObj.loadVoDMoviesFromFile()
 				providers[providerObj.scheme] = providerObj
 				onid += 1
