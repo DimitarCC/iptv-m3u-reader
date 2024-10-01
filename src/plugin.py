@@ -72,7 +72,6 @@ file_vod.close()
 def readProviders():
 	if not fileExists(USER_IPTV_PROVIDERS_FILE):
 		return
-	onid = 1000
 	fd = open(USER_IPTV_PROVIDERS_FILE, 'rb')
 	for prov, elem in iterparse(fd):
 		if elem.tag == "providers":
@@ -88,9 +87,8 @@ def readProviders():
 				providerObj.catchup_type = int(provider.find("catchup_type").text) if provider.find("catchup_type") is not None else str(CATCHUP_DEFAULT)
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.static_urls = provider.find("staticurl") is not None and provider.find("staticurl").text == "on"
-				providerObj.onid = onid
+				providerObj.onid = int(provider.find("onid").text)
 				providers[providerObj.scheme] = providerObj
-				onid += 1
 			for provider in elem.findall("xtreemprovider"):
 				providerObj = XtreemProvider()
 				providerObj.type = "Xtreeme"
@@ -104,12 +102,11 @@ def readProviders():
 				providerObj.play_system_catchup = provider.find("system_catchup").text if provider.find("system_catchup") is not None else providerObj.play_system
 				providerObj.create_epg = provider.find("epg") is not None and provider.find("epg").text == "on"
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
-				providerObj.onid = onid
+				providerObj.onid = int(provider.find("onid").text)
 				if not providerObj.ignore_vod:
 					providerObj.loadMovieCategoriesFromFile()
 					providerObj.loadVoDMoviesFromFile()
 				providers[providerObj.scheme] = providerObj
-				onid += 1
 			for provider in elem.findall("stalkerprovider"):
 				providerObj = StalkerProvider()
 				providerObj.type = "Stalker"
@@ -122,11 +119,10 @@ def readProviders():
 				providerObj.play_system_catchup = provider.find("system_catchup").text if provider.find("system_catchup") is not None else providerObj.play_system
 				providerObj.create_epg = provider.find("epg") is not None and provider.find("epg").text == "on"
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
-				providerObj.onid = onid
+				providerObj.onid = int(provider.find("onid").text)
 				if not providerObj.ignore_vod:
 					providerObj.loadVoDMoviesFromFile()
 				providers[providerObj.scheme] = providerObj
-				onid += 1
 
 	fd.close()
 
@@ -146,6 +142,7 @@ def writeProviders():
 			xml.append(f"\t\t<system>{val.play_system}</system>\n")
 			xml.append(f"\t\t<system_catchup>{val.play_system_catchup}</system_catchup>\n")
 			xml.append(f"\t\t<catchup_type>{val.catchup_type}</catchup_type>\n")
+			xml.append(f"\t\t<onid>{val.onid}</onid>\n")
 			xml.append("\t</provider>\n")
 		elif isinstance(val, XtreemProvider):
 			xml.append("\t<xtreemprovider>\n")
@@ -160,6 +157,7 @@ def writeProviders():
 			xml.append(f"\t\t<system>{val.play_system}</system>\n")
 			xml.append(f"\t\t<system_catchup>{val.play_system_catchup}</system_catchup>\n")
 			xml.append(f"\t\t<epg>{'on' if val.create_epg else 'off'}</epg>\n")
+			xml.append(f"\t\t<onid>{val.onid}</onid>\n")
 			xml.append("\t</xtreemprovider>\n")
 		else:
 			xml.append("\t<stalkerprovider>\n")
@@ -173,6 +171,7 @@ def writeProviders():
 			xml.append(f"\t\t<system>{val.play_system}</system>\n")
 			xml.append(f"\t\t<system_catchup>{val.play_system_catchup}</system_catchup>\n")
 			xml.append(f"\t\t<epg>{'on' if val.create_epg else 'off'}</epg>\n")
+			xml.append(f"\t\t<onid>{val.onid}</onid>\n")
 			xml.append("\t</stalkerprovider>\n")
 	xml.append("</providers>\n")
 	makedirs(path.dirname(USER_IPTV_PROVIDERS_FILE), exist_ok=True)  # create config folder recursive if not exists
@@ -1008,7 +1007,7 @@ class M3UIPTVProviderEdit(Setup):
 			providerObj.create_epg = self.create_epg.value
 
 		if getattr(providerObj, "onid", None) is None:
-			providerObj.onid = max([x.onid for x in providers.values() if hasattr(x, "onid")]) + 1 if len(providers) > 0 else 1000
+			providerObj.onid = min(set(range(1, len(L := [x.onid for x in providers.values() if hasattr(x, "onid")]) + 2)) - set(L))
 		providers[self.scheme.value] = providerObj
 		writeProviders()
 		self.close(True)
