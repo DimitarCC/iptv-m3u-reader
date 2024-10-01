@@ -707,12 +707,13 @@ class M3UIPTVVoDMovies(Screen):
 		self.allmovies = []
 		for provider in providers:
 			self.allmovies += [movie for movie in providers[provider].vod_movies if movie.name is not None]
+		self.category = "All"
 		self.categories = []
 		for movie in self.allmovies:
 			if movie.category is not None and movie.category not in self.categories:
 				self.categories.append(movie.category)
 		self.categories.sort()
-		self.categories.insert(0, "All")
+		self.categories.insert(0, self.category)
 		self.buildList()
 		self["key_red"] = StaticText(_("Cancel"))
 		# self["key_green"] = StaticText(_(""))
@@ -732,21 +733,26 @@ class M3UIPTVVoDMovies(Screen):
 		if self.mode == self.MODE_CATEGORY:
 			if current := self["list"].getCurrent():
 				self.mode = self.MODE_MOVIE
-				self.buildList(current[0])
+				self.category = current[0]
+				self.buildList()
+				self["list"].index = 0
 		else:
 			self.mode = self.MODE_CATEGORY
 			self.playMovie()
 				
 
-	def buildList(self, category=None):
+	def buildList(self):
+		if len(self.categories) == 1:  # go straight into movie mode if no categories are available
+			self.mode = self.MODE_MOVIE
 		if self.mode == self.MODE_CATEGORY:
 			self.title = _("VoD Movie Categories")
 			self["description"].text = _("Press OK to select a category")
 			self["list"].setList([(x, x) for x in self.categories])
+			self["list"].index = self.categories.index(self.category)
 		else:
-			self.title = _("VoD Movie Category: %s") % category
+			self.title = _("VoD Movie Category: %s") % self.category
 			self["description"].text = _("Press OK to play selected movie")
-			self["list"].setList(sorted([(movie, movie.name) for movie in self.allmovies if category == "All" or category == movie.category], key=lambda x: x[1]))
+			self["list"].setList(sorted([(movie, movie.name) for movie in self.allmovies if self.category == "All" or self.category == movie.category], key=lambda x: x[1]))
 
 	def playMovie(self):
 		if current := self["list"].getCurrent():
@@ -757,7 +763,7 @@ class M3UIPTVVoDMovies(Screen):
 				self.session.openWithCallback(self.buildList, VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
 
 	def keyCancel(self):
-		if self.mode == self.MODE_MOVIE:
+		if len(self.categories) > 1 and self.mode == self.MODE_MOVIE:
 			self.mode = self.MODE_CATEGORY
 			self.buildList()
 		else:
