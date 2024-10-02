@@ -161,7 +161,8 @@ class CatchupPlayer(MoviePlayer):
 
 	def getPosition(self):
 		seek = self.getSeek()
-		if seek is None:
+		service = self.session.nav.getCurrentlyPlayingServiceReference()
+		if seek is None or service.type == 1:
 			return self.cur_pos_manual
 		pos = seek.getPlayPosition()
 		if pos[0]:
