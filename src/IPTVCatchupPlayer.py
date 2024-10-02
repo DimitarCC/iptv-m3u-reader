@@ -80,9 +80,13 @@ def injectCatchupIcon(res, obj, service, serviceName, events, picon, channel):
 class CatchupPlayer(MoviePlayer):
 	def __init__(self, session, service, sref_ret="", slist=None, lastservice=None, event=None, orig_sref="", orig_url="", start_orig=0, end_org=0, duration=0, catchup_ref_type=4097):
 		MoviePlayer.__init__(self, session, service=service, slist=slist, lastservice=lastservice)
-		self.skinName = ["ArchiveMoviePlayer", "MoviePlayer"]
+		self.skinName = ["CatchupPlayer", "ArchiveMoviePlayer", "MoviePlayer"]
 		self.onPlayStateChanged.append(self.__playStateChanged)
 		self["progress"] = Progress()
+		self.seek_steps = [15, 30, 60, 180, 300, 600, 1200]
+		self.current_seek_step = 0
+		self.current_seek_step_multiplier = 1
+		self.skip_progress_update = False
 		self.progress_change_interval = 1000
 		self.catchup_ref_type = catchup_ref_type
 		self.event = event
@@ -97,23 +101,54 @@ class CatchupPlayer(MoviePlayer):
 		self.progress_timer = eTimer()
 		self.progress_timer.callback.append(self.onProgressTimer)
 		self.progress_timer.start(self.progress_change_interval)
+		self.seek_timer = eTimer()
+		self.seek_timer.callback.append(self.onSeekRequest)
 		self["progress"].value = 0
 		self["time_info"] = Label("")
 		self.onProgressTimer()
 		self.__event_tracker = ServiceEventTracker(screen=self, eventmap={
 			iPlayableService.evStart: self.__evServiceStart,
 			iPlayableService.evEnd: self.__evServiceEnd,})
+		
+	def setProgress(self, pos):
+		r = self.duration - pos
+		progress_val = int((pos / self.duration)*100)
+		self["progress"].value = progress_val if progress_val >= 0 else 0
+		text = "+%d:%02d:%02d         %d:%02d:%02d         -%d:%02d:%02d" % (pos / 3600, pos % 3600 / 60, pos % 60, self.duration / 3600, self.duration % 3600 / 60, self.duration % 60, r / 3600, r % 3600 / 60, r % 60)
+		self["time_info"].setText(text)
+		
+	def invokeSeek(self, direction):
+		self.seek_timer.stop()
+		self.showAfterSeek()
+		curr_pos = self.start_curr + self.getPosition()
+		p = curr_pos - self.start_orig
+		try:
+			index = self.seek_steps.index(abs(self.current_seek_step))
+			if index < len(self.seek_steps) - 1:
+				self.current_seek_step = self.seek_steps[index + 1]*direction
+			else:
+				self.current_seek_step_multiplier += 1
+		except ValueError:
+			self.current_seek_step = self.seek_steps[0]*direction
+		p += self.current_seek_step*self.current_seek_step_multiplier
+		if p >= self.duration:
+			p = self.duration
+		self.skip_progress_update = True
+		self.setProgress(p)
+		self.seek_timer.start(1000)
 
+	def onSeekRequest(self):
+		self.doSeekRelative(self.current_seek_step*self.current_seek_step_multiplier*90000)
+		self.skip_progress_update = False
+		self.current_seek_step = 0
+		self.current_seek_step_multiplier = 1
+		self.seek_timer.stop()
 
 	def onProgressTimer(self):
 		curr_pos = self.start_curr + self.getPosition()
-		len = self.duration
 		p = curr_pos - self.start_orig
-		r = self.duration - p
-		text = "+%d:%02d:%02d         %d:%02d:%02d         -%d:%02d:%02d" % (p / 3600, p % 3600 / 60, p % 60, len / 3600, len % 3600 / 60, len % 60, r / 3600, r % 3600 / 60, r % 60)
-		self["time_info"].setText(text)
-		progress_val = int((p / self.duration)*100)
-		self["progress"].value = progress_val if progress_val >= 0 else 0
+		if not self.skip_progress_update:
+			self.setProgress(p)
 
 	def getPosition(self):
 		seek = self.getSeek()
@@ -178,7 +213,7 @@ class CatchupPlayer(MoviePlayer):
 			self.start_curr = self.start_orig
 			atStart = True
 
-		if self.start_curr > self.start_orig + self.duration:
+		if self.start_curr >= self.start_orig + self.duration:
 			self.session.nav.stopService()
 
 		if atStart:
@@ -225,10 +260,16 @@ class CatchupPlayer(MoviePlayer):
 		self.handleLeave("quit")
 
 	def up(self):
-		pass
+		self.doSeekRelative(10*60*90000)
 
 	def down(self):
-		pass
+		self.doSeekRelative(-10*60*90000)
+
+	def seekBack(self):
+		self.invokeSeek(-1)
+
+	def seekFwd(self):
+		self.invokeSeek(1)
 
 
 def playArchiveEntry(self):
