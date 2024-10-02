@@ -547,7 +547,7 @@ class M3UIPTVVoDMovies(Screen):
 		if self.mode == self.MODE_SEARCH:
 			self.title = _("VoD Movie Search")
 			self["description"].text = _("Press OK to play selected movie")
-			self["list"].setList(sorted([(movie, movie.name, c) for i, movie in enumerate(self.allmovies) if (c := self.search(i))], key=lambda x: -x[2]))
+			self["list"].setList(sorted([(movie, movie.name, c) for i, movie in enumerate(self.allmovies) if (c := self.search(i))], key=lambda x: (-x[2], x[1])))
 		elif self.mode == self.MODE_CATEGORY:
 			self.title = _("VoD Movie Categories")
 			self["description"].text = _("Press OK to select a category")
