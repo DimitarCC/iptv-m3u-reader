@@ -485,6 +485,9 @@ class M3UIPTVVoDMovies(Screen):
 				self.categories.append(movie.category)
 		self.categories.sort(key=lambda x: x.lower())
 		self.categories.insert(0, self.category)
+		if self.selectionChanged not in self["list"].onSelectionChanged:
+			self["list"].onSelectionChanged.append(self.selectionChanged)
+			
 		self.buildList()
 		self["key_red"] = StaticText(_("Cancel"))
 		self["key_green"] = StaticText(_("Search"))
@@ -499,6 +502,14 @@ class M3UIPTVVoDMovies(Screen):
 				# "yellow": self.yellow,
 				# "blue": self.blue,
 			}, -1)  # noqa: E123
+
+	def selectionChanged(self):
+		if self.mode in (self.MODE_MOVIE, self.MODE_SEARCH):
+			if (current := self["list"].getCurrent()) and (plot := current[0].plot) is not None:
+				self["description"].text = plot
+			else:
+				self["description"].text = _("Press OK to play selected movie")
+	
 
 	def keySelect(self):
 		if self.mode == self.MODE_CATEGORY:
