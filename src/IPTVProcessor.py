@@ -11,6 +11,7 @@ import socket
 import urllib
 import threading
 from time import time
+from datetime import datetime
 
 write_lock = threading.Lock()
 
@@ -35,7 +36,7 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 		match = re.search(r"[\/]\d*\.ts|[\/]\d*\.m3u8", url)
 		if match:
 			end_s = match.group(0)
-			url = url.replace("/live/", "/timeshift/").replace(end_s, f'/{duration}/{stime.strftime("%Y-%m-%d:%H-%M")}{end_s}')
+			url = url.replace("/live/", "/timeshift/").replace(end_s, f'/{duration}/{datetime.fromtimestamp(stime).strftime("%Y-%m-%d:%H-%M")}{end_s}')
 		return url
 	elif catchup_type == CATCHUP_STALKER_TEXT:
 		pass
