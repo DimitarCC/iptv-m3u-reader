@@ -730,7 +730,7 @@ class M3UIPTVProviderEdit(Setup):
 			play_system_choices.append(("5002", "Exteplayer3"))
 		self.play_system = ConfigSelection(default=providerObj.play_system, choices=play_system_choices)
 		self.play_system_catchup = ConfigSelection(default=providerObj.play_system_catchup, choices=play_system_choices)
-		catchup_type_choices = [(CATCHUP_DEFAULT, _("Standart")), (CATCHUP_APPEND, _("Append")), (CATCHUP_SHIFT, _("Shift")), (CATCHUP_XTREME, _("Xtreme Codes")), (CATCHUP_STALKER, _("Stalker"))]
+		catchup_type_choices = [(CATCHUP_DEFAULT, _("Standard")), (CATCHUP_APPEND, _("Append")), (CATCHUP_SHIFT, _("Shift")), (CATCHUP_XTREME, _("Xtreme Codes")), (CATCHUP_STALKER, _("Stalker"))]
 		self.catchup_type = ConfigSelection(default=providerObj.catchup_type, choices=catchup_type_choices)
 		Setup.__init__(self, session, yellow_button={"text": _("Delete provider \"%s\"") % providerObj.iptv_service_provider, "helptext": _("Permanently remove provider \"%s\" from your configuration.") % providerObj.iptv_service_provider, "function": self.keyRemove} if self.edit else None)
 		self.title = _("M3UIPTVManager") + " - " + (_("edit provider") if self.edit else _("add new provider"))

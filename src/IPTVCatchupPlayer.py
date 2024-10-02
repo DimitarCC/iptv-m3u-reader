@@ -106,6 +106,9 @@ class CatchupPlayer(MoviePlayer):
 		self.seek_timer.callback.append(self.onSeekRequest)
 		self["progress"].value = 0
 		self["time_info"] = Label("")
+		self["time_elapsed"] = Label("")
+		self["time_duration"] = Label("")
+		self["time_remaining"] = Label("")
 		self.onProgressTimer()
 		self.__event_tracker = ServiceEventTracker(screen=self, eventmap={
 			iPlayableService.evSeekableStatusChanged: self.__seekableStatusChanged,
@@ -119,6 +122,13 @@ class CatchupPlayer(MoviePlayer):
 		self["progress"].value = progress_val if progress_val >= 0 else 0
 		text = "-%d:%02d:%02d         %d:%02d:%02d         +%d:%02d:%02d" % (pos / 3600, pos % 3600 / 60, pos % 60, self.duration / 3600, self.duration % 3600 / 60, self.duration % 60, r / 3600, r % 3600 / 60, r % 60)
 		self["time_info"].setText(text)
+		text_elapsed = "-%d:%02d:%02d" % (pos / 3600, pos % 3600 / 60, pos % 60)
+		self["time_elapsed"].setText(text_elapsed)
+		text_duration = "%d:%02d:%02d" % (self.duration / 3600, self.duration % 3600 / 60, self.duration % 60)
+		self["time_duration"].setText(text_duration)
+		text_remaining = "+%d:%02d:%02d" % (r / 3600, r % 3600 / 60, r % 60)
+		self["time_remaining"].setText(text_remaining)
+
 		
 	def invokeSeek(self, direction):
 		self.seek_timer.stop()
