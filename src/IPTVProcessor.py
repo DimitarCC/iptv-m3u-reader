@@ -37,7 +37,7 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 		if match:
 			end_s = match.group(0)
 			url = url.replace("/live/", "/timeshift/").replace(end_s, f'/{duration}/{datetime.fromtimestamp(stime).strftime("%Y-%m-%d:%H-%M")}{end_s}')
-		return url
+		return url.replace("%3a", ":")
 	elif catchup_type == CATCHUP_STALKER_TEXT:
 		pass
 	return url_play

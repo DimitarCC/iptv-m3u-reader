@@ -3,14 +3,15 @@ from . import _
 
 from sys import modules
 from time import time
-from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner, BT_SCALE, iPlayableService
+from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner
 from Plugins.Plugin import PluginDescriptor
 from .M3UProvider import M3UProvider
-from .IPTVProcessor import IPTVProcessor, constructCatchUpUrl
+from .IPTVProcessor import IPTVProcessor
 from .XtreemProvider import XtreemProvider
 from .StalkerProvider import StalkerProvider
 from .IPTVProviders import providers
 from .IPTVProviders import processService as processIPTVService
+from .IPTVCatchupPlayer import injectCatchupInEPG
 from .VoDItem import VoDItem
 from .Variables import USER_IPTV_PROVIDERS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_STALKER
 from Screens.Screen import Screen
@@ -28,27 +29,14 @@ from Components.Sources.StaticText import StaticText
 from Components.Sources.List import List
 from Components.Sources.Progress import Progress
 from Components.SystemInfo import SystemInfo
-from Components.ServiceEventTracker import ServiceEventTracker
-from Components.Label import Label
-try:
-	from Components.EpgListGrid import EPGListGrid as EPGListGrid
-except ImportError:
-	EPGListGrid = None
-try:
-	from Screens.EpgSelectionGrid import EPGSelectionGrid as EPGSelectionGrid
-except ImportError:
-	EPGSelectionGrid = None
-from Tools.Directories import fileExists, isPluginInstalled, sanitizeFilename, resolveFilename, SCOPE_CURRENT_SKIN
-from Tools.LoadPixmap import LoadPixmap
+from Tools.Directories import fileExists, isPluginInstalled, sanitizeFilename
 from Tools.BoundFunction import boundFunction
 from Navigation import Navigation
-from Components.MultiContent import MultiContentEntryPixmapAlphaBlend
 
 from os import path, fsync, rename, makedirs
 import xml
 from xml.etree.cElementTree import iterparse
 import re
-import datetime
 
 import threading
 write_lock = threading.Lock()
@@ -192,85 +180,8 @@ def injectIntoNavigation():
 	NavigationInstance.instance.playRealService = playRealService.__get__(NavigationInstance.instance, Navigation)
 	NavigationInstance.instance.recordService = recordServiceWithIPTV.__get__(NavigationInstance.instance, Navigation)
 	PictureInPicture.playService = playServiceWithIPTVPiP
-	if EPGListGrid:
-		if injectCatchupIcon not in EPGListGrid.buildEntryExtensionFunctions:
-			EPGListGrid.buildEntryExtensionFunctions.append(injectCatchupIcon)
-		__init_orig__ = EPGListGrid.__init__
-		def __init_new__(self, *args, **kwargs):
-			self.catchUpIcon = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/catchup.png"))
-			if not self.catchUpIcon:
-				self.catchUpIcon = LoadPixmap("/usr/lib/enigma2/python/Plugins/SystemPlugins/M3UIPTV/catchup.png")
-			__init_orig__(self, *args, **kwargs)
-		EPGListGrid.__init__ = __init_new__
-
-	__old_EPGSelectionGrid_init__ = EPGSelectionGrid.__init__
-
-
-	if EPGSelectionGrid:
-		def __new_EPGSelectionGrid_init__(self, *args, **kwargs):
-			EPGSelectionGrid.playArchiveEntry = playArchiveEntry
-			__old_EPGSelectionGrid_init__(self, *args, **kwargs)
-			self["CatchUpActions"] = HelpableActionMap(self, "MediaPlayerActions",
-			{
-				"play": (self.playArchiveEntry, _("Play Archive")),
-			}, -2)
-
-		EPGSelectionGrid.__init__ = __new_EPGSelectionGrid_init__
+	injectCatchupInEPG()
 	
-
-
-	#Screens.InfoBarGenerics.isMoviePlayerInfobar = isMoviePlayerInfoBar
-
-#def isMoviePlayerInfoBar(self):
-#	return self.__class__.__name__ in ("MoviePlayer", "VoDMoviePlayer")
-
-def playArchiveEntry(self):
-	now = time()
-	event, service = self["list"].getCurrent()[:2]
-	playref, old_ref, is_dynamic, catchup_ref_type = processIPTVService(service, None, event)
-	sref = playref.toString()
-	if event is not None:
-		stime = event.getBeginTime()
-		if "catchupdays=" in service.toString() and stime < now:
-			match = re.search(r"catchupdays=(\d*)", service.toString())
-			catchup_days = int(match.groups(1)[0])
-			if now - stime <= datetime.timedelta(days=catchup_days).total_seconds():
-				duration = event.getDuration()
-				sref_split = sref.split(":")
-				url = sref_split[10:][0]
-				url = constructCatchUpUrl(service.toString(), url, stime, stime+duration, duration)
-				playref = eServiceReference(catchup_ref_type, 0, url)
-				playref.setName(event.getEventName())
-				infobar = InfoBar.instance
-				if infobar:
-					LastService = self.session.nav.getCurrentlyPlayingServiceOrGroup()
-					self.session.open(ArchiveMoviePlayer, playref, sref_ret=sref, slist=infobar.servicelist, lastservice=LastService, event=event, orig_url=url, start_orig=stime, end_org=stime+duration, duration=duration, catchup_ref_type=catchup_ref_type, orig_sref=service.toString())
-
-def injectCatchupIcon(res, obj, service, serviceName, events, picon, channel):
-	r2 = obj.eventRect
-	left = r2.left()
-	top = r2.top()
-	width = r2.width()
-	if events:
-		start = obj.timeBase
-		end = start + obj.timeEpochSecs
-		now = time()
-		for ev in events:
-			stime = ev[2]
-			duration = ev[3]
-			xpos, ewidth = obj.calcEventPosAndWidthHelper(stime, duration, start, end, width)
-			if "catchupdays=" in service and stime < now and obj.catchUpIcon:
-				pix_size = obj.catchUpIcon.size()
-				pix_width = pix_size.width()
-				pix_height = pix_size.height()
-				match = re.search(r"catchupdays=(\d*)", service)
-				catchup_days = int(match.groups(1)[0])
-				if now - stime <= datetime.timedelta(days=catchup_days).total_seconds():
-					res.append(MultiContentEntryPixmapAlphaBlend(
-									pos=(left + xpos + ewidth - pix_width - 10, top + 10),
-									size=(pix_width, pix_height),
-									png=obj.catchUpIcon,
-									flags=0))
 
 def playServiceWithIPTVPiP(self, service):
 		if service is None:
@@ -479,148 +390,6 @@ def recordServiceWithIPTV(self, ref, simulate=False):
 			print("[Navigation] record returned non-zero")
 	return service
 
-class ArchiveMoviePlayer(MoviePlayer):
-	def __init__(self, session, service, sref_ret="", slist=None, lastservice=None, event=None, orig_sref="", orig_url="", start_orig=0, end_org=0, duration=0, catchup_ref_type=4097):
-		MoviePlayer.__init__(self, session, service=service, slist=slist, lastservice=lastservice)
-		self.skinName = ["ArchiveMoviePlayer", "MoviePlayer"]
-		self.onPlayStateChanged.append(self.__playStateChanged)
-		self["progress"] = Progress()
-		self.progress_change_interval = 1000
-		self.catchup_ref_type = catchup_ref_type
-		self.event = event
-		self.orig_sref = orig_sref
-		self.duration = duration
-		self.orig_url = orig_url
-		self.sref_ret = sref_ret
-		self.start_orig = start_orig
-		self.end_orig = end_org
-		self.start_curr = start_orig
-		self.duration_curr = duration
-		self.progress_timer = eTimer()
-		self.progress_timer.callback.append(self.onProgressTimer)
-		self.progress_timer.start(self.progress_change_interval)
-		self["progress"].value = 0
-		self["time_info"] = Label("")
-		self.onProgressTimer()
-		self.__event_tracker = ServiceEventTracker(screen=self, eventmap={
-			iPlayableService.evStart: self.__evServiceStart,
-			iPlayableService.evEnd: self.__evServiceEnd,})
-
-
-	def onProgressTimer(self):
-		curr_pos = self.start_curr + self.getPosition()
-		len = self.duration
-		p = curr_pos - self.start_orig
-		r = self.duration - p
-		text = "+%d:%02d:%02d         %d:%02d:%02d         -%d:%02d:%02d" % (p / 3600, p % 3600 / 60, p % 60, len / 3600, len % 3600 / 60, len % 60, r / 3600, r % 3600 / 60, r % 60)
-		self["time_info"].setText(text)
-		progress_val = int((p / self.duration)*100)
-		self["progress"].value = progress_val if progress_val >= 0 else 0
-
-	def getPosition(self):
-		seek = self.getSeek()
-		if seek is None:
-			return 0
-		pos = seek.getPlayPosition()
-		if pos[0]:
-			return 0
-		return pos[1] / 90000
-
-	def __evServiceStart(self):
-		if self.progress_timer:
-			self.progress_timer.start(self.progress_change_interval)
-
-	def __evServiceEnd(self):
-		if self.progress_timer:
-			self.progress_timer.stop()
-
-	def __playStateChanged(self, state):
-		playstateString = state[3]
-		if playstateString == '>':
-			self.progress_timer.start(self.progress_change_interval)
-		elif playstateString == '||':
-			self.progress_timer.stop()
-		elif playstateString == 'END':
-			self.progress_timer.stop()
-
-	def destroy(self):
-		if self.progress_timer:
-			self.progress_timer.stop()
-			self.progress_timer.callback.remove(self.onProgressTimer)
-
-	def leavePlayer(self):
-		self.setResumePoint()
-		if self.progress_timer:
-			self.progress_timer.stop()
-			self.progress_timer.callback.remove(self.onProgressTimer)
-		self.handleLeave("quit")
-
-	def leavePlayerOnExit(self):
-		if self.shown:
-			self.hide()
-		else:
-			self.leavePlayer()
-
-	def doSeekRelative(self, pts):
-		pts = pts // 90000
-		seekable = self.getSeek()
-		if seekable is None:
-			return
-		prevstate = self.seekstate
-		if self.seekstate == self.SEEK_STATE_EOF:
-			if prevstate == self.SEEK_STATE_PAUSE:
-				self.setSeekState(self.SEEK_STATE_PAUSE)
-			else:
-				self.setSeekState(self.SEEK_STATE_PLAY)
-		#seekable.seekRelative(pts < 0 and -1 or 1, abs(pts))
-		curr_pos = self.start_curr + self.getPosition()
-		self.start_curr = curr_pos + pts
-		self.duration_curr -= pts
-		sref_split = self.sref_ret.split(":")
-		sref_ret = sref_split[10:][0]
-		url = constructCatchUpUrl(self.orig_sref, sref_ret, self.start_curr, self.start_curr+self.duration_curr, self.duration_curr)
-		newPlayref = eServiceReference(self.catchup_ref_type, 0, url)
-		newPlayref.setName(self.event.getEventName())
-		self.session.nav.playService(newPlayref)
-		self.onProgressTimer()
-		if abs(pts*90000) > 100 and config.usage.show_infobar_on_skip.value:
-			self.showAfterSeek()
-
-	def setResumePoint(self):
-		global resumePointCache, resumePointCacheLast
-		service = self.session.nav.getCurrentService()
-		ref = self.session.nav.getCurrentlyPlayingServiceOrGroup()
-		if (service is not None) and (ref is not None):
-			seek = service.seek()
-			if seek:
-				pos = seek.getPlayPosition()
-				if not pos[0]:
-					key = ref.toString()
-					lru = int(time())
-					sl = seek.getLength()
-					if sl:
-						sl = sl[1]
-					else:
-						sl = None
-					resumePointCache[key] = [lru, pos[1], sl]
-					saveResumePoints()
-	
-	def doEofInternal(self, playing):
-		if not self.execing:
-			return
-		if not playing:
-			return
-		ref = self.session.nav.getCurrentlyPlayingServiceOrGroup()
-		if ref:
-			delResumePoint(ref)
-		self.handleLeave("quit")
-
-	def up(self):
-		pass
-
-	def down(self):
-		pass
-
 class VoDMoviePlayer(MoviePlayer):
 	def __init__(self, session, service, slist=None, lastservice=None):
 		MoviePlayer.__init__(self, session, service=service, slist=slist, lastservice=lastservice)
@@ -670,7 +439,6 @@ class VoDMoviePlayer(MoviePlayer):
 
 	def down(self):
 		pass
-
 
 class M3UIPTVVoDMovies(Screen):
 	MODE_CATEGORY = 0
@@ -793,9 +561,7 @@ class M3UIPTVVoDMovies(Screen):
 			self.mode = self.MODE_CATEGORY
 			self.buildList()
 		else:
-			self.close()
-			
-			
+			self.close()		
 
 class M3UIPTVManagerConfig(Screen):
 	skin = ["""
@@ -943,7 +709,6 @@ class M3UIPTVManagerConfig(Screen):
 		except KeyError:  # if MessageBox is open
 			pass
 
-
 class M3UIPTVProviderEdit(Setup):
 	def __init__(self, session, provider=None):
 		self.edit = provider in providers
@@ -1050,7 +815,6 @@ class M3UIPTVProviderEdit(Setup):
 			writeProviders()
 			self.close(True)
 
-
 class IPTVPluginConfig(Setup):
 	def __init__(self, session):
 		Setup.__init__(self, session)
@@ -1077,7 +841,6 @@ class IPTVPluginConfig(Setup):
 			configlist.append((_("Enigma2 playback system"), config.plugins.serviceapp.servicemp3.replace, _("Change the playback system to one of the players available in ServiceApp plugin.")))
 			configlist.append((_("Select the player which will be used for Enigma2 playback."), config.plugins.serviceapp.servicemp3.player, _("Select a player to be in use.")))
 		self["config"].list = configlist
-
 
 def M3UIPTVMenu(session, close=None, **kwargs):
 	session.openWithCallback(boundFunction(M3UIPTVMenuCallback, close), Menu, mdom.getroot())
