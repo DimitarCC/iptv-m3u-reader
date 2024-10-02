@@ -8,7 +8,7 @@ self.session.open(M3UIPTVVoDMovies)
 	<item key="vod_series" level="0" text="TV Shows" description="Video On Demand TV Shows listing.">
 		<code>
 from Screens.MessageBox import MessageBox
-self.session.open(MessageBox, _("Comming Soon!"), MessageBox.TYPE_INFO, timeout=5)
+self.session.open(MessageBox, _("Coming Soon!"), MessageBox.TYPE_INFO, timeout=5)
 		</code>
 	</item>
 </menu>

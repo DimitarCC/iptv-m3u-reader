@@ -637,7 +637,7 @@ class M3UIPTVManagerConfig(Screen):
 		self.buildList()
 		self["key_red"] = StaticText(_("Close"))
 		self["key_green"] = StaticText(_("Add provider"))
-		self["key_yellow"] = StaticText(_("Generate bouquet"))
+		self["key_yellow"] = StaticText(_("Generate bouquets"))
 		#self["key_blue"] = StaticText(_("Generate epgimport mappings"))
 		self["description"] = StaticText(_("Press OK to edit the currently selected provider"))
 		self.updateCallbacks()
