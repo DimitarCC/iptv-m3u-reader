@@ -1,6 +1,6 @@
 from enigma import eServiceReference, eTimer, iPlayableService
 from Screens.InfoBar import InfoBar, MoviePlayer
-from Screens.InfoBarGenerics import saveResumePoints, resumePointCache, resumePointCacheLast, delResumePoint
+from Screens.InfoBarGenerics import saveResumePoints, resumePointCache, resumePointCacheLast, delResumePoint, isStandardInfoBar
 from Components.config import config
 from Components.ServiceEventTracker import ServiceEventTracker
 from Components.Sources.Progress import Progress
@@ -89,6 +89,7 @@ class CatchupPlayer(MoviePlayer):
 		self.skip_progress_update = False
 		self.progress_change_interval = 1000
 		self.catchup_ref_type = catchup_ref_type
+		self.cur_pos_manual = 0
 		self.event = event
 		self.orig_sref = orig_sref
 		self.duration = duration
@@ -107,8 +108,10 @@ class CatchupPlayer(MoviePlayer):
 		self["time_info"] = Label("")
 		self.onProgressTimer()
 		self.__event_tracker = ServiceEventTracker(screen=self, eventmap={
+			iPlayableService.evSeekableStatusChanged: self.__seekableStatusChanged,
 			iPlayableService.evStart: self.__evServiceStart,
 			iPlayableService.evEnd: self.__evServiceEnd,})
+		self["SeekActions"].setEnabled(True)
 		
 	def setProgress(self, pos):
 		r = self.duration - pos
@@ -135,16 +138,22 @@ class CatchupPlayer(MoviePlayer):
 			p = self.duration
 		self.skip_progress_update = True
 		self.setProgress(p)
-		self.seek_timer.start(1000)
+		self.seek_timer.start(500)
 
 	def onSeekRequest(self):
+		self.seek_timer.stop()
 		self.doSeekRelative(self.current_seek_step*self.current_seek_step_multiplier*90000)
 		self.skip_progress_update = False
 		self.current_seek_step = 0
 		self.current_seek_step_multiplier = 1
-		self.seek_timer.stop()
 
 	def onProgressTimer(self):
+		seek = self.getSeek()
+		if seek is None:
+			self.cur_pos_manual += 1
+		else:
+			self.cur_pos_manual = 1
+
 		curr_pos = self.start_curr + self.getPosition()
 		p = curr_pos - self.start_orig
 		if not self.skip_progress_update:
@@ -153,7 +162,7 @@ class CatchupPlayer(MoviePlayer):
 	def getPosition(self):
 		seek = self.getSeek()
 		if seek is None:
-			return 0
+			return self.cur_pos_manual
 		pos = seek.getPlayPosition()
 		if pos[0]:
 			return 0
@@ -176,10 +185,17 @@ class CatchupPlayer(MoviePlayer):
 		elif playstateString == 'END':
 			self.progress_timer.stop()
 
+	def __seekableStatusChanged(self):
+		self["SeekActions"].setEnabled(True)
+		for c in self.onPlayStateChanged:
+			c(self.seekstate)
+
 	def destroy(self):
 		if self.progress_timer:
 			self.progress_timer.stop()
 			self.progress_timer.callback.remove(self.onProgressTimer)
+		if self.seek_timer:
+			self.seek_timer.callback.remove(self.onSeekRequest)
 
 	def leavePlayer(self):
 		self.setResumePoint()
@@ -196,16 +212,12 @@ class CatchupPlayer(MoviePlayer):
 
 	def doSeekRelative(self, pts):
 		pts = pts // 90000
-		seekable = self.getSeek()
-		if seekable is None:
-			return
 		prevstate = self.seekstate
 		if self.seekstate == self.SEEK_STATE_EOF:
 			if prevstate == self.SEEK_STATE_PAUSE:
 				self.setSeekState(self.SEEK_STATE_PAUSE)
 			else:
 				self.setSeekState(self.SEEK_STATE_PLAY)
-		#seekable.seekRelative(pts < 0 and -1 or 1, abs(pts))
 		curr_pos = self.start_curr + self.getPosition()
 		self.start_curr = curr_pos + pts
 		atStart = False
