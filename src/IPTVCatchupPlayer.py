@@ -117,7 +117,7 @@ class CatchupPlayer(MoviePlayer):
 		r = self.duration - pos
 		progress_val = int((pos / self.duration)*100)
 		self["progress"].value = progress_val if progress_val >= 0 else 0
-		text = "+%d:%02d:%02d         %d:%02d:%02d         -%d:%02d:%02d" % (pos / 3600, pos % 3600 / 60, pos % 60, self.duration / 3600, self.duration % 3600 / 60, self.duration % 60, r / 3600, r % 3600 / 60, r % 60)
+		text = "-%d:%02d:%02d         %d:%02d:%02d         +%d:%02d:%02d" % (pos / 3600, pos % 3600 / 60, pos % 60, self.duration / 3600, self.duration % 3600 / 60, self.duration % 60, r / 3600, r % 3600 / 60, r % 60)
 		self["time_info"].setText(text)
 		
 	def invokeSeek(self, direction):
