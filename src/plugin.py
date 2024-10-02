@@ -22,7 +22,7 @@ from Screens.Setup import Setup
 from Screens.Menu import Menu
 from Screens.MessageBox import MessageBox
 from Screens.VirtualKeyBoard import VirtualKeyBoard
-from Components.ActionMap import ActionMap, HelpableActionMap
+from Components.ActionMap import ActionMap
 from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigText, ConfigPassword
 from Components.ParentalControl import parentalControl
 from Components.Sources.StaticText import StaticText
@@ -32,6 +32,15 @@ from Components.SystemInfo import SystemInfo
 from Tools.Directories import fileExists, isPluginInstalled, sanitizeFilename
 from Tools.BoundFunction import boundFunction
 from Navigation import Navigation
+
+try:
+	from Plugins.Extensions.tmdb.tmdb import tmdbScreen
+except ImportError:
+	tmdbScreen = None
+	try:
+		from Plugins.Extensions.IMDb.plugin import IMDB
+	except ImportError:
+		IMDB = None
 
 from os import path, fsync, rename, makedirs
 import xml
@@ -487,21 +496,21 @@ class M3UIPTVVoDMovies(Screen):
 		self.categories.insert(0, self.category)
 		if self.selectionChanged not in self["list"].onSelectionChanged:
 			self["list"].onSelectionChanged.append(self.selectionChanged)
-			
-		self.buildList()
+
 		self["key_red"] = StaticText(_("Cancel"))
 		self["key_green"] = StaticText(_("Search"))
-		# self["key_yellow"] = StaticText(_(""))
-		# self["key_blue"] = StaticText(_(""))
+		self["key_yellow"] = StaticText()
+		# self["key_blue"] = StaticText()
 
 		self["actions"] = ActionMap(["SetupActions", "ColorActions",],
 			{
 				"cancel": self.keyCancel,  # KEY_RED / KEY_EXIT
 				"save": self.keySearch,  # KEY_GREEN
 				"ok": self.keySelect,
-				# "yellow": self.yellow,
+				"yellow": self.mdb,
 				# "blue": self.blue,
 			}, -1)  # noqa: E123
+		self.buildList()
 
 	def selectionChanged(self):
 		if self.mode in (self.MODE_MOVIE, self.MODE_SEARCH):
@@ -509,7 +518,21 @@ class M3UIPTVVoDMovies(Screen):
 				self["description"].text = plot
 			else:
 				self["description"].text = _("Press OK to play selected movie")
-	
+
+	def mdb(self):
+		if self.mode in (self.MODE_MOVIE, self.MODE_SEARCH) and (current := self["list"].getCurrent()):
+			if tmdbScreen:
+				self.session.open(tmdbScreen, current[1].replace("4K", "").replace("4k", ""), 2)
+			elif IMDB:
+				self.session.open(IMDB, current[1].replace("4K", "").replace("4k", ""), False)
+
+	def mdbText(self):
+		if self.mode in (self.MODE_MOVIE, self.MODE_SEARCH) and (current := self["list"].getCurrent()):
+			if tmdbScreen:
+				return _("TMDb search")
+			elif IMDB:
+				return _("IMDb search")
+		return ""
 
 	def keySelect(self):
 		if self.mode == self.MODE_CATEGORY:
@@ -557,6 +580,7 @@ class M3UIPTVVoDMovies(Screen):
 			self.title = _("VoD Movie Category: %s") % self.category
 			self["description"].text = _("Press OK to play selected movie")
 			self["list"].setList(sorted([(movie, movie.name) for movie in self.allmovies if self.category == "All" or self.category == movie.category], key=lambda x: x[1].lower()))
+		self["key_yellow"].text = self.mdbText()
 
 	def playMovie(self):
 		if current := self["list"].getCurrent():
