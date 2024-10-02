@@ -508,7 +508,6 @@ class M3UIPTVVoDMovies(Screen):
 				self.buildList()
 				self["list"].index = 0
 		else:
-			self.mode = self.MODE_CATEGORY
 			self.playMovie()
 
 	def keySearch(self):
@@ -554,14 +553,14 @@ class M3UIPTVVoDMovies(Screen):
 			if infobar:
 				LastService = self.session.nav.getCurrentlyPlayingServiceOrGroup()
 				ref = eServiceReference("4097:0:1:9999:1009:1:CCCC0000:0:0:0:%s:%s" % (current[0].url.replace(":", "%3a"), current[0].name))
-				self.session.openWithCallback(self.buildList, VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
+				self.session.open(VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
 
 	def keyCancel(self):
 		if len(self.categories) > 1 and self.mode in (self.MODE_MOVIE, self.MODE_SEARCH):
 			self.mode = self.MODE_CATEGORY
 			self.buildList()
 		else:
-			self.close()		
+			self.close()
 
 class M3UIPTVManagerConfig(Screen):
 	skin = ["""
