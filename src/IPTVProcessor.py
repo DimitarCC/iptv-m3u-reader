@@ -42,6 +42,19 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 		pass
 	return url_play
 
+def getUrl(url):
+	is_check_network_val = config.plugins.m3uiptv.check_internet.value
+	if is_check_network_val != "off":
+		socket.setdefaulttimeout(int(is_check_network_val))
+		socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
+	req = urllib.request.Request(url, headers={'User-Agent' : USER_AGENT}) 
+	req_timeout_val = config.plugins.m3uiptv.req_timeout.value
+	if req_timeout_val != "off":
+		response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
+	else:
+		response = urllib.request.urlopen(req)
+	return response.read()
+
 
 class IPTVProcessor():
 	def __init__(self):
@@ -92,17 +105,7 @@ class IPTVProcessor():
 		pass
 
 	def getJsonUrl(self, url, dest_file):
-		is_check_network_val = config.plugins.m3uiptv.check_internet.value
-		if is_check_network_val != "off":
-			socket.setdefaulttimeout(int(is_check_network_val))
-			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
-		req = urllib.request.Request(url, headers={'User-Agent' : USER_AGENT}) 
-		req_timeout_val = config.plugins.m3uiptv.req_timeout.value
-		if req_timeout_val != "off":
-			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
-		else:
-			response = urllib.request.urlopen(req)
-		vod_response = response.read()
+		vod_response = getUrl(url)
 		with write_lock:
 			f = open(dest_file + ".writing", 'wb')
 			f.write(vod_response)
