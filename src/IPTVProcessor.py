@@ -104,7 +104,7 @@ class IPTVProcessor():
 	def loadVoDMoviesFromFile(self):
 		pass
 
-	def getJsonUrl(self, url, dest_file):
+	def getUrlToFile(self, url, dest_file):
 		vod_response = getUrl(url)
 		with write_lock:
 			f = open(dest_file + ".writing", 'wb')
@@ -115,7 +115,7 @@ class IPTVProcessor():
 			rename(dest_file + ".writing", dest_file)
 		return vod_response
 
-	def loadJsonFromFile(self, source_file):
+	def loadFromFile(self, source_file):
 		if not fileExists(source_file):
 			return
 		return open(source_file, 'rb').read()

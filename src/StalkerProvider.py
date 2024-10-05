@@ -163,11 +163,11 @@ class StalkerProvider(IPTVProcessor):
 #		self.vod_movies = []
 #		url = "%s/player_api.php?username=%s&password=%s&action=get_vod_streams" % (self.url, self.username, self.password)
 #		dest_file = USER_IPTV_VOD_MOVIES_FILE % self.scheme
-#		json_string = self.getJsonUrl(url, dest_file)
+#		json_string = self.getUrlToFile(url, dest_file)
 #		self.makeVodListFromJson(json_string)
 
 	def loadVoDMoviesFromFile(self):
 		self.vod_movies = []
 		vodFile = USER_IPTV_VOD_MOVIES_FILE % self.scheme
-		json_string = self.loadJsonFromFile(vodFile)
+		json_string = self.loadFromFile(vodFile)
 		self.makeVodListFromJson(json_string)
