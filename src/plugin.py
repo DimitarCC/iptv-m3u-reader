@@ -3,14 +3,15 @@ from . import _
 
 from sys import modules
 from time import time
+import json
+import base64
 from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner
 from Plugins.Plugin import PluginDescriptor
 from .M3UProvider import M3UProvider
 from .IPTVProcessor import IPTVProcessor
 from .XtreemProvider import XtreemProvider
 from .StalkerProvider import StalkerProvider
-from .IPTVProviders import providers
-from .IPTVProviders import processService as processIPTVService
+from .IPTVProviders import providers, processService as processIPTVService
 from .IPTVCatchupPlayer import injectCatchupInEPG
 from .VoDItem import VoDItem
 from .Variables import USER_IPTV_PROVIDERS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_STALKER
@@ -34,7 +35,7 @@ from Tools.BoundFunction import boundFunction
 from Navigation import Navigation
 
 try:
-	from Plugins.Extensions.tmdb.tmdb import tmdbScreen
+	from Plugins.Extensions.tmdb.tmdb import tmdbScreen, tmdbScreenMovie, tempDir as tmdbTempDir, tmdb
 except ImportError:
 	tmdbScreen = None
 	try:
@@ -65,6 +66,29 @@ file.close()
 file_vod = open("%s/vod_menu.xml" % path.dirname(modules[__name__].__file__), 'r')
 mdom_vod = xml.etree.cElementTree.parse(file_vod)
 file_vod.close()
+
+
+def tmdbScreenMovieHelper(VoDObj):
+	url = "%s/player_api.php?username=%s&password=%s&action=get_vod_info&vod_id=%s" % (VoDObj.providerObj.url, VoDObj.providerObj.username, VoDObj.providerObj.password, VoDObj.id)
+	print("[tmdbScreenMovieHelper] url", url)
+	if json_string := VoDObj.providerObj.getUrl(url):
+		if json_obj := json.loads(json_string):
+			print("[tmdbScreenMovieHelper] json_obj", json_obj)
+			if info := json_obj.get('info'):
+				tmdb_id = info.get('tmdb_id') and str(info.get('tmdb_id'))
+				if cover := info.get('cover_big') or json_obj.get('movie_image'):
+					cover = cover.rsplit("/", 1)[-1]
+				if backdrop := info.get('backdrop_path'):
+					if isinstance(backdrop, list):
+						backdrop = backdrop[0]
+					backdrop = backdrop.rsplit("/", 1)[-1]
+				print("cover, backdrop", cover, backdrop)
+				if tmdb_id and cover and backdrop:
+					url_cover = "http://image.tmdb.org/t/p/%s/%s" % (config.plugins.tmdb.themoviedb_coversize.value, cover)
+					url_backdrop = "http://image.tmdb.org/t/p/%s/%s" % (config.plugins.tmdb.themoviedb_coversize.value, backdrop)
+					if fileExists(tmdbTempDir + tmdb_id + ".jpg") or VoDObj.providerObj.getUrlToFile(url_cover, tmdbTempDir + tmdb_id + ".jpg"):
+						tmdb.API_KEY = base64.b64decode('ZDQyZTZiODIwYTE1NDFjYzY5Y2U3ODk2NzFmZWJhMzk=')
+						return (VoDObj.name, "movie", tmdbTempDir + tmdb_id + ".jpg", tmdb_id, 2, url_backdrop)
 
 
 def readProviders():
@@ -522,7 +546,12 @@ class M3UIPTVVoDMovies(Screen):
 	def mdb(self):
 		if self.mode in (self.MODE_MOVIE, self.MODE_SEARCH) and (current := self["list"].getCurrent()):
 			if tmdbScreen:
-				self.session.open(tmdbScreen, current[1].replace("4K", "").replace("4k", ""), 2)
+				if args := tmdbScreenMovieHelper(current[0]):
+					print("[M3UIPTVVoDMovies] opening tmdbScreenMovie")
+					self.session.open(tmdbScreenMovie, *args)
+				else:
+					print("[M3UIPTVVoDMovies] opening tmdbScreenMovie")
+					self.session.open(tmdbScreen, current[1].replace("4K", "").replace("4k", ""), 2)
 			elif IMDB:
 				self.session.open(IMDB, current[1].replace("4K", "").replace("4k", ""), False)
 
