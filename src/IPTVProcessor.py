@@ -128,12 +128,12 @@ class IPTVProcessor():
 				ext = movie["container_extension"]
 				id = movie["stream_id"]
 				url = "%s/movie/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
-				vod_item = VoDItem(url, name, self.movie_categories.get(movie.get("category_id")), movie.get("plot"))
+				vod_item = VoDItem(url, name, id, self.movie_categories.get(movie.get("category_id")), movie.get("plot"))
 				self.vod_movies.append(vod_item)
 
 	def processService(self, nref, iptvinfodata, callback=None):
 		return nref, nref, False
-	
+
 	def bouquetCreated(self, error):
 		for f in self.onBouquetCreated:
 			f(self, error)
