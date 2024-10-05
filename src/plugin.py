@@ -16,7 +16,7 @@ from .IPTVProviders import providers, processService as processIPTVService
 from .IPTVCatchupPlayer import injectCatchupInEPG
 from .VoDItem import VoDItem
 from .Variables import USER_IPTV_PROVIDERS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_STALKER
-from Screens.Screen import Screen
+from Screens.Screen import Screen, ScreenSummary
 from Screens.InfoBar import InfoBar, MoviePlayer
 from Screens.InfoBarGenerics import streamrelay, saveResumePoints, resumePointCache, resumePointCacheLast, delResumePoint
 from Screens.PictureInPicture import PictureInPicture
@@ -639,6 +639,10 @@ class M3UIPTVVoDMovies(Screen):
 		else:
 			self.close()
 
+	def createSummary(self):
+		return PluginSummary
+
+
 class M3UIPTVManagerConfig(Screen):
 	skin = ["""
 		<screen name="M3UIPTVManagerConfig" position="center,center" size="%d,%d">
@@ -785,6 +789,10 @@ class M3UIPTVManagerConfig(Screen):
 		except KeyError:  # if MessageBox is open
 			pass
 
+	def createSummary(self):
+		return PluginSummary
+
+
 class M3UIPTVProviderEdit(Setup):
 	def __init__(self, session, provider=None):
 		self.edit = provider in providers
@@ -917,6 +925,34 @@ class IPTVPluginConfig(Setup):
 			configlist.append((_("Enigma2 playback system"), config.plugins.serviceapp.servicemp3.replace, _("Change the playback system to one of the players available in ServiceApp plugin.")))
 			configlist.append((_("Select the player which will be used for Enigma2 playback."), config.plugins.serviceapp.servicemp3.player, _("Select a player to be in use.")))
 		self["config"].list = configlist
+
+
+class PluginSummary(ScreenSummary):
+	def __init__(self, session, parent):
+		ScreenSummary.__init__(self, session, parent=parent)
+		self.skinName = "SetupSummary"
+		self["SetupTitle"] = StaticText()
+		self["SetupEntry"] = StaticText()
+		self["SetupValue"] = StaticText()
+		if self.addWatcher not in self.onShow:
+			self.onShow.append(self.addWatcher)
+		if self.removeWatcher not in self.onHide:
+			self.onHide.append(self.removeWatcher)
+
+	def addWatcher(self):
+		if self.selectionChanged not in self.parent["list"].onSelectionChanged:
+			self.parent["list"].onSelectionChanged.append(self.selectionChanged)
+		self.selectionChanged()
+
+	def removeWatcher(self):
+		if self.selectionChanged in self.parent["list"].onSelectionChanged:
+			self.parent["list"].onSelectionChanged.remove(self.selectionChanged)
+
+	def selectionChanged(self):
+		self["SetupTitle"].text = self.parent.title
+		self["SetupEntry"].text = item[1] if (item := (self.parent["list"].getCurrent())) else ""
+		self["SetupValue"].text = self.parent["description"].text
+
 
 def M3UIPTVMenu(session, close=None, **kwargs):
 	session.openWithCallback(boundFunction(M3UIPTVMenuCallback, close), Menu, mdom.getroot())
