@@ -105,7 +105,7 @@ class IPTVProcessor():
 		return response.read()
 	
 	def getUrlToFile(self, url, dest_file):
-		vod_response = getUrl(url)
+		vod_response = self.getUrl(url)
 		with write_lock:
 			f = open(dest_file + ".writing", 'wb')
 			f.write(vod_response)
