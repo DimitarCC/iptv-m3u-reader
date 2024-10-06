@@ -81,7 +81,7 @@ class epgimport_helper():
 	            for s in EPGConfig.enumSourcesFile(sourcefile):
 	                yield s
 	        except Exception as e:
-	            print('[e2m3u2b] Failed to open epg source ', sourcefile, ' Error: ', e, file=log)
+	            print('[M3UIPTV] epgimport_sources Failed to open epg source ', sourcefile, ' Error: ', e)
 
 	def epgimport_done(self, reboot=False, epgfile=None):
 		self.update_status_timer.stop()
