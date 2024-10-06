@@ -683,7 +683,7 @@ class M3UIPTVManagerConfig(Screen):
 		self["key_red"] = StaticText(_("Close"))
 		self["key_green"] = StaticText(_("Add provider"))
 		self["key_yellow"] = StaticText(_("Generate bouquets"))
-		#self["key_blue"] = StaticText(_("Generate epgimport mappings"))
+		self["key_blue"] = StaticText(_("Clear bouquets"))
 		self["description"] = StaticText(_("Press OK to edit the currently selected provider"))
 		self.updateCallbacks()
 		self.onClose.append(self.__onClose)
@@ -694,7 +694,7 @@ class M3UIPTVManagerConfig(Screen):
 				"save": self.addProvider,  # KEY_GREEN
 				"ok": self.editProvider,
 				"yellow": self.keyYellow,
-				#"blue": self.generateEpgimportMapping,
+				"blue": self.clearBouquets,
 			}, -1)  # noqa: E123
 
 	def __onClose(self):
@@ -787,6 +787,13 @@ class M3UIPTVManagerConfig(Screen):
 			self["description"].text = desc
 		except KeyError:  # if MessageBox is open
 			pass
+
+	def clearBouquets(self):
+		if current := self["list"].getCurrent():
+			provider = current[0]
+			providerObj = providers[provider]
+			providerObj.removeBouquets()
+			self.updateDescription(_("%s: bouquets removed successfully") % providerObj.iptv_service_provider)
 
 	def createSummary(self):
 		return PluginSummary
