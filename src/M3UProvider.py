@@ -103,21 +103,25 @@ class M3UProvider(IPTVProcessor):
 					sref = self.generateChannelReference(stype, tsid, url.replace(":", "%3a"), ch_name)
 					tsid += 1
 					if curr_group:
-						groups[curr_group].append(sref)
+						groups[curr_group].append((sref, sid, ch_name))
 					else:
-						services.append(sref)
+						services.append((sref, sid, ch_name))
 			line_nr += 1
+		groups_for_epg = {}  # mimic format used in XtreemProvider.py
 		for groupName, srefs in groups.items():
 			if len(srefs) > 0:
 				bfilename =  self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupName}.tv")
-				db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + groupName, bfilename, srefs, False)
+				db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + groupName, bfilename, [sref[0] for sref in srefs], False)
+				groups_for_epg[groupName] = (groupName, srefs)
 
 		if len(services) > 0:
 			if len(groups) > 0:
 				bfilename =  self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.UNCATEGORIZED.tv")
-				db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - UNCATEGORIZED", bfilename, services, False)
+				db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - UNCATEGORIZED", bfilename, [sref[0] for sref in services], False)
 			else:
-				db.addOrUpdateBouquet(self.iptv_service_provider, services, 1)
+				db.addOrUpdateBouquet(self.iptv_service_provider, [sref[0] for sref in services], 1)
+			groups_for_epg["EMPTY"] = ("UNCATEGORIZED", services)
+		self.generateEPGImportFiles(groups_for_epg)
 		self.bouquetCreated(None)
 
 	def processService(self, nref, iptvinfodata, callback=None, event=None):
