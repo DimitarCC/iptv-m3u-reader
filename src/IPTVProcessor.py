@@ -141,8 +141,8 @@ class IPTVProcessor():
 	def generateChannelReference(self, type, tsid, url, name):
 		return "%s:0:%s:%x:%x:1:CCCC0000:0:0:0:%s:%s•%s" % (self.play_system, type, tsid, self.onid, url.replace(":", "%3a"), name, self.iptv_service_provider)
 	
-	def getEpgUrl(self):
-		return ""
+	def getEpgUrl(self):  # if not overridden in the subclass
+		return self.epg_url
 	
 	def generateEPGImportFiles(self, groups):
 		if not self.create_epg:
