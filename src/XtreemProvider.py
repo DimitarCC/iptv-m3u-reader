@@ -75,8 +75,6 @@ class XtreemProvider(IPTVProcessor):
 			self.getMovieCategories()
 			self.getVoDMovies()
 
-		self.removeBouquets()
-
 		for groupItem in groups.values():
 			if groupItem[1]:  # don't create the bouquet if there are no services
 				bfilename =  self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupItem[0]}.tv")
