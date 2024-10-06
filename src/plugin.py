@@ -778,7 +778,7 @@ class M3UIPTVManagerConfig(Screen):
 			self.updateDescription(_("%s: unable to create bouquet") % providerObj.iptv_service_provider)
 			self.session.open(MessageBox, _("Unable to create bouquet \"%s\"!\nPossible reason can be no network available.") % providerObj.iptv_service_provider, MessageBox.TYPE_ERROR, timeout=5)
 		else:
-			self.updateDescription(_("%s: bouquets generated successfully ") % providerObj.iptv_service_provider)
+			self.updateDescription(_("%s: bouquets generated successfully") % providerObj.iptv_service_provider)
 			self.session.open(MessageBox, _("\"%s\" bouquets have been generated successfully") % providerObj.iptv_service_provider, MessageBox.TYPE_INFO, timeout=5)
 		self["actions"].setEnabled(True)
 
