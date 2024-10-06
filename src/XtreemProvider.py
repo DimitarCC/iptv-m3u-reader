@@ -1,6 +1,6 @@
 from enigma import eDVBDB
 from Components.config import config
-from Tools.Directories import fileExists, sanitizeFilename
+from Tools.Directories import sanitizeFilename
 import socket
 import urllib
 import json

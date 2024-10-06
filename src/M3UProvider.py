@@ -3,6 +3,7 @@ from ServiceReference import ServiceReference
 from Components.config import config
 from time import time
 from twisted.internet import threads
+from Tools.Directories import sanitizeFilename
 import socket
 import urllib
 import re
@@ -39,12 +40,21 @@ class M3UProvider(IPTVProcessor):
 		playlist_splitted = playlist.splitlines()
 		tsid = 1000
 		services = []
+		groups = {}
 		line_nr = 0
 		captchup_days = ""
+		curr_group = None
 		for line in playlist_splitted:
 			if self.ignore_vod and "group-title=\"VOD" in line:
 				continue
 			if line.startswith("#EXTINF:"):
+				gr_match  = re.search(r"group-title=\"(.*)\"", line)
+				if gr_match:
+					curr_group = gr_match.group(1)
+					if curr_group not in groups:
+						groups[curr_group] = []
+				else:
+					curr_group = None
 				condition = re.escape(self.search_criteria).replace("\\{SID\\}", "(.*?)") + r".*,(.*)"
 				match = re.search(condition, line)
 				isFallbackMatch = False
@@ -62,7 +72,7 @@ class M3UProvider(IPTVProcessor):
 					url = ""
 					match = re.search(r".*tvg-rec=\"(\d*)\".*", line)
 					if match:
-						captchup_days = match.groups(1)[0]
+						captchup_days = match.group(1)
 					if self.static_urls:
 						found_url = False
 						next_line_nr = line_nr + 1
@@ -89,9 +99,22 @@ class M3UProvider(IPTVProcessor):
 						stype = "19"
 					sref = self.generateChannelReference(stype, tsid, url.replace(":", "%3a"), ch_name)
 					tsid += 1
-					services.append(sref)
+					if curr_group:
+						groups[curr_group].append(sref)
+					else:
+						services.append(sref)
 			line_nr += 1
-		db.addOrUpdateBouquet(self.iptv_service_provider, services, 1)
+		for groupName, srefs in groups.items():
+			if len(srefs) > 0:
+				bfilename =  sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupName}.tv".replace(" ", "").replace("(", "").replace(")", "").replace("&", ""))
+				db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + groupName, bfilename, srefs, False)
+
+		if len(services) > 0:
+			if len(groups) > 0:
+				bfilename =  sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.UNCATEGORIZED.tv".replace(" ", "").replace("(", "").replace(")", "").replace("&", ""))
+				db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - UNCATEGORIZED", bfilename, services, False)
+			else:
+				db.addOrUpdateBouquet(self.iptv_service_provider, services, 1)
 		self.bouquetCreated(None)
 
 	def processService(self, nref, iptvinfodata, callback=None, event=None):

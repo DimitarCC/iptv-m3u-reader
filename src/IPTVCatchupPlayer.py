@@ -158,26 +158,14 @@ class CatchupPlayer(MoviePlayer):
 		self.current_seek_step_multiplier = 1
 
 	def onProgressTimer(self):
-		seek = self.getSeek()
-		if seek is None:
-			self.cur_pos_manual += 1
-		else:
-			self.cur_pos_manual = 1
-
+		self.cur_pos_manual += 1
 		curr_pos = self.start_curr + self.getPosition()
 		p = curr_pos - self.start_orig
 		if not self.skip_progress_update:
 			self.setProgress(p)
 
 	def getPosition(self):
-		seek = self.getSeek()
-		service = self.session.nav.getCurrentlyPlayingServiceReference()
-		if seek is None or service.type == 1:
-			return self.cur_pos_manual
-		pos = seek.getPlayPosition()
-		if pos[0]:
-			return 0
-		return pos[1] / 90000
+		return self.cur_pos_manual
 
 	def __evServiceStart(self):
 		if self.progress_timer:
