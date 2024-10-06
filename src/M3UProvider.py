@@ -51,13 +51,17 @@ class M3UProvider(IPTVProcessor):
 				if epg_match:
 					self.epg_url = epg_match.group(1)
 			if line.startswith("#EXTINF:"):
-				gr_match  = re.search(r"group-title=\"(.*?)\"", line)
+				gr_match = re.search(r"group-title=\"(.*?)\"", line)
 				if gr_match:
 					curr_group = gr_match.group(1)
 					if curr_group not in groups:
 						groups[curr_group] = []
 				else:
 					curr_group = None
+				epg_id = "None"
+				epg_id_match = re.search(r"tvg-id=\"(.*?)\"", line)
+				if epg_id_match:
+					epg_id = epg_id_match.group(1)
 				condition = re.escape(self.search_criteria).replace("\\{SID\\}", "(.*?)") + r".*,(.*)"
 				match = re.search(condition, line)
 				isFallbackMatch = False
@@ -103,9 +107,9 @@ class M3UProvider(IPTVProcessor):
 					sref = self.generateChannelReference(stype, tsid, url.replace(":", "%3a"), ch_name)
 					tsid += 1
 					if curr_group:
-						groups[curr_group].append((sref, sid, ch_name))
+						groups[curr_group].append((sref, epg_id, ch_name))
 					else:
-						services.append((sref, sid, ch_name))
+						services.append((sref, epg_id, ch_name))
 			line_nr += 1
 		groups_for_epg = {}  # mimic format used in XtreemProvider.py
 		for groupName, srefs in groups.items():
