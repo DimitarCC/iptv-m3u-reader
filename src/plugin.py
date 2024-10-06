@@ -3,18 +3,20 @@ from . import _
 
 from sys import modules
 from time import time
+from glob import glob
+import json
+import base64
 from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner
 from Plugins.Plugin import PluginDescriptor
 from .M3UProvider import M3UProvider
 from .IPTVProcessor import IPTVProcessor
 from .XtreemProvider import XtreemProvider
 from .StalkerProvider import StalkerProvider
-from .IPTVProviders import providers
-from .IPTVProviders import processService as processIPTVService
+from .IPTVProviders import providers, processService as processIPTVService
 from .IPTVCatchupPlayer import injectCatchupInEPG
 from .VoDItem import VoDItem
 from .Variables import USER_IPTV_PROVIDERS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_STALKER
-from Screens.Screen import Screen
+from Screens.Screen import Screen, ScreenSummary
 from Screens.InfoBar import InfoBar, MoviePlayer
 from Screens.InfoBarGenerics import streamrelay, saveResumePoints, resumePointCache, resumePointCacheLast, delResumePoint
 from Screens.PictureInPicture import PictureInPicture
@@ -34,7 +36,7 @@ from Tools.BoundFunction import boundFunction
 from Navigation import Navigation
 
 try:
-	from Plugins.Extensions.tmdb.tmdb import tmdbScreen
+	from Plugins.Extensions.tmdb.tmdb import tmdbScreen, tmdbScreenMovie, tempDir as tmdbTempDir, tmdb
 except ImportError:
 	tmdbScreen = None
 	try:
@@ -42,7 +44,7 @@ except ImportError:
 	except ImportError:
 		IMDB = None
 
-from os import path, fsync, rename, makedirs
+from os import path, fsync, rename, makedirs, remove
 import xml
 from xml.etree.cElementTree import iterparse
 import re
@@ -65,6 +67,25 @@ file.close()
 file_vod = open("%s/vod_menu.xml" % path.dirname(modules[__name__].__file__), 'r')
 mdom_vod = xml.etree.cElementTree.parse(file_vod)
 file_vod.close()
+
+
+def tmdbScreenMovieHelper(VoDObj):
+	url = "%s/player_api.php?username=%s&password=%s&action=get_vod_info&vod_id=%s" % (VoDObj.providerObj.url, VoDObj.providerObj.username, VoDObj.providerObj.password, VoDObj.id)
+	if json_string := VoDObj.providerObj.getUrl(url):
+		if json_obj := json.loads(json_string):
+			if info := json_obj.get('info'):
+				tmdb_id = info.get('tmdb_id') and str(info.get('tmdb_id'))
+				if cover := info.get('cover_big') or json_obj.get('movie_image'):
+					cover = cover.rsplit("/", 1)[-1]
+				if backdrop := info.get('backdrop_path'):
+					if isinstance(backdrop, list):
+						backdrop = backdrop[0]
+					backdrop = backdrop.rsplit("/", 1)[-1]
+				if tmdb_id and cover and backdrop:
+					url_cover = "http://image.tmdb.org/t/p/%s/%s" % (config.plugins.tmdb.themoviedb_coversize.value, cover)
+					url_backdrop = "http://image.tmdb.org/t/p/%s/%s" % (config.plugins.tmdb.themoviedb_coversize.value, backdrop)
+					tmdb.API_KEY = base64.b64decode('ZDQyZTZiODIwYTE1NDFjYzY5Y2U3ODk2NzFmZWJhMzk=')
+					return (VoDObj.name, "movie", tmdbTempDir + tmdb_id + ".jpg", tmdb_id, 2, url_backdrop), url_cover
 
 
 def readProviders():
@@ -511,6 +532,7 @@ class M3UIPTVVoDMovies(Screen):
 				# "blue": self.blue,
 			}, -1)  # noqa: E123
 		self.buildList()
+		self.onClose.append(self.mdbCleanup)
 
 	def selectionChanged(self):
 		if self.mode in (self.MODE_MOVIE, self.MODE_SEARCH):
@@ -522,7 +544,17 @@ class M3UIPTVVoDMovies(Screen):
 	def mdb(self):
 		if self.mode in (self.MODE_MOVIE, self.MODE_SEARCH) and (current := self["list"].getCurrent()):
 			if tmdbScreen:
-				self.session.open(tmdbScreen, current[1].replace("4K", "").replace("4k", ""), 2)
+				args = tmdbScreenMovieHelper(current[0])
+				if args and args[0]:
+					url_cover = args[1]
+					args = args[0]
+					if not fileExists(args[2]):
+						self.mbpTimer = eTimer()
+						self.mbpTimer.callback.append(boundFunction(self.mdbCover, url_cover, args[2], current[0]))
+						self.mbpTimer.start(100, True)
+					self.tmdbScreenMovie = self.session.open(tmdbScreenMovie, *args)
+				else:
+					self.session.open(tmdbScreen, current[1].replace("4K", "").replace("4k", ""), 2)
 			elif IMDB:
 				self.session.open(IMDB, current[1].replace("4K", "").replace("4k", ""), False)
 
@@ -533,6 +565,16 @@ class M3UIPTVVoDMovies(Screen):
 			elif IMDB:
 				return _("IMDb search")
 		return ""
+
+	def mdbCover(self, url_cover, cover_file, VoDObj):
+		makedirs(tmdbTempDir, exist_ok=True)
+		if VoDObj.providerObj.getUrlToFile(url_cover, cover_file):
+			self.tmdbScreenMovie.decodeCover(cover_file)
+
+	def mdbCleanup(self):
+		if path.exists(tmdbTempDir):
+			for jpg in glob(tmdbTempDir + '*.jpg'):
+				remove(jpg)
 
 	def keySelect(self):
 		if self.mode == self.MODE_CATEGORY:
@@ -596,6 +638,10 @@ class M3UIPTVVoDMovies(Screen):
 			self.buildList()
 		else:
 			self.close()
+
+	def createSummary(self):
+		return PluginSummary
+
 
 class M3UIPTVManagerConfig(Screen):
 	skin = ["""
@@ -743,6 +789,10 @@ class M3UIPTVManagerConfig(Screen):
 		except KeyError:  # if MessageBox is open
 			pass
 
+	def createSummary(self):
+		return PluginSummary
+
+
 class M3UIPTVProviderEdit(Setup):
 	def __init__(self, session, provider=None):
 		self.edit = provider in providers
@@ -875,6 +925,34 @@ class IPTVPluginConfig(Setup):
 			configlist.append((_("Enigma2 playback system"), config.plugins.serviceapp.servicemp3.replace, _("Change the playback system to one of the players available in ServiceApp plugin.")))
 			configlist.append((_("Select the player which will be used for Enigma2 playback."), config.plugins.serviceapp.servicemp3.player, _("Select a player to be in use.")))
 		self["config"].list = configlist
+
+
+class PluginSummary(ScreenSummary):
+	def __init__(self, session, parent):
+		ScreenSummary.__init__(self, session, parent=parent)
+		self.skinName = "SetupSummary"
+		self["SetupTitle"] = StaticText()
+		self["SetupEntry"] = StaticText()
+		self["SetupValue"] = StaticText()
+		if self.addWatcher not in self.onShow:
+			self.onShow.append(self.addWatcher)
+		if self.removeWatcher not in self.onHide:
+			self.onHide.append(self.removeWatcher)
+
+	def addWatcher(self):
+		if self.selectionChanged not in self.parent["list"].onSelectionChanged:
+			self.parent["list"].onSelectionChanged.append(self.selectionChanged)
+		self.selectionChanged()
+
+	def removeWatcher(self):
+		if self.selectionChanged in self.parent["list"].onSelectionChanged:
+			self.parent["list"].onSelectionChanged.remove(self.selectionChanged)
+
+	def selectionChanged(self):
+		self["SetupTitle"].text = self.parent.title
+		self["SetupEntry"].text = item[1] if (item := (self.parent["list"].getCurrent())) else ""
+		self["SetupValue"].text = self.parent["description"].text
+
 
 def M3UIPTVMenu(session, close=None, **kwargs):
 	session.openWithCallback(boundFunction(M3UIPTVMenuCallback, close), Menu, mdom.getroot())
