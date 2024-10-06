@@ -4,7 +4,7 @@ import socket
 import urllib
 import json
 from .IPTVProcessor import IPTVProcessor
-from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, USER_IPTV_MOVIE_CATEGORIES_FILE, CATCHUP_XTREME, CATCHUP_XTREME_TEXT
+from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_VOD_SERIES_FILE, CATCHUP_XTREME, CATCHUP_XTREME_TEXT
 
 db = eDVBDB.getInstance()
 
@@ -74,6 +74,7 @@ class XtreemProvider(IPTVProcessor):
 		if not self.ignore_vod:
 			self.getMovieCategories()
 			self.getVoDMovies()
+			self.getVoDSeries()
 
 		for groupItem in groups.values():
 			if groupItem[1]:  # don't create the bouquet if there are no services
@@ -97,6 +98,19 @@ class XtreemProvider(IPTVProcessor):
 		vodFile = USER_IPTV_VOD_MOVIES_FILE % self.scheme
 		json_string = self.loadFromFile(vodFile)
 		self.makeVodListFromJson(json_string)
+
+	def getVoDSeries(self):
+		self.vod_series = {}
+		url = "%s/player_api.php?username=%s&password=%s&action=get_series" % (self.url, self.username, self.password)
+		dest_file = USER_IPTV_VOD_SERIES_FILE % self.scheme
+		json_string = self.getUrlToFile(url, dest_file)
+		self.makeVodSeriesDictFromJson(json_string)
+
+	def loadVoDSeriesFromFile(self):
+		self.vod_series = {}
+		vodFile = USER_IPTV_VOD_SERIES_FILE % self.scheme
+		json_string = self.loadFromFile(vodFile)
+		self.makeVodSeriesDictFromJson(json_string)
 
 	def getMovieCategories(self):
 		url = "%s/player_api.php?username=%s&password=%s&action=get_vod_categories" % (self.url, self.username, self.password)

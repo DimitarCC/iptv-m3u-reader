@@ -61,6 +61,7 @@ class IPTVProcessor():
 		self.password = ""  # used by XtreemProvider, default here for Setup
 		self.mac = ""  # used by StalkerProvider, default here for Setup
 		self.vod_movies = []
+		self.vod_series = {}
 		self.onBouquetCreated = []
 		self.progress_percentage = -1
 		self.update_status_callback = []  # for passing messages
@@ -90,6 +91,29 @@ class IPTVProcessor():
 
 	def loadVoDMoviesFromFile(self):
 		pass
+
+	def getVoDSeries(self):
+		pass
+
+	def loadVoDSeriesFromFile(self):
+		pass
+
+	def makeVodSeriesDictFromJson(self, json_string):
+		self.vod_series = {}
+		if json_string:
+			series = json.loads(json_string)
+			for x in series:
+				genre = x.get("genre")
+				name = x.get("title") or x.get("name")
+				series_id = x.get("series_id") and str(x["series_id"])
+				if genre is None:
+					genre = "None"
+				else:
+					genre = ", ".join([s for s in sorted(map(str.strip, genre.replace("&amp;", "&").replace("/", ",").split(",")))])
+				if name and series_id:
+					if genre not in self.vod_series:
+						self.vod_series[genre] = []
+					self.vod_series[genre].append((series_id, name))
 
 	def getUrl(self, url):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value

@@ -127,6 +127,7 @@ def readProviders():
 				if not providerObj.ignore_vod:
 					providerObj.loadMovieCategoriesFromFile()
 					providerObj.loadVoDMoviesFromFile()
+					providerObj.loadVoDSeriesFromFile()
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("stalkerprovider"):
 				providerObj = StalkerProvider()
@@ -143,6 +144,7 @@ def readProviders():
 				providerObj.onid = int(provider.find("onid").text)
 				if not providerObj.ignore_vod:
 					providerObj.loadVoDMoviesFromFile()
+					providerObj.loadVoDSeriesFromFile()
 				providers[providerObj.scheme] = providerObj
 	fd.close()
 
