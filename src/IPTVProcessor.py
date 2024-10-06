@@ -165,5 +165,8 @@ class IPTVProcessor():
 
 	def removeBouquets(self):
 		from enigma import eDVBDB
-		search_bouquets_criteria = re.escape(sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.".replace(" ", "").replace("(", "").replace(")", "").replace("&", ""))) + r".*[.]tv"
+		search_bouquets_criteria = re.escape(self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.") + r".*[.]tv")
 		eDVBDB.getInstance().removeBouquet(search_bouquets_criteria)
+
+	def cleanFilename(self, name):
+		return sanitizeFilename(name.replace(" ", "").replace("(", "").replace(")", "").replace("&", "").replace("'", "").replace('"', "").replace(',', ""))

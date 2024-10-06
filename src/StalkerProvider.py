@@ -6,7 +6,6 @@ import requests
 import time
 from .IPTVProcessor import IPTVProcessor
 from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, CATCHUP_STALKER, CATCHUP_STALKER_TEXT
-from Tools.Directories import sanitizeFilename
 
 db = eDVBDB.getInstance()
 
@@ -62,7 +61,7 @@ class StalkerProvider(IPTVProcessor):
 				tsid += 1
 				services.append(sref)
 
-			bfilename =  sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{group[0]}.tv".replace(" ", "").replace("(", "").replace(")", "").replace("&", "").replace("'", "").replace('"', ""))
+			bfilename =  self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{group[0]}.tv")
 			db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + group[0], bfilename, services, False)
 
 		if not self.ignore_vod:

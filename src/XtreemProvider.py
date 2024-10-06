@@ -1,6 +1,5 @@
 from enigma import eDVBDB
 from Components.config import config
-from Tools.Directories import sanitizeFilename
 import socket
 import urllib
 import json
@@ -80,7 +79,7 @@ class XtreemProvider(IPTVProcessor):
 
 		for groupItem in groups.values():
 			if groupItem[1]:  # don't create the bouquet if there are no services
-				bfilename =  sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupItem[0]}.tv".replace(" ", "").replace("(", "").replace(")", "").replace("&", "").replace("'", "").replace('"', ""))
+				bfilename =  self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupItem[0]}.tv")
 				services = []
 				for x in groupItem[1]:
 					services.append(x[0])

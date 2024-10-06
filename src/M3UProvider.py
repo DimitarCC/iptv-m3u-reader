@@ -3,7 +3,6 @@ from ServiceReference import ServiceReference
 from Components.config import config
 from time import time
 from twisted.internet import threads
-from Tools.Directories import sanitizeFilename
 import socket
 import urllib
 import re
@@ -106,12 +105,12 @@ class M3UProvider(IPTVProcessor):
 			line_nr += 1
 		for groupName, srefs in groups.items():
 			if len(srefs) > 0:
-				bfilename =  sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupName}.tv".replace(" ", "").replace("(", "").replace(")", "").replace("&", ""))
+				bfilename =  self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupName}.tv")
 				db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + groupName, bfilename, srefs, False)
 
 		if len(services) > 0:
 			if len(groups) > 0:
-				bfilename =  sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.UNCATEGORIZED.tv".replace(" ", "").replace("(", "").replace(")", "").replace("&", ""))
+				bfilename =  self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.UNCATEGORIZED.tv")
 				db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - UNCATEGORIZED", bfilename, services, False)
 			else:
 				db.addOrUpdateBouquet(self.iptv_service_provider, services, 1)

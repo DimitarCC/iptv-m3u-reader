@@ -31,7 +31,7 @@ from Components.Sources.StaticText import StaticText
 from Components.Sources.List import List
 from Components.Sources.Progress import Progress
 from Components.SystemInfo import SystemInfo
-from Tools.Directories import fileExists, isPluginInstalled, sanitizeFilename
+from Tools.Directories import fileExists, isPluginInstalled
 from Tools.BoundFunction import boundFunction
 from Navigation import Navigation
 
@@ -142,7 +142,6 @@ def readProviders():
 				if not providerObj.ignore_vod:
 					providerObj.loadVoDMoviesFromFile()
 				providers[providerObj.scheme] = providerObj
-
 	fd.close()
 
 def writeProviders():
@@ -797,6 +796,7 @@ class M3UIPTVProviderEdit(Setup):
 	def __init__(self, session, provider=None):
 		self.edit = provider in providers
 		providerObj = providers.get(provider, IPTVProcessor())
+		self.providerObj = providerObj
 		self.type = ConfigSelection(default=providerObj.type, choices=[("M3U", _("M3U/M3U8")), ("Xtreeme", _("Xtreme Codes")), ("Stalker", _("Stalker portal"))])
 		self.iptv_service_provider = ConfigText(default=providerObj.iptv_service_provider, fixed_size=False)
 		self.url = ConfigText(default=providerObj.url, fixed_size=False)
@@ -850,7 +850,7 @@ class M3UIPTVProviderEdit(Setup):
 		self["config"].list = configlist
 
 	def keySave(self):
-		self.scheme.value = sanitizeFilename(self.scheme.value)
+		self.scheme.value = self.providerObj.cleanFilename(self.scheme.value)
 		if not self.iptv_service_provider.value or not self.url.value or not self.scheme.value or not self.edit and self.scheme.value in providers or self.type.value == "Xtreeme" and (not self.username.value or not self.password.value):  # empty mandatory fields or scheme is not unique
 			msg = _("Scheme must be unique. \"%s\" is already in use. Please update this field.") % self.scheme.value if not self.edit and self.scheme.value and self.scheme.value in providers else _("All fields must be filled in.")
 			self.session.open(MessageBox, msg, MessageBox.TYPE_ERROR, timeout=30)
