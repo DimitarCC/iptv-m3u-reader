@@ -107,6 +107,8 @@ def readProviders():
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.static_urls = provider.find("staticurl") is not None and provider.find("staticurl").text == "on"
 				providerObj.onid = int(provider.find("onid").text)
+				providerObj.create_epg = provider.find("epg") is not None and provider.find("epg").text == "on"
+				providerObj.epg_url = provider.find("epg_url").text.replace("&amp;", "&") if provider.find("epg_url") is not None else providerObj.epg_url
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("xtreemprovider"):
 				providerObj = XtreemProvider()
@@ -161,6 +163,8 @@ def writeProviders():
 			xml.append(f"\t\t<system_catchup>{val.play_system_catchup}</system_catchup>\n")
 			xml.append(f"\t\t<catchup_type>{val.catchup_type}</catchup_type>\n")
 			xml.append(f"\t\t<onid>{val.onid}</onid>\n")
+			xml.append(f"\t\t<epg>{'on' if val.create_epg else 'off'}</epg>\n")
+			xml.append(f"\t\t<epg_url><![CDATA[{val.epg_url}]]></epg_url>\n")
 			xml.append("\t</provider>\n")
 		elif isinstance(val, XtreemProvider):
 			xml.append("\t<xtreemprovider>\n")
@@ -823,6 +827,7 @@ class M3UIPTVProviderEdit(Setup):
 		self.play_system_catchup = ConfigSelection(default=providerObj.play_system_catchup, choices=play_system_choices)
 		catchup_type_choices = [(CATCHUP_DEFAULT, _("Standard")), (CATCHUP_APPEND, _("Append")), (CATCHUP_SHIFT, _("Shift")), (CATCHUP_XTREME, _("Xtreme Codes")), (CATCHUP_STALKER, _("Stalker"))]
 		self.catchup_type = ConfigSelection(default=providerObj.catchup_type, choices=catchup_type_choices)
+		self.epg_url = ConfigText(default=providerObj.epg_url, fixed_size=False)
 		Setup.__init__(self, session, yellow_button={"text": _("Delete provider \"%s\"") % providerObj.iptv_service_provider, "helptext": _("Permanently remove provider \"%s\" from your configuration.") % providerObj.iptv_service_provider, "function": self.keyRemove} if self.edit else None)
 		self.title = _("M3UIPTVManager") + " - " + (_("edit provider") if self.edit else _("add new provider"))
 
@@ -844,9 +849,9 @@ class M3UIPTVProviderEdit(Setup):
 			configlist.append((_("MAC address"), self.mac, _("MAC address used for authenticating in Stalker portal.")))
 		if self.type.value == "Xtreeme":
 			configlist.append((_("Skip VOD entries"), self.novod, _("Skip VOD entries in the playlist")))
-		if self.type.value != "M3U":
-			configlist.append((_("Generate EPG files for EPGImport plugin"), self.create_epg, _("Creates files needed for importing EPG via EPGImport plugin")))
-
+		configlist.append((_("Generate EPG files for EPGImport plugin"), self.create_epg, _("Creates files needed for importing EPG via EPGImport plugin")))
+		if self.type.value == "M3U" and self.create_epg.value:
+			configlist.append((_("EPG URL"), self.epg_url, _("The URL where EPG data for this provider can be downloaded. If available in the M3U playlist it will be addeed automatically.")))
 		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited. 
 			configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
 		configlist.append((_("Playback system"), self.play_system, _("The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3")))
@@ -875,18 +880,18 @@ class M3UIPTVProviderEdit(Setup):
 		providerObj.play_system = self.play_system.value
 		providerObj.ignore_vod = self.novod.value
 		providerObj.play_system_catchup = self.play_system_catchup.value
+		providerObj.create_epg = self.create_epg.value
 		if self.type.value == "M3U":
 			providerObj.refresh_interval = self.refresh_interval.value
 			providerObj.static_urls = self.staticurl.value
 			providerObj.search_criteria = self.search_criteria.value
 			providerObj.catchup_type = self.catchup_type.value
+			providerObj.epg_url = self.epg_url.value
 		elif self.type.value == "Xtreeme":
 			providerObj.username = self.username.value
 			providerObj.password = self.password.value
-			providerObj.create_epg = self.create_epg.value
 		else:
 			providerObj.mac = self.mac.value
-			providerObj.create_epg = self.create_epg.value
 
 		if getattr(providerObj, "onid", None) is None:
 			providerObj.onid = min(set(range(1, len(L := [x.onid for x in providers.values() if hasattr(x, "onid")]) + 2)) - set(L))
