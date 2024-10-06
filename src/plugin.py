@@ -674,7 +674,7 @@ class M3UIPTVManagerConfig(Screen):
 		self["list"] = List([])
 		self["progress"] = Progress()
 		self.generate_timer = eTimer()
-		self.generate_timer.callback.append(self.generateBouquet)
+		self.generate_timer.callback.append(self.generateBouquets)
 		self.progress_timer = eTimer()
 		self.progress_timer.callback.append(self.onProgressTimer)
 		self.progress_timer.start(1000)
@@ -749,7 +749,7 @@ class M3UIPTVManagerConfig(Screen):
 			self.updateDescription(_("%s: starting bouquet creation") % providerObj.iptv_service_provider)
 			self.generate_timer.start(10, 1)
 
-	def generateBouquet(self):
+	def generateBouquets(self):
 		if current := self["list"].getCurrent():
 			provider = current[0]
 			providerObj = providers[provider]
