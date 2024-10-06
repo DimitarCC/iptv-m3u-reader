@@ -46,6 +46,10 @@ class M3UProvider(IPTVProcessor):
 		for line in playlist_splitted:
 			if self.ignore_vod and "group-title=\"VOD" in line:
 				continue
+			if line.startswith("#EXTM3U") and "tvg-url" in line:
+				epg_match = re.search(r"x-tvg-url=\"(.*?)\"", line) or re.search(r"tvg-url=\"(.*?)\"", line)
+				if epg_match:
+					self.epg_url = epg_match.group(1)
 			if line.startswith("#EXTINF:"):
 				gr_match  = re.search(r"group-title=\"(.*)\"", line)
 				if gr_match:
