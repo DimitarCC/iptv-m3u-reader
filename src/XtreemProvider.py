@@ -80,7 +80,7 @@ class XtreemProvider(IPTVProcessor):
 
 		for groupItem in groups.values():
 			if groupItem[1]:  # don't create the bouquet if there are no services
-				bfilename =  sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupItem[0]}.tv".replace(" ", "").replace("(", "").replace(")", "").replace("&", ""))
+				bfilename =  sanitizeFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupItem[0]}.tv".replace(" ", "").replace("(", "").replace(")", "").replace("&", "").replace("'", "").replace('"', ""))
 				services = []
 				for x in groupItem[1]:
 					services.append(x[0])
