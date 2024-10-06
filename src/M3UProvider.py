@@ -51,7 +51,7 @@ class M3UProvider(IPTVProcessor):
 				if epg_match:
 					self.epg_url = epg_match.group(1)
 			if line.startswith("#EXTINF:"):
-				gr_match  = re.search(r"group-title=\"(.*)\"", line)
+				gr_match  = re.search(r"group-title=\"(.*?)\"", line)
 				if gr_match:
 					curr_group = gr_match.group(1)
 					if curr_group not in groups:

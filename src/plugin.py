@@ -97,7 +97,7 @@ def readProviders():
 			for provider in elem.findall("provider"):
 				providerObj = M3UProvider()
 				providerObj.iptv_service_provider = provider.find("servicename").text
-				providerObj.url = provider.find("url").text.replace("&amp;", "&")
+				providerObj.url = provider.find("url").text
 				providerObj.refresh_interval = int(provider.find("refresh_interval").text)
 				providerObj.search_criteria = provider.find("filter").text
 				providerObj.scheme = provider.find("scheme").text
@@ -108,14 +108,14 @@ def readProviders():
 				providerObj.static_urls = provider.find("staticurl") is not None and provider.find("staticurl").text == "on"
 				providerObj.onid = int(provider.find("onid").text)
 				providerObj.create_epg = provider.find("epg") is not None and provider.find("epg").text == "on"
-				providerObj.epg_url = provider.find("epg_url").text.replace("&amp;", "&") if provider.find("epg_url") is not None else providerObj.epg_url
+				providerObj.epg_url = provider.find("epg_url").text if provider.find("epg_url") is not None else providerObj.epg_url
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("xtreemprovider"):
 				providerObj = XtreemProvider()
 				providerObj.type = "Xtreeme"
 				providerObj.scheme = provider.find("scheme").text
 				providerObj.iptv_service_provider = provider.find("servicename").text
-				providerObj.url = provider.find("url").text.replace("&amp;", "&")
+				providerObj.url = provider.find("url").text
 				providerObj.refresh_interval = int(provider.find("refresh_interval").text)
 				providerObj.username = provider.find("username").text
 				providerObj.password = provider.find("password").text
@@ -133,7 +133,7 @@ def readProviders():
 				providerObj.type = "Stalker"
 				providerObj.scheme = provider.find("scheme").text
 				providerObj.iptv_service_provider = provider.find("servicename").text
-				providerObj.url = provider.find("url").text.replace("&amp;", "&")
+				providerObj.url = provider.find("url").text
 				providerObj.refresh_interval = int(provider.find("refresh_interval").text)
 				providerObj.mac = provider.find("mac").text
 				providerObj.play_system = provider.find("system").text
