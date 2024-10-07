@@ -546,7 +546,7 @@ class M3UIPTVVoDSeries(Screen):
 	def selectionChanged(self):
 		if self.mode in (self.MODE_EPISODE, self.MODE_SEARCH):
 			if (current := self["list"].getCurrent()) and (info := current[2]) is not None and (plot := info.get("plot")) is not None:
-				self["description"].text = plot + " [%s]" % current[4]
+				self["description"].text = plot + (" [%s]" % current[4] if current[4] else "")
 			else:
 				self["description"].text = _("Press OK to access selected item")
 				
