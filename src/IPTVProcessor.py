@@ -69,7 +69,6 @@ class IPTVProcessor():
 		self.catchup_type = CATCHUP_DEFAULT
 		self.play_system_vod = "4097"
 		self.play_system_catchup = self.play_system
-		self.catchup_format = "mkv"  # avi or mkv... maybe this is a hack
 		self.movie_categories = {}
 		self.tempDir = path.join(path.realpath("/tmp"), "M3UIPTV", self.scheme) 
 		
@@ -119,6 +118,7 @@ class IPTVProcessor():
 
 	def getSeriesById(self, series_id):
 		ret = []
+		titles = []  # this is a temporary hack to avoid duplicates
 		file = path.join(self.tempDir, series_id)
 		url = "%s/player_api.php?username=%s&password=%s&action=get_series_info&series_id=%s" % (self.url, self.username, self.password, series_id)
 		json_string = self.loadFromFile(file) or self.getUrlToFile(url, file)
@@ -135,10 +135,11 @@ class IPTVProcessor():
 						episode_num = episode.get("episode_num") and str(episode["episode_num"])
 						if episode_num:
 							marker += " " + _("Ep%s") % episode_num
-						ext = episode.get("container_extension")  # used to filter output because there are multiple versions of the same show in different container formats
+						ext = episode.get("container_extension")
 						episode_url = "%s/series/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
-						if title and info and ext == self.catchup_format:
+						if title and info and title not in titles:
 							ret.append((episode_url, title, info, self, marker))
+							titles.append(title)
 		return ret
 						
 
