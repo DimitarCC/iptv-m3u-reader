@@ -607,7 +607,9 @@ class M3UIPTVVoDMovies(Screen):
 		count = 0
 		for t in self.searchTexts[i]:
 			for term in self.searchTerms:
-				if t.startswith(term):
+				if t == term:
+					count += 2
+				elif t.startswith(term):
 					count += 1
 		return count
 
