@@ -130,18 +130,21 @@ class IPTVProcessor():
 			episodes = series.get("episodes")
 			if episodes:
 				for season in episodes:
-					for episode in episodes[season]:
+					iter = episodes[season] if isinstance(episodes, dict) else season  # this workaround is because there are multiple json formats for series
+					for episode in iter:
 						id = episode.get("id") and str(episode["id"])
 						title = episode.get("title") and str(episode["title"])
 						info = episode.get("info")
-						marker = _("S%s") % str(season)
+						marker = []
+						if info and info.get("season"):
+							marker.append(_("S%s") %  str(info.get("season")))
 						episode_num = episode.get("episode_num") and str(episode["episode_num"])
 						if episode_num:
-							marker += " " + _("Ep%s") % episode_num
+							marker.append(_("Ep%s") % episode_num)
 						ext = episode.get("container_extension")
 						episode_url = "%s/series/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
 						if title and info and title not in titles:
-							ret.append((episode_url, title, info, self, marker))
+							ret.append((episode_url, title, info, self, " ".join(marker)))
 							titles.append(title)
 		return ret
 						
