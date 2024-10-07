@@ -14,7 +14,7 @@ from .XtreemProvider import XtreemProvider
 from .StalkerProvider import StalkerProvider
 from .IPTVProviders import providers, processService as processIPTVService
 from .IPTVCatchupPlayer import injectCatchupInEPG
-from .epgimport_helper import overwriteEPGImportInit
+from .epgimport_helper import overwriteEPGImportEPGSourceInit
 from .Variables import USER_IPTV_PROVIDERS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_STALKER
 from Screens.Screen import Screen, ScreenSummary
 from Screens.InfoBar import InfoBar, MoviePlayer
@@ -216,7 +216,7 @@ def injectIntoNavigation():
 	NavigationInstance.instance.recordService = recordServiceWithIPTV.__get__(NavigationInstance.instance, Navigation)
 	PictureInPicture.playService = playServiceWithIPTVPiP
 	injectCatchupInEPG()
-	overwriteEPGImportInit()
+	overwriteEPGImportEPGSourceInit()
 	
 
 def playServiceWithIPTVPiP(self, service):

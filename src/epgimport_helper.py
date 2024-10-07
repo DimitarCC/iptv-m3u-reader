@@ -16,11 +16,11 @@ except ImportError:  # plugin not available
 EPGIMPORTPATH = '/etc/epgimport/'
 
 
-def overwriteEPGImportInit():
+def overwriteEPGImportEPGSourceInit():
 	if EPGConfig:
-		EPGConfig.__init__ = EPGConfig__init_new__
+		EPGConfig.EPGSource.__init__ = EPGSource__init_new__
 
-def EPGConfig__init_new__(self, path, elem, category=None, offset=0):
+def EPGSource__init_new__(self, path, elem, category=None, offset=0):
 	self.parser = elem.get('type')
 	nocheck = elem.get('nocheck')
 	provider_scheme_for_url =  elem.get('dynamic-provider')
