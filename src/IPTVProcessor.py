@@ -4,7 +4,7 @@ from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHU
 from .VoDItem import VoDItem
 from Components.config import config
 from Tools.Directories import sanitizeFilename, fileExists
-from os import fsync, rename
+from os import fsync, rename, path, makedirs
 import re
 import json
 import socket
@@ -130,6 +130,7 @@ class IPTVProcessor():
 	
 	def getUrlToFile(self, url, dest_file):
 		vod_response = self.getUrl(url)
+		makedirs(path.realpath(path.dirname(dest_file)), exist_ok=True)  # make folders and sub folders if not exists
 		with write_lock:
 			f = open(dest_file + ".writing", 'wb')
 			f.write(vod_response)
