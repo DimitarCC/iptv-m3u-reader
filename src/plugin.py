@@ -614,6 +614,9 @@ class M3UIPTVVoDSeries(Screen):
 				ref = eServiceReference("4097:0:1:9999:1009:1:CCCC0000:0:0:0:%s:%s" % (current[0].replace(":", "%3a"), current[1]))
 				self.session.open(VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
 
+	def createSummary(self):
+		return PluginSummary
+
 
 class M3UIPTVVoDMovies(Screen):
 	MODE_CATEGORY = 0
