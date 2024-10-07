@@ -521,6 +521,7 @@ class M3UIPTVVoDSeries(Screen):
 					self.allseries[genre].append((series_id, name, provider))
 		self.categories = list(sorted(self.allseries.keys()))
 		self.category = self.categories[0] if self.categories else None
+		self.seriesindex = 0
 		if self.selectionChanged not in self["list"].onSelectionChanged:
 			self["list"].onSelectionChanged.append(self.selectionChanged)
 
@@ -529,38 +530,60 @@ class M3UIPTVVoDSeries(Screen):
 		#self["key_yellow"] = StaticText()
 		# self["key_blue"] = StaticText()
 
-		self["actions"] = ActionMap(["SetupActions", "ColorActions",],
+		self["actions"] = ActionMap(["SetupActions", "ColorActions", "InfobarSeekActions"],
 			{
 				"cancel": self.keyCancel,  # KEY_RED / KEY_EXIT
 				#"save": self.keySearch,  # KEY_GREEN
 				"ok": self.keySelect,
 				#"yellow": self.mdb,
 				# "blue": self.blue,
+				"playpauseService": self.key_play,
 			}, -1)  # noqa: E123
 		self.buildList()
 		# self.onClose.append(self.mdbCleanup)
 
 	def selectionChanged(self):
 		if self.mode in (self.MODE_EPISODE, self.MODE_SEARCH):
-			if (current := self["list"].getCurrent()) and (plot := current[0].plot) is not None:
-				self["description"].text = plot
+			if (current := self["list"].getCurrent()) and (info := current[2]) is not None and (plot := info.get("plot")) is not None:
+				self["description"].text = plot + " [%s]" % current[4]
 			else:
-				self["description"].text = _("Press OK to play selected item")
+				self["description"].text = _("Press OK to access selected item")
 				
 	def keyCancel(self):
 		if len(self.allseries) > 1 and self.mode in (self.MODE_SERIES, self.MODE_SEARCH):
 			self.mode = self.MODE_GENRE
+			self.seriesindex = 0
+			self.buildList()
+		elif self.mode == self.MODE_EPISODE:
+			self.mode = self.MODE_SERIES
 			self.buildList()
 		else:
 			self.close()
 
 	def keySelect(self):
-		if self.mode == self.MODE_GENRE:
-			if current := self["list"].getCurrent():
+		if current := self["list"].getCurrent():
+			if self.mode == self.MODE_GENRE:
 				self.mode = self.MODE_SERIES
 				self.category = current[0]
 				self.buildList()
 				self["list"].index = 0
+			elif self.mode == self.MODE_SERIES:
+				self.seriesindex = self["list"].index
+				id = current[0]
+				print("[M3UIPTVVoDSeries] keySelect, Series_id", id)
+				self.seriesName = current[1]
+				provider = current[2]
+				self.episodes = providers[provider].getSeriesById(id)
+				self.mode = self.MODE_EPISODE
+				self.buildList()
+				self["list"].index = 0
+			elif self.mode == self.MODE_EPISODE:
+				self.playMovie()
+
+	def key_play(self):
+		if self.mode == self.MODE_EPISODE:
+			self.playMovie()
+				
 
 	def buildList(self):
 		if not self.categories:
@@ -573,9 +596,22 @@ class M3UIPTVVoDSeries(Screen):
 			self["list"].setList([(x, x) for x in self.categories])
 			self["list"].index = self.categories.index(self.category)
 		elif self.mode == self.MODE_SERIES:
-			self.title = _("VoD Movie Category: %s") % self.category
+			self.title = _("VoD Series Category: %s") % self.category
 			self["description"].text = _("Press OK to select a series")
 			self["list"].setList([x for x in sorted(self.allseries[self.category], key=lambda x: x[1].lower())])
+			self["list"].index = self.seriesindex
+		elif self.mode == self.MODE_EPISODE:
+			self.title = _("VoD Series: %s") % self.seriesName
+			self["description"].text = _("Press OK to play selected show")
+			self["list"].setList([x for x in self.episodes])
+
+	def playMovie(self):
+		if current := self["list"].getCurrent():
+			infobar = InfoBar.instance
+			if infobar:
+				LastService = self.session.nav.getCurrentlyPlayingServiceOrGroup()
+				ref = eServiceReference("4097:0:1:9999:1009:1:CCCC0000:0:0:0:%s:%s" % (current[0].replace(":", "%3a"), current[1]))
+				self.session.open(VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
 
 
 class M3UIPTVVoDMovies(Screen):
@@ -631,13 +667,14 @@ class M3UIPTVVoDMovies(Screen):
 		self["key_yellow"] = StaticText()
 		# self["key_blue"] = StaticText()
 
-		self["actions"] = ActionMap(["SetupActions", "ColorActions",],
+		self["actions"] = ActionMap(["SetupActions", "ColorActions", "InfobarSeekActions"],
 			{
 				"cancel": self.keyCancel,  # KEY_RED / KEY_EXIT
 				"save": self.keySearch,  # KEY_GREEN
 				"ok": self.keySelect,
 				"yellow": self.mdb,
 				# "blue": self.blue,
+				"playpauseService": self.key_play,
 			}, -1)  # noqa: E123
 		self.buildList()
 		self.onClose.append(self.mdbCleanup)
@@ -692,6 +729,10 @@ class M3UIPTVVoDMovies(Screen):
 				self.buildList()
 				self["list"].index = 0
 		else:
+			self.playMovie()
+
+	def key_play(self):
+		if self.mode != self.MODE_CATEGORY:
 			self.playMovie()
 
 	def keySearch(self):

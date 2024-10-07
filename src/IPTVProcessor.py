@@ -69,7 +69,9 @@ class IPTVProcessor():
 		self.catchup_type = CATCHUP_DEFAULT
 		self.play_system_vod = "4097"
 		self.play_system_catchup = self.play_system
+		self.catchup_format = "mkv"  # avi or mkv... maybe this is a hack
 		self.movie_categories = {}
+		self.tempDir = path.join(path.realpath("/tmp"), "M3UIPTV", self.scheme) 
 		
 	def getPlaylistAndGenBouquet(self, callback=None):
 		if callback:
@@ -114,6 +116,32 @@ class IPTVProcessor():
 					if genre not in self.vod_series:
 						self.vod_series[genre] = []
 					self.vod_series[genre].append((series_id, name))
+
+	def getSeriesById(self, series_id):
+		ret = []
+		file = path.join(self.tempDir, series_id)
+		url = "%s/player_api.php?username=%s&password=%s&action=get_series_info&series_id=%s" % (self.url, self.username, self.password, series_id)
+		json_string = self.loadFromFile(file) or self.getUrlToFile(url, file)
+		if json_string:
+			series = json.loads(json_string)
+			episodes = series.get("episodes")
+			if episodes:
+				for season in episodes:
+					for episode in episodes[season]:
+						id = episode.get("id") and str(episode["id"])
+						title = episode.get("title") and str(episode["title"])
+						info = episode.get("info")
+						marker = _("S%s") % str(season)
+						episode_num = episode.get("episode_num") and str(episode["episode_num"])
+						if episode_num:
+							marker += " " + _("Ep%s") % episode_num
+						ext = episode.get("container_extension")  # used to filter output because there are multiple versions of the same show in different container formats
+						episode_url = "%s/series/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
+						if title and info and ext == self.catchup_format:
+							ret.append((episode_url, title, info, self, marker))
+		return ret
+						
+
 
 	def getUrl(self, url):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
