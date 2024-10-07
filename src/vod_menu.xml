@@ -7,8 +7,8 @@ self.session.open(M3UIPTVVoDMovies)
 	</item>
 	<item key="vod_series" level="0" text="TV Shows" description="Video On Demand TV Shows listing.">
 		<code>
-from Screens.MessageBox import MessageBox
-self.session.open(MessageBox, _("Coming Soon!"), MessageBox.TYPE_INFO, timeout=5)
+from Plugins.SystemPlugins.M3UIPTV.plugin import M3UIPTVVoDSeries
+self.session.open(M3UIPTVVoDSeries)
 		</code>
 	</item>
 </menu>

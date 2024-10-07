@@ -475,6 +475,109 @@ class VoDMoviePlayer(MoviePlayer):
 	def down(self):
 		pass
 
+
+class M3UIPTVVoDSeries(Screen):
+	MODE_GENRE = 0
+	MODE_SERIES = 1
+	MODE_SEARCH = 2
+	MODE_EPISODE = 3
+
+	skin = ["""
+		<screen name="M3UIPTVVoDSeries" position="center,center" size="%d,%d">
+			<panel name="__DynamicColorButtonTemplate__"/>
+			<widget source="list" render="Listbox" position="%d,%d" size="%d,%d" scrollbarMode="showOnDemand">
+				<convert type="TemplatedMultiContent">
+					{"template": [
+							MultiContentEntryText(pos = (%d,%d), size = (%d,%d), flags = RT_HALIGN_LEFT, text = 1), # index 0 is the MenuText,
+						],
+					"fonts": [gFont("Regular",%d)],
+					"itemHeight":%d
+					}
+				</convert>
+			</widget>
+			<widget source="description" render="Label" position="%d,%d" zPosition="10" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1" />
+		</screen>""",
+			610, 410,  # screen
+			15, 60, 580, 286,  # Listbox
+			2, 0, 590, 26,  # template
+			22,  # fonts
+			26,  # ItemHeight
+			5, 360, 600, 50, 22,  # description
+			]  # noqa: E124
+
+	def __init__(self, session):
+		Screen.__init__(self, session)
+		self.skinName = [self.skinName, "M3UIPTVVoDMovies"]
+		self["list"] = List([])
+		self["description"] = StaticText()
+		self.mode = self.MODE_GENRE
+		self.allseries = {}
+		for provider in providers:
+			series = providers[provider].vod_series
+			for genre in series:
+				if genre not in self.allseries:
+					self.allseries[genre] = []
+				for series_id, name in series[genre]:
+					self.allseries[genre].append((series_id, name, provider))
+		self.categories = list(sorted(self.allseries.keys()))
+		self.category = self.categories[0] if self.categories else None
+		if self.selectionChanged not in self["list"].onSelectionChanged:
+			self["list"].onSelectionChanged.append(self.selectionChanged)
+
+		self["key_red"] = StaticText(_("Cancel"))
+		#self["key_green"] = StaticText(_("Search"))
+		#self["key_yellow"] = StaticText()
+		# self["key_blue"] = StaticText()
+
+		self["actions"] = ActionMap(["SetupActions", "ColorActions",],
+			{
+				"cancel": self.keyCancel,  # KEY_RED / KEY_EXIT
+				#"save": self.keySearch,  # KEY_GREEN
+				"ok": self.keySelect,
+				#"yellow": self.mdb,
+				# "blue": self.blue,
+			}, -1)  # noqa: E123
+		self.buildList()
+		# self.onClose.append(self.mdbCleanup)
+
+	def selectionChanged(self):
+		if self.mode in (self.MODE_EPISODE, self.MODE_SEARCH):
+			if (current := self["list"].getCurrent()) and (plot := current[0].plot) is not None:
+				self["description"].text = plot
+			else:
+				self["description"].text = _("Press OK to play selected item")
+				
+	def keyCancel(self):
+		if len(self.allseries) > 1 and self.mode in (self.MODE_SERIES, self.MODE_SEARCH):
+			self.mode = self.MODE_GENRE
+			self.buildList()
+		else:
+			self.close()
+
+	def keySelect(self):
+		if self.mode == self.MODE_GENRE:
+			if current := self["list"].getCurrent():
+				self.mode = self.MODE_SERIES
+				self.category = current[0]
+				self.buildList()
+				self["list"].index = 0
+
+	def buildList(self):
+		if not self.categories:
+			return
+		if len(self.allseries) == 1 and self.mode == self.MODE_GENRE:  # go straight into series mode if no categories are available
+			self.mode = self.MODE_SERIES
+		if self.mode == self.MODE_GENRE:
+			self.title = _("VoD Series Categories")
+			self["description"].text = _("Press OK to select a category")
+			self["list"].setList([(x, x) for x in self.categories])
+			self["list"].index = self.categories.index(self.category)
+		elif self.mode == self.MODE_SERIES:
+			self.title = _("VoD Movie Category: %s") % self.category
+			self["description"].text = _("Press OK to select a series")
+			self["list"].setList([x for x in sorted(self.allseries[self.category], key=lambda x: x[1].lower())])
+
+
 class M3UIPTVVoDMovies(Screen):
 	MODE_CATEGORY = 0
 	MODE_MOVIE = 1

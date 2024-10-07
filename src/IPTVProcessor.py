@@ -107,7 +107,7 @@ class IPTVProcessor():
 				name = x.get("title") or x.get("name")
 				series_id = x.get("series_id") and str(x["series_id"])
 				if genre is None:
-					genre = "None"
+					genre = "UNCATEGORIZED"
 				else:
 					genre = ", ".join([s for s in sorted(map(str.strip, genre.replace("&amp;", "&").replace("/", ",").split(",")))])
 				if name and series_id:
