@@ -70,9 +70,11 @@ class IPTVProcessor():
 		self.play_system_vod = "4097"
 		self.play_system_catchup = self.play_system
 		self.movie_categories = {}
-		self.tempDir = path.join(path.realpath("/tmp"), "M3UIPTV", self.scheme) 
 		self.is_dynamic_epg = False
-		
+
+	def getTempDir(self):
+		return path.join(path.realpath("/tmp"), "M3UIPTV", self.scheme) 
+
 	def getPlaylistAndGenBouquet(self, callback=None):
 		if callback:
 			threads.deferToThread(self.storePlaylistAndGenBouquet).addCallback(callback)
@@ -119,8 +121,8 @@ class IPTVProcessor():
 
 	def getSeriesById(self, series_id):
 		ret = []
-		titles = []  # this is a temporary hack to avoid duplicates
-		file = path.join(self.tempDir, series_id)
+		titles = []  # this is a temporary hack to avoid duplicates when there are multiple container extensions
+		file = path.join(self.getTempDir(), series_id)
 		url = "%s/player_api.php?username=%s&password=%s&action=get_series_info&series_id=%s" % (self.url, self.username, self.password, series_id)
 		json_string = self.loadFromFile(file) or self.getUrlToFile(url, file)
 		if json_string:
