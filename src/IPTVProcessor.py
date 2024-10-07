@@ -71,6 +71,7 @@ class IPTVProcessor():
 		self.play_system_catchup = self.play_system
 		self.movie_categories = {}
 		self.tempDir = path.join(path.realpath("/tmp"), "M3UIPTV", self.scheme) 
+		self.is_dynamic_epg = False
 		
 	def getPlaylistAndGenBouquet(self, callback=None):
 		if callback:
@@ -196,6 +197,9 @@ class IPTVProcessor():
 		return "%s:0:%s:%x:%x:1:CCCC0000:0:0:0:%s:%s•%s" % (self.play_system, type, tsid, self.onid, url.replace(":", "%3a"), name, self.iptv_service_provider)
 	
 	def getEpgUrl(self):  # if not overridden in the subclass
+		return self.epg_url
+	
+	def getEpgUrlForSources(self): # for use when dynamic xmltv url is needed for sources file
 		return self.epg_url
 	
 	def generateEPGImportFiles(self, groups):

@@ -1,5 +1,7 @@
 import os
+import random
 from xml.sax.saxutils import escape
+from .IPTVProviders import providers
 
 from enigma import eEPGCache, eTimer
 
@@ -12,6 +14,34 @@ except ImportError:  # plugin not available
 
 
 EPGIMPORTPATH = '/etc/epgimport/'
+
+
+def overwriteEPGImportInit():
+	if EPGConfig:
+		EPGConfig.__init__ = EPGConfig__init_new__
+
+def EPGConfig__init_new__(self, path, elem, category=None, offset=0):
+	self.parser = elem.get('type')
+	nocheck = elem.get('nocheck')
+	provider_scheme_for_url =  elem.get('dynamic-provider')
+	if nocheck == None:
+		self.nocheck = 0
+	elif nocheck == "1":
+		self.nocheck = 1
+	else:
+		self.nocheck = 0
+	if provider_scheme_for_url == None or provider_scheme_for_url == "STATIC":
+		self.urls = [e.text.strip() for e in elem.findall('url')]
+	else:
+		self.urls = [providers[provider_scheme_for_url].getEpgUrlForSources()]
+	self.url = random.choice(self.urls)
+	self.description = elem.findtext('description')
+	self.category = category
+	self.offset = offset
+	if not self.description:
+		self.description = self.url
+	self.format = elem.get('format', 'xml')
+	self.channels = EPGConfig.getChannels(path, elem.get('channels'), offset)
 
 class epgimport_helper():
 	def __init__(self, provider):
@@ -37,7 +67,7 @@ class epgimport_helper():
 			'<?xml version="1.0" encoding="utf-8"?>', 
 			'<sources>',
 			' <sourcecat sourcecatname="M3UIPTV plugin">',
-			'  <source type="gen_xmltv" nocheck="1" channels="%s">' % self.getChannelsFilename(),
+			'  <source type="gen_xmltv" nocheck="1" dynamic-provider="%s" channels="%s">' % (self.provider.scheme if self.provider.is_dynamic_epg else "STATIC", self.getChannelsFilename()),
 			'   <description>%s</description>' % self.xml_escape(self.provider.iptv_service_provider),
 			'   <url><![CDATA[%s]]></url>' % self.provider.getEpgUrl(),
 			'  </source>',

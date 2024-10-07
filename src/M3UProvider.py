@@ -22,6 +22,27 @@ class M3UProvider(IPTVProcessor):
 		self.catchup_type = CATCHUP_DEFAULT
 		self.play_system_vod = "4097"
 		self.play_system_catchup = self.play_system
+
+	def getEpgUrlForSources(self):
+		is_check_network_val = config.plugins.m3uiptv.check_internet.value
+		if is_check_network_val != "off":
+			socket.setdefaulttimeout(int(is_check_network_val))
+			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
+		req = urllib.request.Request(self.url, headers={'User-Agent' : USER_AGENT}) 
+		req_timeout_val = config.plugins.m3uiptv.req_timeout.value
+		if req_timeout_val != "off":
+			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
+		else:
+			response = urllib.request.urlopen(req)
+		playlist = response.read().decode('utf-8')
+		self.playlist = playlist
+		playlist_splitted = playlist.splitlines()
+		for line in playlist_splitted:
+			if line.startswith("#EXTM3U") and "tvg-url" in line:
+				epg_match = re.search(r"x-tvg-url=\"(.*?)\"", line) or re.search(r"tvg-url=\"(.*?)\"", line)
+				if epg_match:
+					return epg_match.group(1)
+		return self.epg_url
 		
 	def storePlaylistAndGenBouquet(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
@@ -50,6 +71,7 @@ class M3UProvider(IPTVProcessor):
 				epg_match = re.search(r"x-tvg-url=\"(.*?)\"", line) or re.search(r"tvg-url=\"(.*?)\"", line)
 				if epg_match:
 					self.epg_url = epg_match.group(1)
+					self.is_dynamic_epg = not self.static_urls
 			if line.startswith("#EXTINF:"):
 				gr_match = re.search(r"group-title=\"(.*?)\"", line)
 				if gr_match:
