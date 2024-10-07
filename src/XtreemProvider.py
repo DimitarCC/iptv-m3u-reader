@@ -128,5 +128,4 @@ class XtreemProvider(IPTVProcessor):
 		if json_string:
 			for category in json.loads(json_string):
 				self.movie_categories[category["category_id"]] = category["category_name"]
-		print("makeCategoriesDictFromJson", self.movie_categories)
 
