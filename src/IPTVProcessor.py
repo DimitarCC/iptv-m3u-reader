@@ -50,7 +50,7 @@ class IPTVProcessor():
 		self.scheme = ""
 		self.isPlayBackup = False
 		self.play_system = "4097"
-		self.ignore_vod = True 
+		self.ignore_vod = True
 		self.iptv_service_provider = ""
 		self.last_exec = None
 		self.create_epg = True
@@ -73,7 +73,7 @@ class IPTVProcessor():
 		self.is_dynamic_epg = False
 
 	def getTempDir(self):
-		return path.join(path.realpath("/tmp"), "M3UIPTV", self.scheme) 
+		return path.join(path.realpath("/tmp"), "M3UIPTV", self.scheme)
 
 	def getPlaylistAndGenBouquet(self, callback=None):
 		if callback:
@@ -147,7 +147,6 @@ class IPTVProcessor():
 							ret.append((episode_url, title, info, self, " ".join(marker)))
 							titles.append(title)
 		return ret
-						
 
 
 	def getUrl(self, url):
@@ -155,14 +154,14 @@ class IPTVProcessor():
 		if is_check_network_val != "off":
 			socket.setdefaulttimeout(int(is_check_network_val))
 			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
-		req = urllib.request.Request(url, headers={'User-Agent' : USER_AGENT}) 
+		req = urllib.request.Request(url, headers={'User-Agent' : USER_AGENT})
 		req_timeout_val = config.plugins.m3uiptv.req_timeout.value
 		if req_timeout_val != "off":
 			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
 		else:
 			response = urllib.request.urlopen(req)
 		return response.read()
-	
+
 	def getUrlToFile(self, url, dest_file):
 		vod_response = self.getUrl(url)
 		makedirs(path.realpath(path.dirname(dest_file)), exist_ok=True)  # make folders and sub folders if not exists
@@ -200,13 +199,13 @@ class IPTVProcessor():
 
 	def generateChannelReference(self, type, tsid, url, name):
 		return "%s:0:%s:%x:%x:1:CCCC0000:0:0:0:%s:%s•%s" % (self.play_system, type, tsid, self.onid, url.replace(":", "%3a"), name, self.iptv_service_provider)
-	
+
 	def getEpgUrl(self):  # if not overridden in the subclass
 		return self.epg_url
-	
+
 	def getEpgUrlForSources(self): # for use when dynamic xmltv url is needed for sources file
 		return self.epg_url
-	
+
 	def generateEPGImportFiles(self, groups):
 		if not self.create_epg:
 			return
