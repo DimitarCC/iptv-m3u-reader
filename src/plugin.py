@@ -513,28 +513,39 @@ class M3UIPTVVoDSeries(Screen):
 		self["description"] = StaticText()
 		self.mode = self.MODE_GENRE
 		self.allseries = {}
+		allEpisodes = []
+		self.all = _("All")
 		for provider in providers:
 			series = providers[provider].vod_series
 			for genre in series:
 				if genre not in self.allseries:
 					self.allseries[genre] = []
 				for series_id, name in series[genre]:
-					self.allseries[genre].append((series_id, name, provider))
+					if name:
+						self.allseries[genre].append((series_id, name, provider))
+						allEpisodes.append((series_id, name, provider))
 		self.categories = list(sorted(self.allseries.keys()))
+		self.allseries[self.all] = allEpisodes  # insert after the sort so it does not affect the sort
+		self.categories.insert(0, self.all)  # insert "All" category at the start of the list
 		self.category = self.categories[0] if self.categories else None
-		self.seriesindex = 0
+		self.stack = []
+		self.episodes = []
+		self.episodesHistory = [self.episodes]
+		self.searchTexts = []
+		self.searchTerms = []
+		
 		if self.selectionChanged not in self["list"].onSelectionChanged:
 			self["list"].onSelectionChanged.append(self.selectionChanged)
 
 		self["key_red"] = StaticText(_("Cancel"))
-		#self["key_green"] = StaticText(_("Search"))
+		self["key_green"] = StaticText(_("Search"))
 		#self["key_yellow"] = StaticText()
 		# self["key_blue"] = StaticText()
 
 		self["actions"] = ActionMap(["SetupActions", "ColorActions", "InfobarSeekActions"],
 			{
 				"cancel": self.keyCancel,  # KEY_RED / KEY_EXIT
-				#"save": self.keySearch,  # KEY_GREEN
+				"save": self.keySearch,  # KEY_GREEN
 				"ok": self.keySelect,
 				#"yellow": self.mdb,
 				# "blue": self.blue,
@@ -544,34 +555,36 @@ class M3UIPTVVoDSeries(Screen):
 		# self.onClose.append(self.mdbCleanup)
 
 	def selectionChanged(self):
-		if self.mode in (self.MODE_EPISODE, self.MODE_SEARCH):
+		if self.mode == self.MODE_EPISODE:
 			if (current := self["list"].getCurrent()) and (info := current[2]) is not None and (plot := info.get("plot")) is not None:
 				self["description"].text = plot + (" [%s]" % current[4] if current[4] else "")
 			else:
 				self["description"].text = _("Press OK to access selected item")
 				
 	def keyCancel(self):
-		if len(self.allseries) > 1 and self.mode in (self.MODE_SERIES, self.MODE_SEARCH):
+		lastmode, lastindex = self.popStack()
+		if len(self.allseries) > 1 and (self.mode == self.MODE_SERIES or self.mode == self.MODE_SEARCH and lastmode == self.MODE_GENRE):
 			self.mode = self.MODE_GENRE
-			self.seriesindex = 0
 			self.buildList()
-		elif self.mode == self.MODE_EPISODE:
-			self.mode = self.MODE_SERIES
+			self["list"].index = lastindex
+		elif self.mode in (self.MODE_EPISODE, self.MODE_SEARCH):
+			self.mode = lastmode
 			self.buildList()
+			self["list"].index = lastindex
 		else:
 			self.close()
 
 	def keySelect(self):
 		if current := self["list"].getCurrent():
 			if self.mode == self.MODE_GENRE:
+				self.pushStack()
 				self.mode = self.MODE_SERIES
 				self.category = current[0]
 				self.buildList()
 				self["list"].index = 0
-			elif self.mode == self.MODE_SERIES:
-				self.seriesindex = self["list"].index
+			elif self.mode in (self.MODE_SERIES, self.MODE_SEARCH):
+				self.pushStack()
 				id = current[0]
-				print("[M3UIPTVVoDSeries] keySelect, Series_id", id)
 				self.seriesName = current[1]
 				provider = current[2]
 				self.episodes = providers[provider].getSeriesById(id)
@@ -584,27 +597,54 @@ class M3UIPTVVoDSeries(Screen):
 	def key_play(self):
 		if self.mode == self.MODE_EPISODE:
 			self.playMovie()
-				
+
+	def keySearch(self):
+		if (current := self["list"].getCurrent()) and self.mode == self.MODE_GENRE:
+			self.category = current[1]  # remember where we were (for when we use keyCancel)
+		self.session.openWithCallback(self.keySearchCallback, VirtualKeyBoard, title=_("VoD Series: enter search terms"), text=" ".join(self.searchTerms))
+
+	def keySearchCallback(self, retval=None):
+		if retval is not None:
+			if not self.searchTexts:
+				self.searchTexts = [re.split(r"\b", series[1].lower()) for series in self.allseries[self.all]]
+			self.searchTerms = retval.lower().split()
+			self.pushStack()
+			self.mode = self.MODE_SEARCH
+			self.buildList()
+			self["list"].index = 0
+
+	def search(self, i):
+		count = 0
+		for t in self.searchTexts[i]:
+			for term in self.searchTerms:
+				if t == term:
+					count += 2
+				elif t.startswith(term):
+					count += 1
+		return count
 
 	def buildList(self):
 		if not self.categories:
 			return
 		if len(self.allseries) == 1 and self.mode == self.MODE_GENRE:  # go straight into series mode if no categories are available
 			self.mode = self.MODE_SERIES
+			self.pushStack()
 		if self.mode == self.MODE_GENRE:
 			self.title = _("VoD Series Categories")
 			self["description"].text = _("Press OK to select a category")
 			self["list"].setList([(x, x) for x in self.categories])
-			self["list"].index = self.categories.index(self.category)
 		elif self.mode == self.MODE_SERIES:
 			self.title = _("VoD Series Category: %s") % self.category
 			self["description"].text = _("Press OK to select a series")
 			self["list"].setList([x for x in sorted(self.allseries[self.category], key=lambda x: x[1].lower())])
-			self["list"].index = self.seriesindex
 		elif self.mode == self.MODE_EPISODE:
 			self.title = _("VoD Series: %s") % self.seriesName
 			self["description"].text = _("Press OK to play selected show")
 			self["list"].setList([x for x in self.episodes])
+		elif self.mode == self.MODE_SEARCH:
+			self.title = _("VoD Series Search")
+			self["description"].text = _("Press OK to select the current item")
+			self["list"].setList(sorted([(series[0], series[1], series[2], c) for i, series in enumerate(self.allseries[self.all]) if (c := self.search(i))], key=lambda x: (-x[3], x[1])))
 
 	def playMovie(self):
 		if current := self["list"].getCurrent():
@@ -613,6 +653,14 @@ class M3UIPTVVoDSeries(Screen):
 				LastService = self.session.nav.getCurrentlyPlayingServiceOrGroup()
 				ref = eServiceReference("4097:0:1:9999:1009:1:CCCC0000:0:0:0:%s:%s" % (current[0].replace(":", "%3a"), current[1]))
 				self.session.open(VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
+
+	def pushStack(self):
+		self.episodesHistory.append(self.episodes)
+		self.stack.append((self.mode, self["list"].index))
+
+	def popStack(self):
+		self.episodes = self.episodesHistory.pop()
+		return self.stack.pop() if self.stack else (self.MODE_GENRE, 0)  # if stack is empty return defaults
 
 	def createSummary(self):
 		return PluginSummary
@@ -654,7 +702,7 @@ class M3UIPTVVoDMovies(Screen):
 		self.allmovies = []
 		for provider in providers:
 			self.allmovies += [movie for movie in providers[provider].vod_movies if movie.name is not None]
-		self.category = "All"
+		self.category = _("All")
 		self.categories = []
 		self.searchTexts = []
 		self.searchTerms = []
@@ -662,7 +710,7 @@ class M3UIPTVVoDMovies(Screen):
 			if movie.category is not None and movie.category not in self.categories:
 				self.categories.append(movie.category)
 		self.categories.sort(key=lambda x: x.lower())
-		self.categories.insert(0, self.category)
+		self.categories.insert(0, self.category)  # insert "All" category at the start of the list
 		if self.selectionChanged not in self["list"].onSelectionChanged:
 			self["list"].onSelectionChanged.append(self.selectionChanged)
 
