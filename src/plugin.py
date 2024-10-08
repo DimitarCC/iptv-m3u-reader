@@ -1058,6 +1058,7 @@ class M3UIPTVProviderEdit(Setup):
 		if answer:
 			providerObj = providers[self.scheme.value]
 			providerObj.removeBouquets()
+			providerObj.removeVoDData()
 			del providers[self.scheme.value]
 			writeProviders()
 			self.close(True)

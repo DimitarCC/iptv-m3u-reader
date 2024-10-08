@@ -23,6 +23,11 @@ try:
 	from Screens.EpgSelectionGrid import EPGSelectionGrid as EPGSelectionGrid
 except ImportError:
 	EPGSelectionGrid = None
+try:
+	from Plugins.Extensions.GraphMultiEPG.GraphMultiEpg import EPGList as EPGList, GraphMultiEPG as GraphMultiEPG
+except ImportError:
+	EPGList = None
+	GraphMultiEPG = None
 
 
 def injectCatchupInEPG():
@@ -37,10 +42,8 @@ def injectCatchupInEPG():
 			__init_orig__(self, *args, **kwargs)
 		EPGListGrid.__init__ = __init_new__
 
-	__old_EPGSelectionGrid_init__ = EPGSelectionGrid.__init__
-
-
 	if EPGSelectionGrid:
+		__old_EPGSelectionGrid_init__ = EPGSelectionGrid.__init__
 		def __new_EPGSelectionGrid_init__(self, *args, **kwargs):
 			EPGSelectionGrid.playArchiveEntry = playArchiveEntry
 			__old_EPGSelectionGrid_init__(self, *args, **kwargs)
@@ -51,6 +54,29 @@ def injectCatchupInEPG():
 
 		EPGSelectionGrid.__init__ = __new_EPGSelectionGrid_init__
 
+	if EPGList:
+		if injectCatchupIconGMEPG not in EPGList.buildEntryExtensionFunctions:
+			EPGList.buildEntryExtensionFunctions.append(injectCatchupIconGMEPG)
+		__init_pli_orig__ = EPGList.__init__
+		def __init_pli_new__(self, *args, **kwargs):
+			self.catchUpIcon = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/catchup.png"))
+			if not self.catchUpIcon:
+				self.catchUpIcon = LoadPixmap("/usr/lib/enigma2/python/Plugins/SystemPlugins/M3UIPTV/catchup.png")
+			__init_pli_orig__(self, *args, **kwargs)
+		EPGList.__init__ = __init_pli_new__
+
+	if GraphMultiEPG:
+		__old_GraphMultiEPG_init__ = GraphMultiEPG.__init__
+		def __new_GraphMultiEPG_init__(self, *args, **kwargs):
+			GraphMultiEPG.playArchiveEntry = playArchiveEntry
+			__old_GraphMultiEPG_init__(self, *args, **kwargs)
+			self["CatchUpActions"] = HelpableActionMap(self, "MediaPlayerActions",
+			{
+				"play": (self.playArchiveEntry, _("Play Archive")),
+			}, -2)
+
+		GraphMultiEPG.__init__ = __new_GraphMultiEPG_init__
+
 def injectCatchupIcon(res, obj, service, serviceName, events, picon, channel):
 	r2 = obj.eventRect
 	left = r2.left()
@@ -59,6 +85,32 @@ def injectCatchupIcon(res, obj, service, serviceName, events, picon, channel):
 	if events:
 		start = obj.timeBase
 		end = start + obj.timeEpochSecs
+		now = time()
+		for ev in events:
+			stime = ev[2]
+			duration = ev[3]
+			xpos, ewidth = obj.calcEventPosAndWidthHelper(stime, duration, start, end, width)
+			if "catchupdays=" in service and stime < now and obj.catchUpIcon:
+				pix_size = obj.catchUpIcon.size()
+				pix_width = pix_size.width()
+				pix_height = pix_size.height()
+				match = re.search(r"catchupdays=(\d*)", service)
+				catchup_days = int(match.groups(1)[0])
+				if now - stime <= datetime.timedelta(days=catchup_days).total_seconds():
+					res.append(MultiContentEntryPixmapAlphaBlend(
+									pos=(left + xpos + ewidth - pix_width - 10, top + 10),
+									size=(pix_width, pix_height),
+									png=obj.catchUpIcon,
+									flags=0))
+					
+def injectCatchupIconGMEPG(res, obj, service, service_name, events, picon, serviceref):
+	r2 = obj.event_rect
+	left = r2.left()
+	top = r2.top()
+	width = r2.width()
+	if events:
+		start = obj.time_base + obj.offs * obj.time_epoch * 60
+		end = start + obj.time_epoch * 60
 		now = time()
 		for ev in events:
 			stime = ev[2]

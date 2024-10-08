@@ -1,15 +1,16 @@
 from twisted.internet import threads
 from .epgimport_helper import epgimport_helper
-from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT
+from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE
 from .VoDItem import VoDItem
 from Components.config import config
 from Tools.Directories import sanitizeFilename, fileExists
-from os import fsync, rename, path, makedirs
+from os import fsync, rename, path, makedirs, remove as remove_file
 import re
 import json
 import socket
 import urllib
 import threading
+import shutil
 from time import time
 from datetime import datetime
 
@@ -229,6 +230,18 @@ class IPTVProcessor():
 		from enigma import eDVBDB
 		search_bouquets_criteria = re.escape(self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.")) + r".*[.]tv"
 		eDVBDB.getInstance().removeBouquet(search_bouquets_criteria)
+
+	def removeVoDData(self):
+		shutil.rmtree(self.getTempDir(), True)
+		movie_cat_file = USER_IPTV_MOVIE_CATEGORIES_FILE % self.scheme
+		if path.isfile(movie_cat_file):
+			remove_file(movie_cat_file)
+		movies_file = USER_IPTV_VOD_MOVIES_FILE % self.scheme
+		if path.isfile(movies_file):
+			remove_file(movies_file)
+		series_file = USER_IPTV_VOD_SERIES_FILE % self.scheme
+		if path.isfile(series_file):
+			remove_file(series_file)
 
 	def cleanFilename(self, name):
 		return sanitizeFilename(name.replace(" ", "").replace("(", "").replace(")", "").replace("&", "").replace("'", "").replace('"', "").replace(',', ""))
