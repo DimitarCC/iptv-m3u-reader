@@ -539,7 +539,7 @@ class M3UIPTVVoDSeries(Screen):
 
 		self["key_red"] = StaticText(_("Cancel"))
 		self["key_green"] = StaticText(_("Search"))
-		#self["key_yellow"] = StaticText()
+		self["key_yellow"] = StaticText()
 		# self["key_blue"] = StaticText()
 
 		self["actions"] = ActionMap(["SetupActions", "ColorActions", "InfobarSeekActions"],
@@ -547,7 +547,7 @@ class M3UIPTVVoDSeries(Screen):
 				"cancel": self.keyCancel,  # KEY_RED / KEY_EXIT
 				"save": self.keySearch,  # KEY_GREEN
 				"ok": self.keySelect,
-				#"yellow": self.mdb,
+				"yellow": self.mdb,
 				# "blue": self.blue,
 				"playpauseService": self.key_play,
 			}, -1)  # noqa: E123
@@ -645,6 +645,7 @@ class M3UIPTVVoDSeries(Screen):
 			self.title = _("VoD Series Search")
 			self["description"].text = _("Press OK to select the current item")
 			self["list"].setList(sorted([(series[0], series[1], series[2], c) for i, series in enumerate(self.allseries[self.all]) if (c := self.search(i))], key=lambda x: (-x[3], x[1])))
+		self["key_yellow"].text = self.mdbText()
 
 	def playMovie(self):
 		if current := self["list"].getCurrent():
@@ -653,6 +654,21 @@ class M3UIPTVVoDSeries(Screen):
 				LastService = self.session.nav.getCurrentlyPlayingServiceOrGroup()
 				ref = eServiceReference("4097:0:1:9999:1009:1:CCCC0000:0:0:0:%s:%s" % (current[0].replace(":", "%3a"), current[1]))
 				self.session.open(VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
+
+	def mdb(self):
+		if self.mode != self.MODE_GENRE and (current := self["list"].getCurrent()):
+			if tmdbScreen:
+				self.session.open(tmdbScreen, current[1].replace("4K", "").replace("4k", ""), 2)
+			elif IMDB:
+				self.session.open(IMDB, current[1].replace("4K", "").replace("4k", ""), False)
+
+	def mdbText(self):
+		if self.mode != self.MODE_GENRE and self["list"].getCurrent():
+			if tmdbScreen:
+				return _("TMDb search")
+			elif IMDB:
+				return _("IMDb search")
+		return ""
 
 	def pushStack(self):
 		self.episodesHistory.append(self.episodes)
@@ -756,7 +772,7 @@ class M3UIPTVVoDMovies(Screen):
 				self.session.open(IMDB, current[1].replace("4K", "").replace("4k", ""), False)
 
 	def mdbText(self):
-		if self.mode in (self.MODE_MOVIE, self.MODE_SEARCH) and (current := self["list"].getCurrent()):
+		if self.mode in (self.MODE_MOVIE, self.MODE_SEARCH) and self["list"].getCurrent():
 			if tmdbScreen:
 				return _("TMDb search")
 			elif IMDB:
