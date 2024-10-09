@@ -136,16 +136,25 @@ class IPTVProcessor():
 						id = episode.get("id") and str(episode["id"])
 						title = episode.get("title") and str(episode["title"])
 						info = episode.get("info")
+						print("getSeriesById info", info)
 						marker = []
 						if info and info.get("season"):
 							marker.append(_("S%s") %  str(info.get("season")))
 						episode_num = episode.get("episode_num") and str(episode["episode_num"])
 						if episode_num:
 							marker.append(_("Ep%s") % episode_num)
+						if marker:
+							marker = ["[%s]" % " ".join(marker)]
+						if info and (duration := info.get("duration")):
+							marker.insert(0, _("Duration: %s") % str(duration))
+						if info and (date := info.get("release_date") or info.get("releasedate") or info.get("air_date")):
+							if date[:4].isdigit():
+								date = date[:4]
+							marker.insert(0, _("Released: %s") % str(date))
 						ext = episode.get("container_extension")
 						episode_url = "%s/series/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
 						if title and info and title not in titles:
-							ret.append((episode_url, title, info, self, " ".join(marker)))
+							ret.append((episode_url, title, info, self, ", ".join(marker)))
 							titles.append(title)
 		return ret
 
