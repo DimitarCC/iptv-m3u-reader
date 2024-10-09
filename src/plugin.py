@@ -542,14 +542,14 @@ class M3UIPTVVoDSeries(Screen):
 		self["key_yellow"] = StaticText()
 		# self["key_blue"] = StaticText()
 
-		self["actions"] = ActionMap(["SetupActions", "ColorActions", "InfobarSeekActions"],
+		self["actions"] = ActionMap(["M3UIPTVConfigActions", "M3UIPTVPlayActions"],
 			{
 				"cancel": self.keyCancel,  # KEY_RED / KEY_EXIT
 				"save": self.keySearch,  # KEY_GREEN
 				"ok": self.keySelect,
 				"yellow": self.mdb,
 				# "blue": self.blue,
-				"playpauseService": self.key_play,
+				"play": self.key_play,
 			}, -1)  # noqa: E123
 		self.buildList()
 		# self.onClose.append(self.mdbCleanup)
@@ -735,14 +735,14 @@ class M3UIPTVVoDMovies(Screen):
 		self["key_yellow"] = StaticText()
 		# self["key_blue"] = StaticText()
 
-		self["actions"] = ActionMap(["SetupActions", "ColorActions", "InfobarSeekActions"],
+		self["actions"] = ActionMap(["M3UIPTVConfigActions", "M3UIPTVPlayActions"],
 			{
 				"cancel": self.keyCancel,  # KEY_RED / KEY_EXIT
 				"save": self.keySearch,  # KEY_GREEN
 				"ok": self.keySelect,
 				"yellow": self.mdb,
 				# "blue": self.blue,
-				"playpauseService": self.key_play,
+				"play": self.key_play,
 			}, -1)  # noqa: E123
 		self.buildList()
 		self.onClose.append(self.mdbCleanup)
@@ -908,7 +908,7 @@ class M3UIPTVManagerConfig(Screen):
 		self.updateCallbacks()
 		self.onClose.append(self.__onClose)
 
-		self["actions"] = ActionMap(["SetupActions", "ColorActions",],
+		self["actions"] = ActionMap(["M3UIPTVConfigActions",],
 			{
 				"cancel": self.close,  # KEY_RED / KEY_EXIT
 				"save": self.addProvider,  # KEY_GREEN

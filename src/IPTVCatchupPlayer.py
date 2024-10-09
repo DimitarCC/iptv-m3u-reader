@@ -47,7 +47,7 @@ def injectCatchupInEPG():
 		def __new_EPGSelectionGrid_init__(self, *args, **kwargs):
 			EPGSelectionGrid.playArchiveEntry = playArchiveEntry
 			__old_EPGSelectionGrid_init__(self, *args, **kwargs)
-			self["CatchUpActions"] = HelpableActionMap(self, "MediaPlayerActions",
+			self["CatchUpActions"] = HelpableActionMap(self, "M3UIPTVPlayActions",
 			{
 				"play": (self.playArchiveEntry, _("Play Archive")),
 			}, -2)

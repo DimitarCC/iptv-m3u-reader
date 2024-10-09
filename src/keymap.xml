@@ -1,0 +1,16 @@
+<keymap>
+	<map context="M3UIPTVConfigActions">
+		<key id="KEY_ENTER" mapto="ok" flags="m" />
+		<key id="KEY_OK" mapto="ok" flags="m" />
+		<key id="KEY_EXIT" mapto="cancel" flags="m" />
+		<key id="KEY_ESC" mapto="cancel" flags="m" />
+		<key id="KEY_RED" mapto="cancel" flags="m" />
+		<key id="KEY_GREEN" mapto="save" flags="m" />
+		<key id="KEY_YELLOW" mapto="yellow" flags="m" />
+		<key id="KEY_BLUE" mapto="blue" flags="m" />
+	</map>
+	<map context="M3UIPTVPlayActions">
+		<key id="KEY_PLAY" mapto="play" flags="m" />
+		<key id="KEY_PLAYPAUSE" mapto="play" flags="m" />
+	</map>
+</keymap>
