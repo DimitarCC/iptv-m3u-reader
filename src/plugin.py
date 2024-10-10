@@ -1084,11 +1084,11 @@ class M3UIPTVProviderEdit(Setup):
 			return
 
 		if self.type.value == "M3U":
-			providerObj = M3UProvider() 
+			providerObj = self.providerObj if isinstance(self.providerObj, M3UProvider) else M3UProvider() 
 		elif self.type.value == "Xtreeme":
-			providerObj = XtreemProvider() 
+			providerObj = self.providerObj if isinstance(self.providerObj, XtreemProvider) else XtreemProvider() 
 		else:
-			providerObj = StalkerProvider() 
+			providerObj = self.providerObj if isinstance(self.providerObj, StalkerProvider) else StalkerProvider() 
 		providerObj.iptv_service_provider = self.iptv_service_provider.value
 		providerObj.url = self.url.value
 		providerObj.iptv_service_provider = self.iptv_service_provider.value
