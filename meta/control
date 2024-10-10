@@ -3,7 +3,7 @@ Version: 1.0.0.0
 Description: IPTV m3u list dynamic reader and runner
 Section:
 Priority: optional
-Maintainer: DimitarCC
+Maintainer: DimitarCC, Huevos
 Architecture: all
 OE: N/A
 Homepage: https://github.com/DimitarCC

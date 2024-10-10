@@ -34,10 +34,15 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 	elif catchup_type == CATCHUP_XTREME_TEXT:
 		sref_split = sref.split(":")
 		url = sref_split[10:][0]
+		stime_offset = stime
+		match_tz = re.search(r"tz_offset=([-,+]?\d*)", url)
+		if match_tz:
+			tz_offset = int(match_tz.group(1))
+			stime_offset += tz_offset
 		match = re.search(r"[\/]\d*\.ts|[\/]\d*\.m3u8", url)
 		if match:
 			end_s = match.group(0)
-			url = url.replace("/live/", "/timeshift/").replace(end_s, f'/{duration}/{datetime.fromtimestamp(stime).strftime("%Y-%m-%d:%H-%M")}{end_s}')
+			url = url.replace("/live/", "/timeshift/").replace(end_s, f'/{duration}/{datetime.fromtimestamp(stime_offset).strftime("%Y-%m-%d:%H-%M")}{end_s}')
 		return url.replace("%3a", ":")
 	elif catchup_type == CATCHUP_STALKER_TEXT:
 		pass
@@ -233,6 +238,8 @@ class IPTVProcessor():
 	def constructCatchupSufix(self, days, url, catchup_type):
 		if days.strip() and int(days) > 0:
 			captchup_addon = "%scatchuptype=%s&catchupdays=%s" % ("&" if "?" in url else "?", catchup_type, days)
+			if catchup_type == CATCHUP_XTREME_TEXT and self.server_timezone_offset:
+				captchup_addon += "&tz_offset=%d" % self.server_timezone_offset
 			return url + captchup_addon
 		return url
 

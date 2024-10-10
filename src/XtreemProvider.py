@@ -29,6 +29,7 @@ class XtreemProvider(IPTVProcessor):
 		if is_check_network_val != "off":
 			socket.setdefaulttimeout(int(is_check_network_val))
 			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
+		self.getServerTZoffset()
 		url = "%s/player_api.php?username=%s&password=%s&action=get_live_streams" % (self.url, self.username, self.password)
 		req = urllib.request.Request(url, headers={'User-Agent' : USER_AGENT}) 
 		req_timeout_val = config.plugins.m3uiptv.req_timeout.value
@@ -73,7 +74,6 @@ class XtreemProvider(IPTVProcessor):
 			groups[service["category_id"] if service["category_id"] else "EMPTY"][1].append((sref, epg_id, ch_name))
 
 		if not self.ignore_vod:
-			self.getServerTZoffset()
 			self.getMovieCategories()
 			self.getVoDMovies()
 			self.getVoDSeries()
