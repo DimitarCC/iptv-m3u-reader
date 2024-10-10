@@ -123,7 +123,6 @@ class XtreemProvider(IPTVProcessor):
 			if server_time:
 				try:  # just in case format string is in unexpected format
 					servertime = time.mktime(time.strptime(server_time, '%Y-%m-%d %H:%M:%S'))
-					#localtime = time.mktime(time.localtime(time.time()))
 					self.server_timezone_offset = int(round((servertime - time.time()) / 600) * 600)  # force output to be in sync
 					from .plugin import writeProviders  # deferred import
 					writeProviders()  # save to config so it doesn't get lost on reboot
