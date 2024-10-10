@@ -72,6 +72,7 @@ class IPTVProcessor():
 		self.play_system_catchup = self.play_system
 		self.movie_categories = {}
 		self.is_dynamic_epg = False
+		self.server_timezone_offset = 0
 
 	def getTempDir(self):
 		return path.join(path.realpath("/tmp"), "M3UIPTV", self.scheme)

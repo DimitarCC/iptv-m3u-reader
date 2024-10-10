@@ -3,6 +3,7 @@ from Components.config import config
 import socket
 import urllib
 import json
+import time
 from .IPTVProcessor import IPTVProcessor
 from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_VOD_SERIES_FILE, CATCHUP_XTREME, CATCHUP_XTREME_TEXT
 
@@ -72,6 +73,7 @@ class XtreemProvider(IPTVProcessor):
 			groups[service["category_id"] if service["category_id"] else "EMPTY"][1].append((sref, epg_id, ch_name))
 
 		if not self.ignore_vod:
+			self.getServerTZoffset()
 			self.getMovieCategories()
 			self.getVoDMovies()
 			self.getVoDSeries()
@@ -111,6 +113,22 @@ class XtreemProvider(IPTVProcessor):
 		vodFile = USER_IPTV_VOD_SERIES_FILE % self.scheme
 		json_string = self.loadFromFile(vodFile)
 		self.makeVodSeriesDictFromJson(json_string)
+
+	def getServerTZoffset(self):
+		url = "%s/player_api.php?username=%s&password=%s" % (self.url, self.username, self.password)
+		json_string = self.getUrl(url)
+		if json_string:
+			info = json.loads(json_string)
+			server_time = info and info.get("server_info") and info["server_info"].get("time_now")
+			if server_time:
+				try:  # just in case format string is in unexpected format
+					servertime = time.mktime(time.strptime(server_time, '%Y-%m-%d %H:%M:%S'))
+					#localtime = time.mktime(time.localtime(time.time()))
+					self.server_timezone_offset = int(round((servertime - time.time()) / 600) * 600)  # force output to be in sync
+					from .plugin import writeProviders  # deferred import
+					writeProviders()  # save to config so it doesn't get lost on reboot
+				except Exception as err:
+					print("[XtreemProvider] getServerTZoffset, an error occured", err)
 
 	def getMovieCategories(self):
 		url = "%s/player_api.php?username=%s&password=%s&action=get_vod_categories" % (self.url, self.username, self.password)

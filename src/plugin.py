@@ -124,6 +124,7 @@ def readProviders():
 				providerObj.create_epg = provider.find("epg") is not None and provider.find("epg").text == "on"
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.onid = int(provider.find("onid").text)
+				providerObj.server_timezone_offset = int(provider.find("server_timezone_offset").text) if provider.find("server_timezone_offset") is not None else providerObj.server_timezone_offset
 				if not providerObj.ignore_vod:
 					providerObj.loadMovieCategoriesFromFile()
 					providerObj.loadVoDMoviesFromFile()
@@ -182,6 +183,7 @@ def writeProviders():
 			xml.append(f"\t\t<system_catchup>{val.play_system_catchup}</system_catchup>\n")
 			xml.append(f"\t\t<epg>{'on' if val.create_epg else 'off'}</epg>\n")
 			xml.append(f"\t\t<onid>{val.onid}</onid>\n")
+			xml.append(f"\t\t<server_timezone_offset>{val.server_timezone_offset}</server_timezone_offset><!-- timezone offset of the server in seconds from the perspective of the client -->\n")
 			xml.append("\t</xtreemprovider>\n")
 		else:
 			xml.append("\t<stalkerprovider>\n")
