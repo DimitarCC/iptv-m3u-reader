@@ -1,10 +1,12 @@
 from enigma import eServiceReference, eTimer, iPlayableService
 from Screens.InfoBar import InfoBar, MoviePlayer
 from Screens.InfoBarGenerics import saveResumePoints, resumePointCache, resumePointCacheLast, delResumePoint, isStandardInfoBar
+from Screens.Screen import Screen
 from Components.config import config
 from Components.ServiceEventTracker import ServiceEventTracker
 from Components.Sources.Progress import Progress
 from Components.Label import Label
+from Components.Sources.StaticText import StaticText
 from Components.MultiContent import MultiContentEntryPixmapAlphaBlend
 from Components.ActionMap import HelpableActionMap
 from Tools.Directories import resolveFilename, SCOPE_CURRENT_SKIN
@@ -135,6 +137,7 @@ class CatchupPlayer(MoviePlayer):
 		self.skinName = ["CatchupPlayer", "ArchiveMoviePlayer", "MoviePlayer"]
 		self.onPlayStateChanged.append(self.__playStateChanged)
 		self["progress"] = Progress()
+		self["progress_summary"] = Progress()
 		self.seek_steps = [15, 30, 60, 180, 300, 600, 1200]
 		self.current_seek_step = 0
 		self.current_seek_step_multiplier = 1
@@ -159,10 +162,15 @@ class CatchupPlayer(MoviePlayer):
 		self.seekTo_pos = 0
 		self.invoked_seek_stime = -1
 		self["progress"].value = 0
+		self["progress_summary"].value = 0
 		self["time_info"] = Label("")
 		self["time_elapsed"] = Label("")
 		self["time_duration"] = Label("")
 		self["time_remaining"] = Label("")
+		self["time_info_summary"] = StaticText("")
+		self["time_elapsed_summary"] = StaticText("")
+		self["time_duration_summary"] = StaticText("")
+		self["time_remaining_summary"] = StaticText("")
 		self.onProgressTimer()
 		self.__event_tracker = ServiceEventTracker(screen=self, eventmap={
 			iPlayableService.evSeekableStatusChanged: self.__seekableStatusChanged,
@@ -172,16 +180,21 @@ class CatchupPlayer(MoviePlayer):
 		
 	def setProgress(self, pos):
 		r = self.duration - pos
-		progress_val = int((pos / self.duration)*100)
-		self["progress"].value = progress_val if progress_val >= 0 else 0
+		progress_val = i if (i := int((pos / self.duration)*100)) and i >= 0 else 0
+		self["progress"].value = progress_val
+		self["progress_summary"].value = progress_val
 		text = "-%d:%02d:%02d         %d:%02d:%02d         +%d:%02d:%02d" % (pos / 3600, pos % 3600 / 60, pos % 60, self.duration / 3600, self.duration % 3600 / 60, self.duration % 60, r / 3600, r % 3600 / 60, r % 60)
 		self["time_info"].setText(text)
+		self["time_info_summary"].setText(text)
 		text_elapsed = "-%d:%02d:%02d" % (pos / 3600, pos % 3600 / 60, pos % 60)
 		self["time_elapsed"].setText(text_elapsed)
+		self["time_elapsed_summary"].setText(text_elapsed)
 		text_duration = "%d:%02d:%02d" % (self.duration / 3600, self.duration % 3600 / 60, self.duration % 60)
 		self["time_duration"].setText(text_duration)
+		self["time_duration_summary"].setText(text_duration)
 		text_remaining = "+%d:%02d:%02d" % (r / 3600, r % 3600 / 60, r % 60)
 		self["time_remaining"].setText(text_remaining)
+		self["time_remaining_summary"].setText(text_remaining)
 
 		
 	def invokeSeek(self, direction):
@@ -347,6 +360,24 @@ class CatchupPlayer(MoviePlayer):
 
 	def seekFwd(self):
 		self.invokeSeek(1)
+
+	def createSummary(self):
+		return CatchupPlayerSummary
+
+
+class CatchupPlayerSummary(Screen):
+	skin = """
+	<screen position="0,0" size="800,480" resolution="800,480"> 
+		<widget source="session.CurrentService" render="Label" position="40,90" size="720,260" font="Regular;30" halign="center" valign="center" zPosition="2">
+			<convert type="ServiceName">Name</convert>
+		</widget>
+		<widget source="parent.progress_summary" render="Progress" position="40,340" size="720,30" borderColor="white" borderWidth="2" zPosition="2"/>
+		<widget source="parent.time_elapsed_summary" render="Label" position="40,385" size="320,70" font="Regular;25" halign="left" valign="center"/>
+		<widget source="parent.time_remaining_summary" render="Label" position="440,385" size="320,70" font="Regular;25" halign="right" valign="center"/>
+		<widget source="global.CurrentTime" render="Label" position="540,10" size="220,84" font="Regular;35" halign="left">
+			<convert type="ClockToText">Default</convert>
+		</widget>
+	</screen>"""
 
 
 def playArchiveEntry(self):
