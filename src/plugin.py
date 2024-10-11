@@ -2,11 +2,10 @@
 from . import _
 
 from sys import modules
-from time import time
+from time import time, localtime, strftime
 from glob import glob
 import json
 import base64
-import time
 from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner
 from Plugins.Plugin import PluginDescriptor
 from .M3UProvider import M3UProvider
@@ -1045,9 +1044,9 @@ class M3UIPTVManagerConfig(Screen):
 				if status := provider_info["user_info"].get("status"):
 					text.append(_("Account status") + ": " + status)
 				if (created_at := provider_info["user_info"].get("created_at")) and str(created_at).isdigit():
-					text.append(_("Account created") + ": " + time.strftime("%d/%m/%Y", time.localtime(int(created_at))))
+					text.append(_("Account created") + ": " + strftime("%d/%m/%Y", localtime(int(created_at))))
 				if (exp_date := provider_info["user_info"].get("exp_date")) and str(exp_date).isdigit():
-					text.append(_("Account expires") + ": " + time.strftime("%d/%m/%Y", time.localtime(int(exp_date))))
+					text.append(_("Account expires") + ": " + strftime("%d/%m/%Y", localtime(int(exp_date))))
 				if is_trial := provider_info["user_info"].get("is_trial"):
 					text.append(_("Is trial") + ": " + ("no" if str(is_trial) == "0" else "yes"))
 				if max_connections := provider_info["user_info"].get("max_connections"):
