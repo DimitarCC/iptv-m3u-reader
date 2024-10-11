@@ -6,6 +6,7 @@ from time import time
 from glob import glob
 import json
 import base64
+import time
 from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner
 from Plugins.Plugin import PluginDescriptor
 from .M3UProvider import M3UProvider
@@ -23,6 +24,7 @@ from Screens.PictureInPicture import PictureInPicture
 from Screens.Setup import Setup
 from Screens.Menu import Menu
 from Screens.MessageBox import MessageBox
+from Screens.TextBox import TextBox
 from Screens.VirtualKeyBoard import VirtualKeyBoard
 from Components.ActionMap import ActionMap
 from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigText, ConfigPassword
@@ -126,6 +128,7 @@ def readProviders():
 				providerObj.onid = int(provider.find("onid").text)
 				providerObj.server_timezone_offset = int(provider.find("server_timezone_offset").text) if provider.find("server_timezone_offset") is not None else providerObj.server_timezone_offset
 				if not providerObj.ignore_vod:
+					providerObj.loadInfoFromFile()
 					providerObj.loadMovieCategoriesFromFile()
 					providerObj.loadVoDMoviesFromFile()
 					providerObj.loadVoDSeriesFromFile()
@@ -906,8 +909,11 @@ class M3UIPTVManagerConfig(Screen):
 		self["key_green"] = StaticText(_("Add provider"))
 		self["key_yellow"] = StaticText(_("Generate bouquets"))
 		self["key_blue"] = StaticText(_("Clear bouquets"))
+		self["key_info"] = StaticText()
 		self["description"] = StaticText(_("Press OK to edit the currently selected provider"))
 		self.updateCallbacks()
+		if self.selectionChanged not in self["list"].onSelectionChanged:
+			self["list"].onSelectionChanged.append(self.selectionChanged)
 		self.onClose.append(self.__onClose)
 
 		self["actions"] = ActionMap(["M3UIPTVConfigActions",],
@@ -917,6 +923,11 @@ class M3UIPTVManagerConfig(Screen):
 				"ok": self.editProvider,
 				"yellow": self.keyYellow,
 				"blue": self.clearBouquets,
+			}, -1)  # noqa: E123
+
+		self["infoActions"] = ActionMap(["M3UIPTVConfigActions",],
+			{
+				"info": self.info,
 			}, -1)  # noqa: E123
 
 	def __onClose(self):
@@ -950,7 +961,7 @@ class M3UIPTVManagerConfig(Screen):
 			self["progress"].value = progress_val if progress_val >= 0 else 0
 
 	def buildList(self):
-		self["list"].list = [(provider, providers[provider].iptv_service_provider) for provider in providers]
+		self["list"].list = list(sorted([(provider, providers[provider].iptv_service_provider) for provider in providers], key=lambda x: x[1]))
 
 	def addProvider(self):
 		self.session.openWithCallback(self.providerCallback, M3UIPTVProviderEdit)
@@ -1015,6 +1026,46 @@ class M3UIPTVManagerConfig(Screen):
 			providerObj = providers[provider]
 			providerObj.removeBouquets()
 			self.updateDescription(_("%s: bouquets removed successfully") % providerObj.iptv_service_provider)
+
+	def selectionChanged(self):
+		if (current := self["list"].getCurrent()) and providers[current[0]].provider_info:
+			self["infoActions"].setEnabled(True)
+			self["key_info"].text = _("INFO")
+		else:
+			self["infoActions"].setEnabled(False)
+			self["key_info"].text = ""
+
+	def info(self):
+		if (current := self["list"].getCurrent()):
+			providerObj = providers[current[0]]
+			provider_info = providerObj.provider_info
+			title = _("M3U IPTV Provider Info") + " - " + providerObj.iptv_service_provider
+			text = []
+			if provider_info.get("user_info"):
+				if status := provider_info["user_info"].get("status"):
+					text.append(_("Account status") + ": " + status)
+				if (created_at := provider_info["user_info"].get("created_at")) and str(created_at).isdigit():
+					text.append(_("Account created") + ": " + time.strftime("%d/%m/%Y", time.localtime(int(created_at))))
+				if (exp_date := provider_info["user_info"].get("exp_date")) and str(exp_date).isdigit():
+					text.append(_("Account expires") + ": " + time.strftime("%d/%m/%Y", time.localtime(int(exp_date))))
+				if is_trial := provider_info["user_info"].get("is_trial"):
+					text.append(_("Is trial") + ": " + ("no" if str(is_trial) == "0" else "yes"))
+				if max_connections := provider_info["user_info"].get("max_connections"):
+					text.append(_("Maximum connections") + ": " + max_connections)
+			if provider_info.get("server_info"):
+				if url := provider_info["server_info"].get("url"):
+					text.append(_("Server url") + ": " + str(url))
+				if port := provider_info["server_info"].get("port"):
+					text.append(_("Server port") + ": " + str(port))
+				if https_port := provider_info["server_info"].get("https_port"):
+					text.append(_("Server https port") + ": " + str(https_port))
+				if rtmp_port := provider_info["server_info"].get("rtmp_port"):
+					text.append(_("Server rtmp port") + ": " + str(rtmp_port))
+				if server_protocol := provider_info["server_info"].get("server_protocol"):
+					text.append(_("Server protocol") + ": " + str(server_protocol))
+				if timezone := provider_info["server_info"].get("timezone"):
+					text.append(_("Server timezone") + ": " + str(timezone))
+			self.session.open(ShowText, text="\n".join(text), title=title)
 
 	def createSummary(self):
 		return PluginSummary
@@ -1161,6 +1212,12 @@ class IPTVPluginConfig(Setup):
 			configlist.append((_("Enigma2 playback system"), config.plugins.serviceapp.servicemp3.replace, _("Change the playback system to one of the players available in ServiceApp plugin.")))
 			configlist.append((_("Select the player which will be used for Enigma2 playback."), config.plugins.serviceapp.servicemp3.player, _("Select a player to be in use.")))
 		self["config"].list = configlist
+
+
+class ShowText(TextBox):
+	def __init__(self, session, text, title):
+		TextBox.__init__(self, session, text=text, title=title, label="AboutScrollLabel")
+		self.skinName = ["AboutOE", "About"]
 
 
 class PluginSummary(ScreenSummary):

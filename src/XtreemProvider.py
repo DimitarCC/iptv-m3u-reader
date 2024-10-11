@@ -5,7 +5,7 @@ import urllib
 import json
 import time
 from .IPTVProcessor import IPTVProcessor
-from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_VOD_SERIES_FILE, CATCHUP_XTREME, CATCHUP_XTREME_TEXT
+from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_PROVIDER_INFO_FILE, USER_IPTV_VOD_SERIES_FILE, CATCHUP_XTREME, CATCHUP_XTREME_TEXT
 
 db = eDVBDB.getInstance()
 
@@ -116,9 +116,10 @@ class XtreemProvider(IPTVProcessor):
 
 	def getServerTZoffset(self):
 		url = "%s/player_api.php?username=%s&password=%s" % (self.url, self.username, self.password)
-		json_string = self.getUrl(url)
+		dest_file = USER_IPTV_PROVIDER_INFO_FILE % self.scheme
+		json_string = self.getUrlToFile(url, dest_file)
 		if json_string:
-			info = json.loads(json_string)
+			self.provider_info = info = json.loads(json_string)
 			server_time = info and info.get("server_info") and info["server_info"].get("time_now")
 			if server_time:
 				try:  # just in case format string is in unexpected format
@@ -128,6 +129,12 @@ class XtreemProvider(IPTVProcessor):
 					writeProviders()  # save to config so it doesn't get lost on reboot
 				except Exception as err:
 					print("[XtreemProvider] getServerTZoffset, an error occured", err)
+
+	def loadInfoFromFile(self):
+		info_file = USER_IPTV_PROVIDER_INFO_FILE % self.scheme
+		json_string = self.loadFromFile(info_file)
+		if json_string:
+			self.provider_info = json.loads(json_string)
 
 	def getMovieCategories(self):
 		url = "%s/player_api.php?username=%s&password=%s&action=get_vod_categories" % (self.url, self.username, self.password)

@@ -78,6 +78,7 @@ class IPTVProcessor():
 		self.movie_categories = {}
 		self.is_dynamic_epg = False
 		self.server_timezone_offset = 0
+		self.provider_info = {}
 
 	def getTempDir(self):
 		return path.join(path.realpath("/tmp"), "M3UIPTV", self.scheme)
@@ -107,6 +108,9 @@ class IPTVProcessor():
 		pass
 
 	def loadVoDSeriesFromFile(self):
+		pass
+
+	def loadInfoFromFile(self):
 		pass
 
 	def makeVodSeriesDictFromJson(self, json_string):
