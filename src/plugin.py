@@ -1219,6 +1219,16 @@ class ShowText(TextBox):
 		TextBox.__init__(self, session, text=text, title=title, label="AboutScrollLabel")
 		self.skinName = ["AboutOE", "About"]
 
+	def createSummary(self):
+		return ShowTextSummary
+
+
+class ShowTextSummary(ScreenSummary):
+	def __init__(self, session, parent):
+		ScreenSummary.__init__(self, session, parent=parent)
+		self.skinName = "AboutSummary"
+		self["AboutText"] = StaticText(parent.title + "\n\n" + parent["AboutScrollLabel"].getText())
+
 
 class PluginSummary(ScreenSummary):
 	def __init__(self, session, parent):
