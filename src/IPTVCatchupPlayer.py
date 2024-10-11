@@ -233,6 +233,8 @@ class CatchupPlayer(MoviePlayer):
 			self.progress_timer.start(self.progress_change_interval)
 		self.start_curr = self.start_orig + self.seekTo_pos
 		self.seekTo_pos = 0
+		self.cur_pos_manual = 0
+		self.invoked_seek_stime = -1
 
 	def __evServiceEnd(self):
 		if self.progress_timer:
@@ -273,6 +275,8 @@ class CatchupPlayer(MoviePlayer):
 			self.leavePlayer()
 
 	def doSeekRelative(self, pts):
+		self.progress_timer.stop()
+
 		prevstate = self.seekstate
 		if self.seekstate == self.SEEK_STATE_EOF:
 			if prevstate == self.SEEK_STATE_PAUSE:
@@ -289,7 +293,7 @@ class CatchupPlayer(MoviePlayer):
 		if pts == 0:
 			self.duration_curr = self.duration
 		else:
-			self.duration_curr -= pts
+			self.duration_curr = self.duration - pts
 
 		sref_split = self.sref_ret.split(":")
 		sref_ret = sref_split[10:][0]
@@ -297,8 +301,6 @@ class CatchupPlayer(MoviePlayer):
 		newPlayref = eServiceReference(self.catchup_ref_type, 0, url)
 		newPlayref.setName(self.event.getEventName())
 		self.session.nav.playService(newPlayref)
-		self.cur_pos_manual = 0
-		self.invoked_seek_stime = -1
 		self.onProgressTimer()
 
 	def setResumePoint(self):
@@ -325,18 +327,20 @@ class CatchupPlayer(MoviePlayer):
 			return
 		if not playing:
 			return
+		self.progress_timer.stop()
 		ref = self.session.nav.getCurrentlyPlayingServiceOrGroup()
 		if ref:
 			delResumePoint(ref)
 		self.handleLeave("quit")
 
 	def up(self):
-		self.doSeekRelative(600)
-		self.onProgressTimer()
+		self.current_seek_step = 300
+		self.invokeSeek(1)
+
 
 	def down(self):
-		self.doSeekRelative(-600)
-		self.onProgressTimer()
+		self.current_seek_step = -300
+		self.invokeSeek(-1)
 
 	def seekBack(self):
 		self.invokeSeek(-1)
