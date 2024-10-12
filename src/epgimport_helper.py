@@ -90,12 +90,11 @@ class epgimport_helper():
 		with open(os.path.join(self.getChannelsFilename()), "w") as f:
 			f.write("\n".join(channels_out))
 
-	#  not working yet
 	def importepg(self):
 		if EPGImport and EPGConfig and os.path.exists(f := self.getSourcesFilename()):
 			self.update_status_timer.start(1000)
 			self.epgimport = EPGImport.EPGImport(eEPGCache.getInstance(), lambda x: True)
-			self.epgimport.sources = [s for s in self.epgimport_sources([f])]
+			self.epgimport.sources = [s for s in self.epgimport_sources([f]) if hasattr(s, "channels") and self.getChannelsFilename() in str(s.channels)]  # filter, only this provider
 			self.epgimport.onDone = self.epgimport_done
 			self.epgimport.beginImport()
 
