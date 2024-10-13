@@ -28,6 +28,7 @@ from Screens.VirtualKeyBoard import VirtualKeyBoard
 from Components.ActionMap import ActionMap
 from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigText, ConfigPassword
 from Components.ParentalControl import parentalControl
+from Components.SelectionList import SelectionList, SelectionEntryComponent
 from Components.Sources.StaticText import StaticText
 from Components.Sources.List import List
 from Components.Sources.Progress import Progress
@@ -1082,6 +1083,7 @@ class M3UIPTVProviderEdit(Setup):
 	def __init__(self, session, provider=None):
 		self.edit = provider in providers
 		providerObj = providers.get(provider, IPTVProcessor())
+		blacklist = self.edit and bool(providerObj.readExampleBlacklist())
 		self.providerObj = providerObj
 		self.type = ConfigSelection(default=providerObj.type, choices=[("M3U", _("M3U/M3U8")), ("Xtreeme", _("Xtreme Codes")), ("Stalker", _("Stalker portal"))])
 		self.iptv_service_provider = ConfigText(default=providerObj.iptv_service_provider, fixed_size=False)
@@ -1106,7 +1108,9 @@ class M3UIPTVProviderEdit(Setup):
 		catchup_type_choices = [(CATCHUP_DEFAULT, _("Standard")), (CATCHUP_APPEND, _("Append")), (CATCHUP_SHIFT, _("Shift")), (CATCHUP_XTREME, _("Xtreme Codes")), (CATCHUP_STALKER, _("Stalker"))]
 		self.catchup_type = ConfigSelection(default=providerObj.catchup_type, choices=catchup_type_choices)
 		self.epg_url = ConfigText(default=providerObj.epg_url, fixed_size=False)
-		Setup.__init__(self, session, yellow_button={"text": _("Delete provider \"%s\"") % providerObj.iptv_service_provider, "helptext": _("Permanently remove provider \"%s\" from your configuration.") % providerObj.iptv_service_provider, "function": self.keyRemove} if self.edit else None)
+		yellow_button = {"text": _("Delete \"%s\"") % providerObj.iptv_service_provider, "helptext": _("Permanently remove provider \"%s\" from your configuration.") % providerObj.iptv_service_provider, "function": self.keyRemove} if self.edit else None
+		blue_button = {"text": _("Bouquet blacklist"), "helptext": _("Edit bouquet blacklist for provider \"%s\".") % providerObj.iptv_service_provider, "function": self.keyBlacklist} if blacklist else None
+		Setup.__init__(self, session, yellow_button=yellow_button, blue_button=blue_button)
 		self.title = _("M3UIPTVManager") + " - " + (_("edit provider") if self.edit else _("add new provider"))
 
 	def createSetup(self):
@@ -1194,6 +1198,40 @@ class M3UIPTVProviderEdit(Setup):
 			del providers[self.scheme.value]
 			writeProviders()
 			self.close(True)
+
+	def keyBlacklist(self):
+		self.session.open(BouquetBlacklist, self.providerObj)
+
+
+class BouquetBlacklist(Screen):
+	def __init__(self, session, providerObj):
+		self.providerObj = providerObj
+		Screen.__init__(self, session)
+		self.title = "%s: Blacklist Bouquets" % self.providerObj.iptv_service_provider
+		self.skinName = ["Setup"]
+		self["config"] = SelectionList([], enableWrapAround=True)
+		self["key_red"] = StaticText(_("Cancel"))
+		self["key_green"] = StaticText(_("Save"))
+		self["key_yellow"] = StaticText(_("Toggle all"))
+		self["description"] = StaticText(_("Select the bouquets you want to blacklist and press ok. Blacklisted bouquets will be removed and not regenerated on rebuild. To reactive a bouquet, deselect it and regenerate bouquets."))
+		self["actions"] = ActionMap(["M3UIPTVConfigActions"],
+		{
+			"ok": self["config"].toggleSelection,
+			"save": self.keySave,
+			"cancel": self.close,
+			"yellow": self["config"].toggleAllSelection,
+		}, -2)
+		examples = self.providerObj.readExampleBlacklist()
+		blacklist = self.providerObj.readBlacklist()
+		self["config"].setList([SelectionEntryComponent(x, x, "", x in blacklist) for x in examples if not x.startswith("#")])
+
+	def keySave(self):
+		blacklist = [x[0][1] for x in self["config"].list if x[0][3]]
+		self.providerObj.writeBlacklist(blacklist)
+		for bouquet in blacklist:
+			self.providerObj.removeBouquet(self.providerObj.cleanFilename(f"userbouquet.m3uiptv.{self.providerObj.iptv_service_provider}.{bouquet}.tv"))
+		self.close()
+
 
 class IPTVPluginConfig(Setup):
 	def __init__(self, session):

@@ -275,6 +275,13 @@ class IPTVProcessor():
 
 	def readBlacklist(self):
 		file = USER_IPTV_PROVIDER_BLACKLIST_FILE  % self.scheme
+		return self.getBlacklist(file)
+
+	def readExampleBlacklist(self):
+		file = (USER_IPTV_PROVIDER_BLACKLIST_FILE  % self.scheme) + ".example"
+		return self.getBlacklist(file)
+
+	def getBlacklist(self, file):
 		if fileExists(file):
 			try:
 				return [stripped for line in open(file, "r").readlines() if (stripped := line.strip())]
@@ -283,6 +290,12 @@ class IPTVProcessor():
 		return []
 
 	def writeExampleBlacklist(self, examples):
+		file = (USER_IPTV_PROVIDER_BLACKLIST_FILE  % self.scheme) + ".example"
 		if examples:
 			examples.insert(0, _("# only leave the groups you want to remove in blacklist below and then rename the file to %s and regenerate the bouquets") % (USER_IPTV_PROVIDER_BLACKLIST_FILE  % self.scheme))
-			open((USER_IPTV_PROVIDER_BLACKLIST_FILE  % self.scheme) + ".example", "w").write("\n".join(examples))
+			open(file, "w").write("\n".join(examples))
+
+	def writeBlacklist(self, blacklist):
+		file = USER_IPTV_PROVIDER_BLACKLIST_FILE  % self.scheme
+		open(file, "w").write("\n".join(blacklist))
+
