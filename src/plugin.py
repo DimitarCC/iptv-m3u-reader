@@ -103,15 +103,15 @@ def readProviders():
 				providerObj.search_criteria = provider.find("filter").text
 				providerObj.scheme = provider.find("scheme").text
 				providerObj.play_system = provider.find("system").text
-				providerObj.play_system_catchup = provider.find("system_catchup").text if provider.find("system_catchup") is not None else providerObj.play_system
-				providerObj.catchup_type = int(provider.find("catchup_type").text) if provider.find("catchup_type") is not None else str(CATCHUP_DEFAULT)
+				providerObj.play_system_catchup = provider.find("system_catchup").text if provider.find("system_catchup") is not None and provider.find("system_catchup").text is not None else providerObj.play_system
+				providerObj.catchup_type = int(provider.find("catchup_type").text) if provider.find("catchup_type") is not None and provider.find("catchup_type").text is not None else str(CATCHUP_DEFAULT)
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.static_urls = provider.find("staticurl") is not None and provider.find("staticurl").text == "on"
 				providerObj.onid = int(provider.find("onid").text)
 				providerObj.create_epg = provider.find("epg") is not None and provider.find("epg").text == "on"
-				providerObj.epg_url = provider.find("epg_url").text if provider.find("epg_url") is not None else providerObj.epg_url
+				providerObj.epg_url = provider.find("epg_url").text or providerObj.epg_url if provider.find("epg_url") is not None and provider.find("epg_url").text is not None else providerObj.epg_url
 				providerObj.is_custom_xmltv = provider.find("is_custom_xmltv") is not None and provider.find("is_custom_xmltv").text == "on"
-				providerObj.custom_xmltv_url = provider.find("custom_xmltv_url").text if provider.find("custom_xmltv_url") is not None else providerObj.custom_xmltv_url
+				providerObj.custom_xmltv_url = provider.find("custom_xmltv_url").text if provider.find("custom_xmltv_url") is not None and provider.find("custom_xmltv_url").text is not None else providerObj.custom_xmltv_url
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("xtreemprovider"):
 				providerObj = XtreemProvider()
@@ -123,13 +123,13 @@ def readProviders():
 				providerObj.username = provider.find("username").text
 				providerObj.password = provider.find("password").text
 				providerObj.play_system = provider.find("system").text
-				providerObj.play_system_catchup = provider.find("system_catchup").text if provider.find("system_catchup") is not None else providerObj.play_system
+				providerObj.play_system_catchup = provider.find("system_catchup").text if provider.find("system_catchup") is not None and provider.find("system_catchup").text is not None else providerObj.play_system
 				providerObj.create_epg = provider.find("epg") is not None and provider.find("epg").text == "on"
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.onid = int(provider.find("onid").text)
 				providerObj.server_timezone_offset = int(provider.find("server_timezone_offset").text) if provider.find("server_timezone_offset") is not None else providerObj.server_timezone_offset
 				providerObj.is_custom_xmltv = provider.find("is_custom_xmltv") is not None and provider.find("is_custom_xmltv").text == "on"
-				providerObj.custom_xmltv_url = provider.find("custom_xmltv_url").text if provider.find("custom_xmltv_url") is not None else providerObj.custom_xmltv_url
+				providerObj.custom_xmltv_url = provider.find("custom_xmltv_url").text if provider.find("custom_xmltv_url") is not None and provider.find("custom_xmltv_url").text is not None else providerObj.custom_xmltv_url
 				if not providerObj.ignore_vod:
 					providerObj.loadInfoFromFile()
 					providerObj.loadMovieCategoriesFromFile()
@@ -145,7 +145,7 @@ def readProviders():
 				providerObj.refresh_interval = int(provider.find("refresh_interval").text)
 				providerObj.mac = provider.find("mac").text
 				providerObj.play_system = provider.find("system").text
-				providerObj.play_system_catchup = provider.find("system_catchup").text if provider.find("system_catchup") is not None else providerObj.play_system
+				providerObj.play_system_catchup = provider.find("system_catchup").text if provider.find("system_catchup") is not None and provider.find("system_catchup").text is not None else providerObj.play_system
 				providerObj.create_epg = provider.find("epg") is not None and provider.find("epg").text == "on"
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.onid = int(provider.find("onid").text)
@@ -410,7 +410,7 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 
 
 def playRealService(self, nnref):
-	self.pnav.stopService()
+	#self.pnav.stopService()
 	self.currentlyPlayingServiceReference = nnref
 	self.pnav.playService(nnref)
 
