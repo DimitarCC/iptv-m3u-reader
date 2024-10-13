@@ -3,6 +3,8 @@ import random
 from xml.sax.saxutils import escape
 from .IPTVProviders import providers
 
+from Tools.Directories import fileReadXML
+
 from enigma import eEPGCache, eTimer
 
 try:
@@ -49,28 +51,51 @@ class epgimport_helper():
 		self.update_status_timer = eTimer()
 		self.update_status_timer.callback.append(self.update_status)
 
-	@staticmethod
-	def xml_escape(string):
-		return escape(string, {'"': '&quot;', "'": "&apos;"})
-	
 	def getSourcesFilename(self):
-		return os.path.join(EPGIMPORTPATH, 'm3uiptv.%s.sources.xml' % self.provider.scheme)
+		return os.path.join(EPGIMPORTPATH, 'm3uiptv.sources.xml')
 	
 	def getChannelsFilename(self):
 		return os.path.join(EPGIMPORTPATH, 'm3uiptv.%s.channels.xml' % self.provider.scheme)
+
+	def readSources(self):
+		ret = {}
+		root = fileReadXML(self.getSourcesFilename())
+		if root:
+			if sourcecat := root.find("sourcecat"):
+				for s in sourcecat.findall("source"):
+					dynamic = channels = description = url = ""
+					for item in s.items():
+						if item[0] == "dynamic-provider":
+							dynamic = item[1]
+						if item[0] == "channels":
+							channels = item[1]
+					if s.find("description") is not None:
+						description = s.find("description").text
+					if s.find("url") is not None:
+						url = s.find("url").text
+					if dynamic and channels and description and url:
+						ret[channels] = {"dynamic": dynamic, "description": description, "url": url}
+		return ret
 	
 	def createSourcesFile(self):
 		if not EPGImport:
 			return
 
+		sources = self.readSources()
+		sources[self.getChannelsFilename()] = {"dynamic": self.provider.scheme if self.provider.is_dynamic_epg else "STATIC", "description": self.provider.iptv_service_provider, "url": self.provider.getEpgUrl()}
+
 		sources_out = [
 			'<?xml version="1.0" encoding="utf-8"?>', 
 			'<sources>',
-			' <sourcecat sourcecatname="M3UIPTV plugin">',
-			'  <source type="gen_xmltv" nocheck="1" dynamic-provider="%s" channels="%s">' % (self.provider.scheme if self.provider.is_dynamic_epg else "STATIC", self.getChannelsFilename()),
-			'   <description>%s</description>' % self.xml_escape(self.provider.iptv_service_provider),
-			'   <url><![CDATA[%s]]></url>' % self.provider.getEpgUrl(),
-			'  </source>',
+			' <sourcecat sourcecatname="M3UIPTV plugin">',]
+		for channel in sources:
+			source = sources[channel]
+			sources_out += [
+				'  <source type="gen_xmltv" nocheck="1" dynamic-provider="%s" channels="%s">' % (source["dynamic"], channel),
+				'   <description><![CDATA[%s]]></description>' % source["description"],
+				'   <url><![CDATA[%s]]></url>' % source["url"],
+				'  </source>',]
+		sources_out += [
 			' </sourcecat>',
 			'</sources>']
 		with open(os.path.join(self.getSourcesFilename()), "w") as f:
