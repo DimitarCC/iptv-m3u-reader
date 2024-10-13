@@ -8,6 +8,7 @@ USER_IPTV_VOD_MOVIES_FILE = path.realpath(resolveFilename(SCOPE_CONFIG)) + "/M3U
 USER_IPTV_MOVIE_CATEGORIES_FILE = path.realpath(resolveFilename(SCOPE_CONFIG)) + "/M3UIPTV/%s-movie-categories.json"
 USER_IPTV_VOD_SERIES_FILE = path.realpath(resolveFilename(SCOPE_CONFIG)) + "/M3UIPTV/%s-vod-series.json"
 USER_IPTV_PROVIDER_INFO_FILE = path.realpath(resolveFilename(SCOPE_CONFIG)) + "/M3UIPTV/%s-provider-info.json"
+USER_IPTV_PROVIDER_BLACKLIST_FILE = path.realpath(resolveFilename(SCOPE_CONFIG)) + "/M3UIPTV/%s-blacklist"
 
 # CatchUp types
 CATCHUP_DEFAULT = 1

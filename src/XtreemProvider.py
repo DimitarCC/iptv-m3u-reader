@@ -78,13 +78,21 @@ class XtreemProvider(IPTVProcessor):
 			self.getVoDMovies()
 			self.getVoDSeries()
 
+		examples = []
+		blacklist = self.readBlacklist()
+
 		for groupItem in groups.values():
+			examples.append(groupItem[0])
 			if groupItem[1]:  # don't create the bouquet if there are no services
 				bfilename =  self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupItem[0]}.tv")
+				if groupItem[0] in blacklist:
+					self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
+					continue
 				services = []
 				for x in groupItem[1]:
 					services.append(x[0])
 				db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + groupItem[0], bfilename, services, False)
+		self.writeExampleBlacklist(examples)
 		self.generateEPGImportFiles(groups)
 		self.bouquetCreated(None)
 

@@ -1,6 +1,6 @@
 from twisted.internet import threads
 from .epgimport_helper import epgimport_helper
-from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE
+from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE, USER_IPTV_PROVIDER_BLACKLIST_FILE
 from .VoDItem import VoDItem
 from Components.config import config
 from Tools.Directories import sanitizeFilename, fileExists
@@ -254,6 +254,10 @@ class IPTVProcessor():
 		search_bouquets_criteria = re.escape(self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.")) + r".*[.]tv"
 		eDVBDB.getInstance().removeBouquet(search_bouquets_criteria)
 
+	def removeBouquet(self, filename):
+		from enigma import eDVBDB
+		eDVBDB.getInstance().removeBouquet(re.escape(filename))
+
 	def removeVoDData(self):
 		shutil.rmtree(self.getTempDir(), True)
 		movie_cat_file = USER_IPTV_MOVIE_CATEGORIES_FILE % self.scheme
@@ -268,3 +272,17 @@ class IPTVProcessor():
 
 	def cleanFilename(self, name):
 		return sanitizeFilename(name.replace(" ", "").replace("(", "").replace(")", "").replace("&", "").replace("'", "").replace('"', "").replace(',', ""))
+
+	def readBlacklist(self):
+		file = USER_IPTV_PROVIDER_BLACKLIST_FILE  % self.scheme
+		if fileExists(file):
+			try:
+				return [stripped for line in open(file, "r").readlines() if (stripped := line.strip())]
+			except Exception as err:
+				print("[IPTVProcessor] readBlacklist, error reading blacklist", err)
+		return []
+
+	def writeExampleBlacklist(self, examples):
+		if examples:
+			examples.insert(0, _("# only leave the groups you want to remove in blacklist below and then rename the file to %s and regenerate the bouquets") % (USER_IPTV_PROVIDER_BLACKLIST_FILE  % self.scheme))
+			open((USER_IPTV_PROVIDER_BLACKLIST_FILE  % self.scheme) + ".example", "w").write("\n".join(examples))

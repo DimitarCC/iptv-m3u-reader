@@ -133,20 +133,33 @@ class M3UProvider(IPTVProcessor):
 					else:
 						services.append((sref, epg_id, ch_name))
 			line_nr += 1
+
+		examples = []
+		blacklist = self.readBlacklist()
+
 		groups_for_epg = {}  # mimic format used in XtreemProvider.py
 		for groupName, srefs in groups.items():
+			examples.append(groupName)
 			if len(srefs) > 0:
 				bfilename =  self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupName}.tv")
+				if groupName in blacklist:
+					self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
+					continue
 				db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + groupName, bfilename, [sref[0] for sref in srefs], False)
 				groups_for_epg[groupName] = (groupName, srefs)
 
 		if len(services) > 0:
 			if len(groups) > 0:
+				examples.append("UNCATEGORIZED")
 				bfilename =  self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.UNCATEGORIZED.tv")
-				db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - UNCATEGORIZED", bfilename, [sref[0] for sref in services], False)
+				if "UNCATEGORIZED" in blacklist:
+					self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
+				else:
+					db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - UNCATEGORIZED", bfilename, [sref[0] for sref in services], False)
 			else:
 				db.addOrUpdateBouquet(self.iptv_service_provider, [sref[0] for sref in services], 1)
 			groups_for_epg["EMPTY"] = ("UNCATEGORIZED", services)
+		self.writeExampleBlacklist(examples)
 		self.generateEPGImportFiles(groups_for_epg)
 		self.bouquetCreated(None)
 
