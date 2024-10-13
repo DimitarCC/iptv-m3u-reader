@@ -22,7 +22,7 @@ class XtreemProvider(IPTVProcessor):
 		self.play_system_catchup = self.play_system
 		
 	def getEpgUrl(self):
-		return "%s/xmltv.php?username=%s&password=%s" % (self.url, self.username, self.password)
+		return self.custom_xmltv_url if self.is_custom_xmltv and self.custom_xmltv_url else "%s/xmltv.php?username=%s&password=%s" % (self.url, self.username, self.password)
 
 	def storePlaylistAndGenBouquet(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value

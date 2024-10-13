@@ -77,6 +77,8 @@ class IPTVProcessor():
 		self.play_system_catchup = self.play_system
 		self.movie_categories = {}
 		self.is_dynamic_epg = False
+		self.is_custom_xmltv = False
+		self.custom_xmltv_url = ""
 		self.server_timezone_offset = 0
 		self.provider_info = {}
 
@@ -221,10 +223,10 @@ class IPTVProcessor():
 		return "%s:0:%s:%x:%x:1:CCCC0000:0:0:0:%s:%s•%s" % (self.play_system, type, tsid, self.onid, url.replace(":", "%3a"), name, self.iptv_service_provider)
 
 	def getEpgUrl(self):  # if not overridden in the subclass
-		return self.epg_url
+		return self.custom_xmltv_url if self.is_custom_xmltv and self.custom_xmltv_url else self.epg_url
 
 	def getEpgUrlForSources(self): # for use when dynamic xmltv url is needed for sources file
-		return self.epg_url
+		return self.custom_xmltv_url if self.is_custom_xmltv and self.custom_xmltv_url else self.epg_url
 
 	def generateEPGImportFiles(self, groups):
 		if not self.create_epg:

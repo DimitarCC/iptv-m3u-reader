@@ -42,7 +42,7 @@ class M3UProvider(IPTVProcessor):
 				epg_match = re.search(r"x-tvg-url=\"(.*?)\"", line) or re.search(r"tvg-url=\"(.*?)\"", line)
 				if epg_match:
 					return epg_match.group(1)
-		return self.epg_url
+		return self.getEpgUrl()
 		
 	def storePlaylistAndGenBouquet(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
@@ -67,7 +67,7 @@ class M3UProvider(IPTVProcessor):
 		for line in playlist_splitted:
 			if self.ignore_vod and "group-title=\"VOD" in line:
 				continue
-			if line.startswith("#EXTM3U") and "tvg-url" in line:
+			if line.startswith("#EXTM3U") and "tvg-url" in line and not self.is_custom_xmltv:
 				epg_match = re.search(r"x-tvg-url=\"(.*?)\"", line) or re.search(r"tvg-url=\"(.*?)\"", line)
 				if epg_match:
 					self.epg_url = epg_match.group(1)

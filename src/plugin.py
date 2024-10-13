@@ -31,7 +31,7 @@ from Components.ParentalControl import parentalControl
 from Components.Sources.StaticText import StaticText
 from Components.Sources.List import List
 from Components.Sources.Progress import Progress
-from Components.SystemInfo import SystemInfo
+from Components.SystemInfo import SystemInfo, BoxInfo
 from Tools.Directories import fileExists, isPluginInstalled
 from Tools.BoundFunction import boundFunction
 from Navigation import Navigation
@@ -110,6 +110,8 @@ def readProviders():
 				providerObj.onid = int(provider.find("onid").text)
 				providerObj.create_epg = provider.find("epg") is not None and provider.find("epg").text == "on"
 				providerObj.epg_url = provider.find("epg_url").text if provider.find("epg_url") is not None else providerObj.epg_url
+				providerObj.is_custom_xmltv = provider.find("is_custom_xmltv") is not None and provider.find("is_custom_xmltv").text == "on"
+				providerObj.custom_xmltv_url = provider.find("custom_xmltv_url").text if provider.find("custom_xmltv_url") is not None else providerObj.custom_xmltv_url
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("xtreemprovider"):
 				providerObj = XtreemProvider()
@@ -126,6 +128,8 @@ def readProviders():
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.onid = int(provider.find("onid").text)
 				providerObj.server_timezone_offset = int(provider.find("server_timezone_offset").text) if provider.find("server_timezone_offset") is not None else providerObj.server_timezone_offset
+				providerObj.is_custom_xmltv = provider.find("is_custom_xmltv") is not None and provider.find("is_custom_xmltv").text == "on"
+				providerObj.custom_xmltv_url = provider.find("custom_xmltv_url").text if provider.find("custom_xmltv_url") is not None else providerObj.custom_xmltv_url
 				if not providerObj.ignore_vod:
 					providerObj.loadInfoFromFile()
 					providerObj.loadMovieCategoriesFromFile()
@@ -170,6 +174,8 @@ def writeProviders():
 			xml.append(f"\t\t<onid>{val.onid}</onid>\n")
 			xml.append(f"\t\t<epg>{'on' if val.create_epg else 'off'}</epg>\n")
 			xml.append(f"\t\t<epg_url><![CDATA[{val.epg_url}]]></epg_url>\n")
+			xml.append(f"\t\t<is_custom_xmltv>{'on' if val.is_custom_xmltv else 'off'}</is_custom_xmltv>\n")
+			xml.append(f"\t\t<custom_xmltv_url><![CDATA[{val.custom_xmltv_url}]]></custom_xmltv_url>\n")
 			xml.append("\t</provider>\n")
 		elif isinstance(val, XtreemProvider):
 			xml.append("\t<xtreemprovider>\n")
@@ -186,6 +192,8 @@ def writeProviders():
 			xml.append(f"\t\t<epg>{'on' if val.create_epg else 'off'}</epg>\n")
 			xml.append(f"\t\t<onid>{val.onid}</onid>\n")
 			xml.append(f"\t\t<server_timezone_offset>{val.server_timezone_offset}</server_timezone_offset><!-- timezone offset of the server in seconds from the perspective of the client -->\n")
+			xml.append(f"\t\t<is_custom_xmltv>{'on' if val.is_custom_xmltv else 'off'}</is_custom_xmltv>\n")
+			xml.append(f"\t\t<custom_xmltv_url><![CDATA[{val.custom_xmltv_url}]]></custom_xmltv_url>\n")
 			xml.append("\t</xtreemprovider>\n")
 		else:
 			xml.append("\t<stalkerprovider>\n")
@@ -1088,7 +1096,9 @@ class M3UIPTVProviderEdit(Setup):
 		self.username = ConfigText(default=providerObj.username, fixed_size=False)
 		self.password = ConfigPassword(default=providerObj.password, fixed_size=False)
 		self.mac = ConfigText(default=providerObj.mac, fixed_size=False)
-		play_system_choices = [("1", "DVB"), ("4097", "GStreamer")]
+		self.is_custom_xmltv = ConfigYesNo(default=providerObj.is_custom_xmltv)
+		self.custom_xmltv_url = ConfigText(default=providerObj.custom_xmltv_url, fixed_size=False)
+		play_system_choices = [("1", "DVB"), ("4097", "HiSilicon" if BoxInfo.getItem("mediaservice") == "servicehisilicon" else "GStreamer")]
 		if isPluginInstalled("ServiceApp"):
 			play_system_choices.append(("5002", "Exteplayer3"))
 		self.play_system = ConfigSelection(default=providerObj.play_system, choices=play_system_choices)
@@ -1118,8 +1128,10 @@ class M3UIPTVProviderEdit(Setup):
 		if self.type.value == "Xtreeme":
 			configlist.append((_("Skip VOD entries"), self.novod, _("Skip VOD entries in the playlist")))
 		configlist.append((_("Generate EPG files for EPGImport plugin"), self.create_epg, _("Creates files needed for importing EPG via EPGImport plugin")))
-		if self.type.value == "M3U" and self.create_epg.value:
-			configlist.append((_("EPG URL"), self.epg_url, _("The URL where EPG data for this provider can be downloaded. If available in the M3U playlist it will be addeed automatically.")))
+		if (self.type.value == "M3U" or self.type.value == "Xtreeme") and self.create_epg.value:
+			configlist.append((_("Use custom XMLTV URL"), self.is_custom_xmltv, _("Use your own XMLTV url for EPG importing.")))
+			if self.is_custom_xmltv.value:
+				configlist.append((_("Custom XMLTV URL"), self.custom_xmltv_url, _("The URL where EPG data for this provider can be downloaded.")))
 		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited. 
 			configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
 		configlist.append((_("Playback system"), self.play_system, _("The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3")))
@@ -1155,9 +1167,13 @@ class M3UIPTVProviderEdit(Setup):
 			providerObj.search_criteria = self.search_criteria.value
 			providerObj.catchup_type = self.catchup_type.value
 			providerObj.epg_url = self.epg_url.value
+			providerObj.is_custom_xmltv = self.is_custom_xmltv.value
+			providerObj.custom_xmltv_url = self.custom_xmltv_url.value
 		elif self.type.value == "Xtreeme":
 			providerObj.username = self.username.value
 			providerObj.password = self.password.value
+			providerObj.is_custom_xmltv = self.is_custom_xmltv.value
+			providerObj.custom_xmltv_url = self.custom_xmltv_url.value
 		else:
 			providerObj.mac = self.mac.value
 
