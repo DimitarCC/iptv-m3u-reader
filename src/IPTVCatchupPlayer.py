@@ -2,7 +2,7 @@ from enigma import eServiceReference, eTimer, iPlayableService
 from Screens.InfoBar import InfoBar, MoviePlayer
 from Screens.InfoBarGenerics import saveResumePoints, resumePointCache, resumePointCacheLast, delResumePoint, isStandardInfoBar
 from Screens.Screen import Screen
-from Components.config import config
+from Screens.AudioSelection import AudioSelection
 from Components.ServiceEventTracker import ServiceEventTracker
 from Components.Sources.Progress import Progress
 from Components.Label import Label
@@ -172,12 +172,19 @@ class CatchupPlayer(MoviePlayer):
 		self["time_duration_summary"] = StaticText("")
 		self["time_remaining_summary"] = StaticText("")
 		self.onProgressTimer()
+		self.onClose.append(self._onClose)
 		self.__event_tracker = ServiceEventTracker(screen=self, eventmap={
 			iPlayableService.evSeekableStatusChanged: self.__seekableStatusChanged,
 			iPlayableService.evStart: self.__evServiceStart,
 			iPlayableService.evEnd: self.__evServiceEnd,})
 		self["SeekActions"].setEnabled(True)
+		if hasattr(AudioSelection, "audioHooks") and self.onAudioSubTrackChanged not in AudioSelection.audioHooks:
+			AudioSelection.audioHooks.append(self.onAudioSubTrackChanged)
 		
+	def _onClose(self):
+		if hasattr(AudioSelection, "audioHooks") and self.onAudioSubTrackChanged in AudioSelection.audioHooks:
+			AudioSelection.audioHooks.remove(self.onAudioSubTrackChanged)
+
 	def setProgress(self, pos):
 		r = self.duration - pos
 		progress_val = i if (i := int((pos / self.duration)*100)) and i >= 0 else 0
@@ -196,6 +203,8 @@ class CatchupPlayer(MoviePlayer):
 		self["time_remaining"].setText(text_remaining)
 		self["time_remaining_summary"].setText(text_remaining)
 
+	def onAudioSubTrackChanged(self):
+		self.doServiceRestart()
 		
 	def invokeSeek(self, direction):
 		self.seek_timer.stop()
@@ -287,6 +296,11 @@ class CatchupPlayer(MoviePlayer):
 		else:
 			self.leavePlayer()
 
+	def doServiceRestart(self):
+		curr_pos = self.start_curr + self.getPosition()
+		self.seekTo_pos = curr_pos - self.start_orig
+		self.doSeekRelative(self.seekTo_pos + 2)
+
 	def doSeekRelative(self, pts):
 		self.progress_timer.stop()
 
@@ -300,14 +314,13 @@ class CatchupPlayer(MoviePlayer):
 		new_start = self.start_orig + pts
 
 		if pts >= self.duration:
-			self.seekstate = self.SEEK_STATE_EOF
+			self.setSeekState(self.SEEK_STATE_EOF)
 			self.leavePlayer()
 
 		if pts == 0:
 			self.duration_curr = self.duration
 		else:
 			self.duration_curr = self.duration - pts
-
 		sref_split = self.sref_ret.split(":")
 		sref_ret = sref_split[10:][0]
 		url = constructCatchUpUrl(self.orig_sref, sref_ret, new_start, new_start+self.duration_curr, self.duration_curr)
