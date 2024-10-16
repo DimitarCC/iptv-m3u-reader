@@ -41,6 +41,8 @@ try:
 	from Plugins.Extensions.tmdb.tmdb import tmdbScreen, tmdbScreenMovie, tempDir as tmdbTempDir, tmdb
 except ImportError:
 	tmdbScreen = None
+	tmdbTempDir = ""
+	tmdb = None
 	try:
 		from Plugins.Extensions.IMDb.plugin import IMDB
 	except ImportError:
@@ -798,7 +800,7 @@ class M3UIPTVVoDMovies(Screen):
 			self.tmdbScreenMovie.decodeCover(cover_file)
 
 	def mdbCleanup(self):
-		if path.exists(tmdbTempDir):
+		if tmdbTempDir and path.exists(tmdbTempDir):
 			for jpg in glob(tmdbTempDir + '*.jpg'):
 				remove(jpg)
 
