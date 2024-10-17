@@ -11,6 +11,7 @@ from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHU
 
 db = eDVBDB.getInstance()
 
+
 class M3UProvider(IPTVProcessor):
 	def __init__(self):
 		IPTVProcessor.__init__(self)
@@ -28,7 +29,7 @@ class M3UProvider(IPTVProcessor):
 		if is_check_network_val != "off":
 			socket.setdefaulttimeout(int(is_check_network_val))
 			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
-		req = urllib.request.Request(self.url, headers={'User-Agent' : USER_AGENT}) 
+		req = urllib.request.Request(self.url, headers={'User-Agent': USER_AGENT})
 		req_timeout_val = config.plugins.m3uiptv.req_timeout.value
 		if req_timeout_val != "off":
 			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
@@ -43,13 +44,13 @@ class M3UProvider(IPTVProcessor):
 				if epg_match:
 					return epg_match.group(1)
 		return self.getEpgUrl()
-		
+
 	def storePlaylistAndGenBouquet(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
 		if is_check_network_val != "off":
 			socket.setdefaulttimeout(int(is_check_network_val))
 			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
-		req = urllib.request.Request(self.url, headers={'User-Agent' : USER_AGENT}) 
+		req = urllib.request.Request(self.url, headers={'User-Agent': USER_AGENT})
 		req_timeout_val = config.plugins.m3uiptv.req_timeout.value
 		if req_timeout_val != "off":
 			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
@@ -141,7 +142,7 @@ class M3UProvider(IPTVProcessor):
 		for groupName, srefs in groups.items():
 			examples.append(groupName)
 			if len(srefs) > 0:
-				bfilename =  self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupName}.tv")
+				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupName}.tv")
 				if groupName in blacklist:
 					self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
 					continue
@@ -151,7 +152,7 @@ class M3UProvider(IPTVProcessor):
 		if len(services) > 0:
 			if len(groups) > 0:
 				examples.append("UNCATEGORIZED")
-				bfilename =  self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.UNCATEGORIZED.tv")
+				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.UNCATEGORIZED.tv")
 				if "UNCATEGORIZED" in blacklist:
 					self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
 				else:
@@ -178,9 +179,9 @@ class M3UProvider(IPTVProcessor):
 		if callback:
 			threads.deferToThread(self.processDownloadPlaylist, nref, channelForSearch, origRef, backup_ref, orig_name, event).addCallback(callback)
 		else:
-			return self.processDownloadPlaylist(nref, channelForSearch, origRef, backup_ref, orig_name, event) , nref, False
+			return self.processDownloadPlaylist(nref, channelForSearch, origRef, backup_ref, orig_name, event), nref, False
 		return nref, nref, True
-		
+
 	def processDownloadPlaylist(self, nref, channelForSearch, origRef, backup_ref, orig_name, event=None):
 		try:
 			is_check_network_val = config.plugins.m3uiptv.check_internet.value
@@ -196,10 +197,10 @@ class M3UProvider(IPTVProcessor):
 			nref_new = nref.toString()
 			cur_time = time()
 			time_delta = prov.last_exec and cur_time - prov.last_exec or None
-			if (prov.refresh_interval == -1 and prov.playlist) or (prov.refresh_interval > 0 and time_delta and  time_delta < cache_time):
+			if (prov.refresh_interval == -1 and prov.playlist) or (prov.refresh_interval > 0 and time_delta and time_delta < cache_time):
 				playlist = prov.playlist
 			else:
-				req = urllib.request.Request(prov.url, headers={'User-Agent' : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"}) 
+				req = urllib.request.Request(prov.url, headers={'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"})
 				req_timeout_val = config.plugins.m3uiptv.req_timeout.value
 				if req_timeout_val != "off":
 					response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
@@ -230,9 +231,9 @@ class M3UProvider(IPTVProcessor):
 					break
 			self.nnref = eServiceReference(nref_new)
 			self.isPlayBackup = False
-			return self.nnref#, nref
+			return self.nnref  # , nref
 		except Exception as ex:
 			print("[M3UIPTV] [M3U] Error downloading playlist: " + str(ex))
 			self.isPlayBackup = True
 			self.nnref = eServiceReference(backup_ref + ":")
-			return self.nnref#, nref
+			return self.nnref  # , nref

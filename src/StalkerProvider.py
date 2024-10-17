@@ -9,12 +9,14 @@ from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, CATCHUP_STALKER, C
 
 db = eDVBDB.getInstance()
 
+
 class Channel():
 	def __init__(self, id, name, cmd, catchup_days):
 		self.id = id
 		self.name = name
 		self.cmd = cmd
 		self.catchup_days = catchup_days
+
 
 class StalkerProvider(IPTVProcessor):
 	def __init__(self):
@@ -27,7 +29,7 @@ class StalkerProvider(IPTVProcessor):
 		self.catchup_type = CATCHUP_STALKER
 		self.play_system_vod = "4097"
 		self.play_system_catchup = self.play_system
-		
+
 	def storePlaylistAndGenBouquet(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
 		if is_check_network_val != "off":
@@ -40,7 +42,6 @@ class StalkerProvider(IPTVProcessor):
 			genres = self.get_genres(session, token)
 			# print("GETTING CHANNELS FOR GENRE %s/%s" % (genres[0]["genre_id"], genres[0]["name"]))
 			threads.deferToThread(self.get_channels, session, token, genres).addCallback(self.channels_callback)
-
 
 	def channels_callback(self, groups):
 		tsid = 1000
@@ -61,7 +62,7 @@ class StalkerProvider(IPTVProcessor):
 				tsid += 1
 				services.append(sref)
 
-			bfilename =  self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{group[0]}.tv")
+			bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{group[0]}.tv")
 			db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + group[0], bfilename, services, False)
 
 		if not self.ignore_vod:
@@ -119,11 +120,11 @@ class StalkerProvider(IPTVProcessor):
 				try:
 					response_json = response.json()
 					channels_data = response_json["js"]["data"]
-					
+
 					for channel in channels_data:
 						surl = channel["cmd"].replace("ffmpeg ", "")
 						if self.play_system != "1":
-							surl = surl.replace("extension=ts","extension=m3u8")
+							surl = surl.replace("extension=ts", "extension=m3u8")
 						services.append(Channel(channel["id"], channel["name"], channel["cmd"].replace("ffmpeg ", ""), channel["tv_archive_duration"]))
 					total_items = response_json["js"]["total_items"]
 					if len(services) >= total_items:
@@ -143,12 +144,12 @@ class StalkerProvider(IPTVProcessor):
 			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
 			headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
 			i = 0
-			for	group in genres:
+			for group in genres:
 				genre_id = group["genre_id"]
 				if genre_id != "*":
 					self.get_channels_for_group(groups[genre_id][1], session, cookies, headers, genre_id)
 					#print("[M3UIPTV] [Stalker] GENERATE CHANNELS FOR GROUP %d/%d" % (i, len(genres)))
-					self.progress_percentage = int((i/len(genres)) * 100)
+					self.progress_percentage = int((i / len(genres)) * 100)
 				i += 1
 
 			self.progress_percentage = -1
