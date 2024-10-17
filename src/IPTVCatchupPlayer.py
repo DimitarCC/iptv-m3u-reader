@@ -380,6 +380,13 @@ class CatchupPlayer(MoviePlayer):
 	def seekFwd(self):
 		self.invokeSeek(1)
 
+	# kill some functions
+	def seekFwdSeekbar(self):
+		pass
+	
+	def seekBackSeekbar(self):
+		pass
+
 	def createSummary(self):
 		return CatchupPlayerSummary
 
