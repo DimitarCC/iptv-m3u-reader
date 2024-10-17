@@ -274,6 +274,12 @@ def playServiceWithIPTVPiP(self, service):
 
 
 def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False, adjust=True, event=None):
+	# Some plugins send None as ref becasue want to shutdown enigma play system.
+	# So we have to stop current service if someone send None.
+	if ref is None:
+		self.stopService() 
+		return 0
+
 	from Components.ServiceEventTracker import InfoBarCount
 	InfoBarInstance = InfoBarCount == 1 and InfoBar.instance
 	
@@ -292,9 +298,6 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 	if path.exists("/proc/stb/lcd/symbol_signal") and hasattr(config.lcd, "mode"):
 		open("/proc/stb/lcd/symbol_signal", "w").write("1" if ref and "0:0:0:0:0:0:0:0:0" not in ref.toString() and config.lcd.mode.value else "0")
 
-	if ref is None:
-		self.stopService() 
-		return 0
 		
 	self.currentlyPlayingServiceReference = ref
 	self.currentlyPlayingServiceOrGroup = ref
