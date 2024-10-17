@@ -1,5 +1,6 @@
 providers = dict()
 
+
 def processService(nref, callback, event=None):
 	sRef = nref.toString()
 	if sRef.find("%3a//") > -1 and sRef.find("127.0.0.1") == -1:
@@ -17,4 +18,3 @@ def processService(nref, callback, event=None):
 		return ref, old_ref, not prov.isPlayBackup, int(prov.play_system_catchup)
 	else:
 		return nref, nref, False, nref.type
-	

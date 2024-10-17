@@ -22,10 +22,11 @@ def overwriteEPGImportEPGSourceInit():
 	if EPGConfig:
 		EPGConfig.EPGSource.__init__ = EPGSource__init_new__
 
+
 def EPGSource__init_new__(self, path, elem, category=None, offset=0):
 	self.parser = elem.get('type')
 	nocheck = elem.get('nocheck')
-	provider_scheme_for_url =  elem.get('dynamic-provider')
+	provider_scheme_for_url = elem.get('dynamic-provider')
 	if nocheck == None:
 		self.nocheck = 0
 	elif nocheck == "1":
@@ -45,6 +46,7 @@ def EPGSource__init_new__(self, path, elem, category=None, offset=0):
 	self.format = elem.get('format', 'xml')
 	self.channels = EPGConfig.getChannels(path, elem.get('channels'), offset)
 
+
 class epgimport_helper():
 	def __init__(self, provider):
 		self.provider = provider
@@ -53,7 +55,7 @@ class epgimport_helper():
 
 	def getSourcesFilename(self):
 		return os.path.join(EPGIMPORTPATH, 'm3uiptv.sources.xml')
-	
+
 	def getChannelsFilename(self):
 		return os.path.join(EPGIMPORTPATH, 'm3uiptv.%s.channels.xml' % self.provider.scheme)
 
@@ -76,7 +78,7 @@ class epgimport_helper():
 					if dynamic and channels and description and url:
 						ret[channels] = {"dynamic": dynamic, "description": description, "url": url}
 		return ret
-	
+
 	def createSourcesFile(self):
 		if not EPGImport:
 			return
@@ -85,7 +87,7 @@ class epgimport_helper():
 		sources[self.getChannelsFilename()] = {"dynamic": self.provider.scheme if self.provider.is_dynamic_epg else "STATIC", "description": self.provider.iptv_service_provider, "url": self.provider.getEpgUrl()}
 
 		sources_out = [
-			'<?xml version="1.0" encoding="utf-8"?>', 
+			'<?xml version="1.0" encoding="utf-8"?>',
 			'<sources>',
 			' <sourcecat sourcecatname="M3UIPTV plugin">',]
 		for channel in sources:
@@ -127,7 +129,6 @@ class epgimport_helper():
 		if self.epgimport and self.epgimport.isImportRunning():
 			for f in self.provider.update_status_callback:
 				f(_("EPG Import: Importing %s %s events") % (self.epgimport.source.description, self.epgimport.eventCount))
-			
 
 	def epgimport_sources(self, sourcefiles):
 		for sourcefile in sourcefiles:

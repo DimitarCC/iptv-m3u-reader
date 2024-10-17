@@ -37,6 +37,7 @@ def injectCatchupInEPG():
 		if injectCatchupIcon not in EPGListGrid.buildEntryExtensionFunctions:
 			EPGListGrid.buildEntryExtensionFunctions.append(injectCatchupIcon)
 		__init_orig__ = EPGListGrid.__init__
+
 		def __init_new__(self, *args, **kwargs):
 			self.catchUpIcon = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/catchup.png"))
 			if not self.catchUpIcon:
@@ -46,6 +47,7 @@ def injectCatchupInEPG():
 
 	if EPGSelectionGrid:
 		__old_EPGSelectionGrid_init__ = EPGSelectionGrid.__init__
+
 		def __new_EPGSelectionGrid_init__(self, *args, **kwargs):
 			EPGSelectionGrid.playArchiveEntry = playArchiveEntry
 			__old_EPGSelectionGrid_init__(self, *args, **kwargs)
@@ -60,6 +62,7 @@ def injectCatchupInEPG():
 		if injectCatchupIconGMEPG not in EPGList.buildEntryExtensionFunctions:
 			EPGList.buildEntryExtensionFunctions.append(injectCatchupIconGMEPG)
 		__init_pli_orig__ = EPGList.__init__
+
 		def __init_pli_new__(self, *args, **kwargs):
 			self.catchUpIcon = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "epg/catchup.png"))
 			if not self.catchUpIcon:
@@ -69,6 +72,7 @@ def injectCatchupInEPG():
 
 	if GraphMultiEPG:
 		__old_GraphMultiEPG_init__ = GraphMultiEPG.__init__
+
 		def __new_GraphMultiEPG_init__(self, *args, **kwargs):
 			GraphMultiEPG.playArchiveEntry = playArchiveEntry
 			__old_GraphMultiEPG_init__(self, *args, **kwargs)
@@ -78,6 +82,7 @@ def injectCatchupInEPG():
 			}, -2)
 
 		GraphMultiEPG.__init__ = __new_GraphMultiEPG_init__
+
 
 def injectCatchupIcon(res, obj, service, serviceName, events, picon, channel):
 	r2 = obj.eventRect
@@ -104,7 +109,8 @@ def injectCatchupIcon(res, obj, service, serviceName, events, picon, channel):
 									size=(pix_width, pix_height),
 									png=obj.catchUpIcon,
 									flags=0))
-					
+
+
 def injectCatchupIconGMEPG(res, obj, service, service_name, events, picon, serviceref):
 	r2 = obj.event_rect
 	left = r2.left()
@@ -130,6 +136,7 @@ def injectCatchupIconGMEPG(res, obj, service, service_name, events, picon, servi
 									size=(pix_width, pix_height),
 									png=obj.catchUpIcon,
 									flags=0))
+
 
 class CatchupPlayer(MoviePlayer):
 	def __init__(self, session, service, sref_ret="", slist=None, lastservice=None, event=None, orig_sref="", orig_url="", start_orig=0, end_org=0, duration=0, catchup_ref_type=4097):
@@ -176,18 +183,18 @@ class CatchupPlayer(MoviePlayer):
 		self.__event_tracker = ServiceEventTracker(screen=self, eventmap={
 			iPlayableService.evSeekableStatusChanged: self.__seekableStatusChanged,
 			iPlayableService.evStart: self.__evServiceStart,
-			iPlayableService.evEnd: self.__evServiceEnd,})
+			iPlayableService.evEnd: self.__evServiceEnd, })
 		self["SeekActions"].setEnabled(True)
 		if hasattr(AudioSelection, "audioHooks") and self.onAudioSubTrackChanged not in AudioSelection.audioHooks:
 			AudioSelection.audioHooks.append(self.onAudioSubTrackChanged)
-		
+
 	def _onClose(self):
 		if hasattr(AudioSelection, "audioHooks") and self.onAudioSubTrackChanged in AudioSelection.audioHooks:
 			AudioSelection.audioHooks.remove(self.onAudioSubTrackChanged)
 
 	def setProgress(self, pos):
 		r = self.duration - pos
-		progress_val = i if (i := int((pos / self.duration)*100)) and i >= 0 else 0
+		progress_val = i if (i := int((pos / self.duration) * 100)) and i >= 0 else 0
 		self["progress"].value = progress_val
 		self["progress_summary"].value = progress_val
 		text = "-%d:%02d:%02d         %d:%02d:%02d         +%d:%02d:%02d" % (pos / 3600, pos % 3600 / 60, pos % 60, self.duration / 3600, self.duration % 3600 / 60, self.duration % 60, r / 3600, r % 3600 / 60, r % 60)
@@ -205,7 +212,7 @@ class CatchupPlayer(MoviePlayer):
 
 	def onAudioSubTrackChanged(self):
 		self.doServiceRestart()
-		
+
 	def invokeSeek(self, direction):
 		self.seek_timer.stop()
 		self.showAfterSeek()
@@ -218,12 +225,12 @@ class CatchupPlayer(MoviePlayer):
 		try:
 			index = self.seek_steps.index(abs(self.current_seek_step))
 			if index < len(self.seek_steps) - 1:
-				self.current_seek_step = self.seek_steps[index + 1]*direction
+				self.current_seek_step = self.seek_steps[index + 1] * direction
 			else:
 				self.current_seek_step_multiplier += 1
 		except ValueError:
-			self.current_seek_step = self.seek_steps[0]*direction
-		p += self.current_seek_step*self.current_seek_step_multiplier
+			self.current_seek_step = self.seek_steps[0] * direction
+		p += self.current_seek_step * self.current_seek_step_multiplier
 		if p >= self.duration:
 			p = self.duration
 		if p < 0:
@@ -323,7 +330,7 @@ class CatchupPlayer(MoviePlayer):
 			self.duration_curr = self.duration - pts
 		sref_split = self.sref_ret.split(":")
 		sref_ret = sref_split[10:][0]
-		url = constructCatchUpUrl(self.orig_sref, sref_ret, new_start, new_start+self.duration_curr, self.duration_curr)
+		url = constructCatchUpUrl(self.orig_sref, sref_ret, new_start, new_start + self.duration_curr, self.duration_curr)
 		newPlayref = eServiceReference(self.catchup_ref_type, 0, url)
 		newPlayref.setName(self.event.getEventName())
 		self.session.nav.playService(newPlayref)
@@ -347,7 +354,7 @@ class CatchupPlayer(MoviePlayer):
 						sl = None
 					resumePointCache[key] = [lru, pos[1], sl]
 					saveResumePoints()
-	
+
 	def doEofInternal(self, playing):
 		if not self.execing:
 			return
@@ -362,7 +369,6 @@ class CatchupPlayer(MoviePlayer):
 	def up(self):
 		self.current_seek_step = 300
 		self.invokeSeek(1)
-
 
 	def down(self):
 		self.current_seek_step = -300
@@ -407,10 +413,10 @@ def playArchiveEntry(self):
 				duration = event.getDuration()
 				sref_split = sref.split(":")
 				url = sref_split[10:][0]
-				url = constructCatchUpUrl(service.toString(), url, stime, stime+duration, duration)
+				url = constructCatchUpUrl(service.toString(), url, stime, stime + duration, duration)
 				playref = eServiceReference(catchup_ref_type, 0, url)
 				playref.setName(event.getEventName())
 				infobar = InfoBar.instance
 				if infobar:
 					LastService = self.session.nav.getCurrentlyPlayingServiceOrGroup()
-					self.session.open(CatchupPlayer, playref, sref_ret=sref, slist=infobar.servicelist, lastservice=LastService, event=event, orig_url=url, start_orig=stime, end_org=stime+duration, duration=duration, catchup_ref_type=catchup_ref_type, orig_sref=service.toString())
+					self.session.open(CatchupPlayer, playref, sref_ret=sref, slist=infobar.servicelist, lastservice=LastService, event=event, orig_url=url, start_orig=stime, end_org=stime + duration, duration=duration, catchup_ref_type=catchup_ref_type, orig_sref=service.toString())

@@ -16,6 +16,7 @@ from datetime import datetime
 
 write_lock = threading.Lock()
 
+
 def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 	now = time()
 	catchup_type = None
@@ -51,7 +52,7 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 
 class IPTVProcessor():
 	def __init__(self):
-		self.type = "M3U" # default type M3U. Possible Types: M3U, Xtreem, Stalker
+		self.type = "M3U"  # default type M3U. Possible Types: M3U, Xtreem, Stalker
 		self.url = ""
 		self.scheme = ""
 		self.isPlayBackup = False
@@ -151,7 +152,7 @@ class IPTVProcessor():
 						print("getSeriesById info", info)
 						marker = []
 						if info and info.get("season"):
-							marker.append(_("S%s") %  str(info.get("season")))
+							marker.append(_("S%s") % str(info.get("season")))
 						episode_num = episode.get("episode_num") and str(episode["episode_num"])
 						if episode_num:
 							marker.append(_("Ep%s") % episode_num)
@@ -170,13 +171,12 @@ class IPTVProcessor():
 							titles.append(title)
 		return ret
 
-
 	def getUrl(self, url):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
 		if is_check_network_val != "off":
 			socket.setdefaulttimeout(int(is_check_network_val))
 			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
-		req = urllib.request.Request(url, headers={'User-Agent' : USER_AGENT})
+		req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT})
 		req_timeout_val = config.plugins.m3uiptv.req_timeout.value
 		if req_timeout_val != "off":
 			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
@@ -225,7 +225,7 @@ class IPTVProcessor():
 	def getEpgUrl(self):  # if not overridden in the subclass
 		return self.custom_xmltv_url if self.is_custom_xmltv and self.custom_xmltv_url else self.epg_url
 
-	def getEpgUrlForSources(self): # for use when dynamic xmltv url is needed for sources file
+	def getEpgUrlForSources(self):  # for use when dynamic xmltv url is needed for sources file
 		return self.custom_xmltv_url if self.is_custom_xmltv and self.custom_xmltv_url else self.epg_url
 
 	def generateEPGImportFiles(self, groups):
@@ -236,7 +236,6 @@ class IPTVProcessor():
 		epghelper.createChannelsFile(groups)
 
 		epghelper.importepg()  # auto epg update after bouquet generation
-
 
 	def generateEPGChannelReference(self, original_sref):
 		return f"{':'.join(original_sref.split(':', 10)[:10])}:http%3a//m3u.iptv.com"
@@ -274,11 +273,11 @@ class IPTVProcessor():
 		return sanitizeFilename(name.replace(" ", "").replace("(", "").replace(")", "").replace("&", "").replace("'", "").replace('"', "").replace(',', ""))
 
 	def readBlacklist(self):
-		file = USER_IPTV_PROVIDER_BLACKLIST_FILE  % self.scheme
+		file = USER_IPTV_PROVIDER_BLACKLIST_FILE % self.scheme
 		return self.getBlacklist(file)
 
 	def readExampleBlacklist(self):
-		file = (USER_IPTV_PROVIDER_BLACKLIST_FILE  % self.scheme) + ".example"
+		file = (USER_IPTV_PROVIDER_BLACKLIST_FILE % self.scheme) + ".example"
 		return self.getBlacklist(file)
 
 	def getBlacklist(self, file):
@@ -290,12 +289,11 @@ class IPTVProcessor():
 		return []
 
 	def writeExampleBlacklist(self, examples):
-		file = (USER_IPTV_PROVIDER_BLACKLIST_FILE  % self.scheme) + ".example"
+		file = (USER_IPTV_PROVIDER_BLACKLIST_FILE % self.scheme) + ".example"
 		if examples:
-			examples.insert(0, _("# only leave the groups you want to remove in blacklist below and then rename the file to %s and regenerate the bouquets") % (USER_IPTV_PROVIDER_BLACKLIST_FILE  % self.scheme))
+			examples.insert(0, _("# only leave the groups you want to remove in blacklist below and then rename the file to %s and regenerate the bouquets") % (USER_IPTV_PROVIDER_BLACKLIST_FILE % self.scheme))
 			open(file, "w").write("\n".join(examples))
 
 	def writeBlacklist(self, blacklist):
-		file = USER_IPTV_PROVIDER_BLACKLIST_FILE  % self.scheme
+		file = USER_IPTV_PROVIDER_BLACKLIST_FILE % self.scheme
 		open(file, "w").write("\n".join(blacklist))
-

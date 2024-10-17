@@ -9,6 +9,7 @@ from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, USER_IPTV_MOVIE_CA
 
 db = eDVBDB.getInstance()
 
+
 class XtreemProvider(IPTVProcessor):
 	def __init__(self):
 		IPTVProcessor.__init__(self)
@@ -20,7 +21,7 @@ class XtreemProvider(IPTVProcessor):
 		self.catchup_type = CATCHUP_XTREME
 		self.play_system_vod = "4097"
 		self.play_system_catchup = self.play_system
-		
+
 	def getEpgUrl(self):
 		return self.custom_xmltv_url if self.is_custom_xmltv and self.custom_xmltv_url else "%s/xmltv.php?username=%s&password=%s" % (self.url, self.username, self.password)
 
@@ -31,7 +32,7 @@ class XtreemProvider(IPTVProcessor):
 			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
 		self.getServerTZoffset()
 		url = "%s/player_api.php?username=%s&password=%s&action=get_live_streams" % (self.url, self.username, self.password)
-		req = urllib.request.Request(url, headers={'User-Agent' : USER_AGENT}) 
+		req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT})
 		req_timeout_val = config.plugins.m3uiptv.req_timeout.value
 		if req_timeout_val != "off":
 			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
@@ -43,7 +44,7 @@ class XtreemProvider(IPTVProcessor):
 		groups = {}
 
 		url = "%s/player_api.php?username=%s&password=%s&action=get_live_categories" % (self.url, self.username, self.password)
-		req = urllib.request.Request(url, headers={'User-Agent' : USER_AGENT}) 
+		req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT})
 		if req_timeout_val != "off":
 			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
 		else:
@@ -84,7 +85,7 @@ class XtreemProvider(IPTVProcessor):
 		for groupItem in groups.values():
 			examples.append(groupItem[0])
 			if groupItem[1]:  # don't create the bouquet if there are no services
-				bfilename =  self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupItem[0]}.tv")
+				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupItem[0]}.tv")
 				if groupItem[0] in blacklist:
 					self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
 					continue
@@ -160,4 +161,3 @@ class XtreemProvider(IPTVProcessor):
 		if json_string:
 			for category in json.loads(json_string):
 				self.movie_categories[category["category_id"]] = category["category_name"]
-
