@@ -1263,15 +1263,28 @@ class IPTVPluginConfig(Setup):
 			configlist.append((_("Recordings - convert IPTV servicetypes to  1"), config.recording.setstreamto1, _("Recording 4097, 5001 and 5002 streams not possible with external players, so convert recordings to servicetype 1.")))
 			configlist.append((_("Enable new GStreamer playback"), config.misc.usegstplaybin3, _("If enabled, the new GStreamer playback engine will be used.")))
 			configlist.append(("---",))
-		if hasattr(config, "timeshift") and hasattr(config.timeshift, "startdelay"):
-			configlist.append((_("Automatically start timeshift after"), config.timeshift.startdelay, _("When enabled, timeshift starts automatically in background after the specified time.")))
-		configlist.append((_("Show warning when timeshift is stopped"), config.usage.check_timeshift, _("When enabled, a warning will be displayed and the user will get an option to stop or to continue the timeshift.")))
-		if hasattr(config, "timeshift") and hasattr(config.timeshift, "favoriteSaveAction"):
-			configlist.append((_("Timeshift-save action on zap"), config.timeshift.favoriteSaveAction, _("Select if timeshift should continue when set to record.")))
-		if hasattr(config, "timeshift") and hasattr(config.timeshift, "stopwhilerecording"):
-			configlist.append((_("Stop timeshift while recording?"), config.timeshift.stopwhilerecording, _("Stops timeshift being used if a recording is in progress. (Advisable for USB sticks)")))
-		if hasattr(config, "timeshift") and hasattr(config.timeshift, "showinfobar"):
-			configlist.append((_("Use timeshift seekbar while timeshifting?"), config.timeshift.showinfobar, _("If set to 'yes', allows you to use the seekbar to jump to a point within the event.")))
+		if hasattr(config, "timeshift"):
+			if hasattr(config.timeshift, "startdelay"):
+				configlist.append((_("Automatically start timeshift after"), config.timeshift.startdelay, _("When enabled, timeshift starts automatically in background after the specified time.")))
+			elif hasattr(config.timeshift, "startDelay"):
+				configlist.append((_("Automatically start time shift after"), config.timeshift.startDelay, _("When enabled, time shift starts automatically in background after specified time.")))
+			if hasattr(config.timeshift, "check"):
+				configlist.append((_("Show warning when time shift is stopped"), config.timeshift.check, _("When enabled, a warning will be displayed and the user will get an option to stop or to continue the time shift.")))
+			else:
+				configlist.append((_("Show warning when timeshift is stopped"), config.usage.check_timeshift, _("When enabled, a warning will be displayed and the user will get an option to stop or to continue the timeshift.")))
+			if hasattr(config.timeshift, "favoriteSaveAction"):
+				# configlist.append((_("Time shift save action on zap"), config.timeshift.favoriteSaveAction, _("Select if time shift must continue when set to record.")))
+				configlist.append((_("Timeshift-save action on zap"), config.timeshift.favoriteSaveAction, _("Select if timeshift should continue when set to record.")))
+			if hasattr(config.timeshift, "stopwhilerecording"):
+				configlist.append((_("Stop timeshift while recording?"), config.timeshift.stopwhilerecording, _("Stops timeshift being used if a recording is in progress. (Advisable for USB sticks)")))
+			elif hasattr(config.timeshift, "stopWhileRecording"):
+				configlist.append((_("Stop time shift while recording"), config.timeshift.stopWhileRecording, _("Stops time shift being used if a recording is in progress. (Advisable for USB sticks.)")))
+			if hasattr(config.timeshift, "showinfobar"):
+				configlist.append((_("Use timeshift seekbar while timeshifting?"), config.timeshift.showinfobar, _("If set to 'yes', allows you to use the seekbar to jump to a point within the event.")))
+			elif hasattr(config.timeshift, "showInfobar"):
+				configlist.append((_("Use time shift SeekBar while time shifting"), config.timeshift.showInfobar, _("Select 'Yes' to allow use of the seek bar to jump to a selected point within the event.")))
+			if hasattr(config.timeshift, "skipReturnToLive"):
+				configlist.append((_("Skip jumping to live while timeshifting with plugins"), config.timeshift.skipReturnToLive, _("If set to 'yes', allows you to use timeshift with alternative audio plugins.")))
 		if hasattr(config.usage, "timeshift_skipreturntolive"):
 			configlist.append((_("Skip jumping to live TV while timeshifting with plugins"), config.usage.timeshift_skipreturntolive, _("If set to 'yes', allows you to use timeshift with alternative audio plugins.")))
 		if isPluginInstalled("ServiceApp"):
