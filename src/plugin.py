@@ -898,13 +898,13 @@ class M3UIPTVManagerConfig(Screen):
 			<widget source="description" render="Label" position="%d,%d" zPosition="10" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1" />
 		 	<widget source="progress" render="Progress" position="%d,%d" size="%d,%d" backgroundColor="background" foregroundColor="blue" zPosition="11" borderWidth="0" borderColor="grey" cornerRadius="%d"/>
 		</screen>""",
-			610, 410,  # screen
-			15, 60, 580, 286,  # Listbox
-			2, 0, 330, 26,  # template
+			980, 600,  # screen
+			15, 60, 950, 450,  # Listbox
+			2, 0, 630, 26,  # template
 			22,  # fonts
 			26,  # ItemHeight
-			5, 360, 600, 50, 22,  # description
-			5, 360, 600, 6, 3,  # progress
+			5, 460, 940, 50, 22,  # description
+			5, 460, 940, 6, 3,  # progress
 			]  # noqa: E124
 
 	def __init__(self, session):
