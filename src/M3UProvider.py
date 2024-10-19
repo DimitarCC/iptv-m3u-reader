@@ -173,7 +173,9 @@ class M3UProvider(IPTVProcessor):
 		orig_name = sRef and sRef.getServiceName()
 		backup_ref = nref.toString()
 		try:
-			backup_ref = iptvinfodata[1].split(":")[0].replace("%3a", ":")
+			match_backup = re.search(r"backupref=\"(.*?)\"", iptvInfoDataSplit[1])
+			if match_backup:
+				backup_ref = match_backup.group(1).replace("%3a", ":")
 		except:
 			pass
 		if callback:

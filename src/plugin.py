@@ -7,6 +7,10 @@ from glob import glob
 import json
 import base64
 from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner
+try:
+	from enigma import pNavigation as pNavigation
+except ImportError:
+	pNavigation = None
 from Plugins.Plugin import PluginDescriptor
 from .M3UProvider import M3UProvider
 from .IPTVProcessor import IPTVProcessor
@@ -227,12 +231,50 @@ def writeProviders():
 # Function for overwrite some functions from Navigation.py so to inject own code
 def injectIntoNavigation():
 	import NavigationInstance
-	NavigationInstance.instance.playService = playServiceWithIPTV.__get__(NavigationInstance.instance, Navigation)
+	distro = BoxInfo.getItem("distro")
+	if distro == "openatv":
+		NavigationInstance.instance.playService = playServiceWithIPTVATV.__get__(NavigationInstance.instance, Navigation)
+		PictureInPicture.playService = playServiceWithIPTVPiPATV
+		NavigationInstance.instance.recordService = recordServiceWithIPTVATV.__get__(NavigationInstance.instance, Navigation)
+	else:
+		NavigationInstance.instance.playService = playServiceWithIPTV.__get__(NavigationInstance.instance, Navigation)
+		PictureInPicture.playService = playServiceWithIPTVPiP
+		NavigationInstance.instance.recordService = recordServiceWithIPTV.__get__(NavigationInstance.instance, Navigation)
 	NavigationInstance.instance.playRealService = playRealService.__get__(NavigationInstance.instance, Navigation)
-	NavigationInstance.instance.recordService = recordServiceWithIPTV.__get__(NavigationInstance.instance, Navigation)
-	PictureInPicture.playService = playServiceWithIPTVPiP
+	
 	injectCatchupInEPG()
 	overwriteEPGImportEPGSourceInit()
+
+
+def playServiceWithIPTVPiPATV(self, service):
+		if service is None:
+			return False
+		from Screens.InfoBarGenerics import streamrelay
+		from .IPTVProviders import processService
+		ref, isStreamRelay = streamrelay.streamrelayChecker(self.resolveAlternatePipService(service))
+		ref = processService(ref, None)[0]
+		if ref:
+			if self.isPlayableForPipService(ref):
+				print("playing pip service", ref and ref.toString())
+			else:
+				if not config.usage.hide_zap_errors.value:
+					Tools.Notifications.AddPopup(text=_("No free tuner!"), type=MessageBox.TYPE_ERROR, timeout=5, id="ZapPipError")
+				return False
+			self.pipservice = eServiceCenter.getInstance().play(ref)
+			if self.pipservice and not self.pipservice.setTarget(1, True):
+				if hasattr(self, "dishpipActive") and self.dishpipActive is not None:
+					self.dishpipActive.startPiPService(ref)
+				self.pipservice.start()
+				self.currentService = service
+				self.currentServiceReference = ref
+				return True
+			else:
+				self.pipservice = None
+				self.currentService = None
+				self.currentServiceReference = None
+				if not config.usage.hide_zap_errors.value:
+					Tools.Notifications.AddPopup(text=_("Incorrect type service for PiP!"), type=MessageBox.TYPE_ERROR, timeout=5, id="ZapPipError")
+		return False
 
 
 def playServiceWithIPTVPiP(self, service):
@@ -415,6 +457,97 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 	return 1
 
 
+def playServiceWithIPTVATV(self, ref, checkParentalControl=True, forceRestart=False, adjust=True, ignoreStreamRelay=False, event=None):
+		oldref = self.currentlyPlayingServiceOrGroup
+		if ref and oldref and ref == oldref and not forceRestart:
+			print("[Navigation] Ignore request to play already running service.  (1)")
+			return 1
+		if ref is None:
+			self.stopService()
+			return 0
+		from Components.ServiceEventTracker import InfoBarCount
+		InfoBarInstance = InfoBarCount == 1 and InfoBar.instance
+		isStreamRelay = False
+		if not checkParentalControl or parentalControl.isServicePlayable(ref, boundFunction(self.playService, checkParentalControl=False, forceRestart=forceRestart, adjust=adjust)):
+			if ref.flags & eServiceReference.isGroup:
+				oldref = self.currentlyPlayingServiceReference or eServiceReference()
+				playref = getBestPlayableServiceReference(ref, oldref)
+				if not ignoreStreamRelay:
+					playref, isStreamRelay = streamrelay.streamrelayChecker(playref)
+				print(f"[Navigation] Playref is '{str(playref)}'.")
+				if playref and oldref and playref == oldref and not forceRestart:
+					print("[Navigation] Ignore request to play already running service.  (2)")
+					return 1
+				if not playref:
+					alternativeref = getBestPlayableServiceReference(ref, eServiceReference(), True)
+					self.stopService()
+					if alternativeref and self.pnav:
+						self.currentlyPlayingServiceReference = alternativeref
+						self.currentlyPlayingServiceOrGroup = ref
+						if self.pnav.playService(alternativeref):
+							print(f"[Navigation] Failed to start '{alternativeref.toString()}'.")
+							self.currentlyPlayingServiceReference = None
+							self.currentlyPlayingServiceOrGroup = None
+							if oldref and ("://" in oldref.getPath() or streamrelay.checkService(oldref)):
+								print("[Navigation] Streaming was active, try again.")  # Use timer to give the stream server the time to deallocate the tuner.
+								self.retryServicePlayTimer = eTimer()
+								self.retryServicePlayTimer.callback.append(boundFunction(self.playService, ref, checkParentalControl, forceRestart, adjust))
+								self.retryServicePlayTimer.start(500, True)
+						else:
+							print(f"[Navigation] Alternative ref as simulate is '{alternativeref.toString()}'.")
+					return 0
+				elif checkParentalControl and not parentalControl.isServicePlayable(playref, boundFunction(self.playService, checkParentalControl=False)):
+					if self.currentlyPlayingServiceOrGroup and InfoBarInstance and InfoBarInstance.servicelist.servicelist.setCurrent(self.currentlyPlayingServiceOrGroup, adjust):
+						self.currentlyPlayingServiceOrGroup = InfoBarInstance.servicelist.servicelist.getCurrent()
+					return 1
+			else:
+				playref = ref
+			if self.pnav:
+				if not BoxInfo.getItem("FCCactive"):
+					self.pnav.stopService()
+				else:
+					self.skipServiceReferenceReset = True
+				self.currentlyPlayingServiceReference = playref
+				if not ignoreStreamRelay:
+					playref, isStreamRelay = streamrelay.streamrelayChecker(playref)
+				is_dynamic = False
+				if callable(processIPTVService):
+					playref, old_ref, is_dynamic, ref_type = processIPTVService(playref, self.playRealService, event)
+				print(f"[Navigation] Playref is '{playref.toString()}'.")
+				self.currentlyPlayingServiceOrGroup = ref
+				if InfoBarInstance and InfoBarInstance.servicelist.servicelist.setCurrent(ref, adjust):
+					self.currentlyPlayingServiceOrGroup = InfoBarInstance.servicelist.servicelist.getCurrent()
+				# self.skipServiceReferenceReset = True
+				if (config.misc.softcam_streamrelay_delay.value and self.isCurrentServiceStreamRelay) or (self.firstStart and isStreamRelay):
+					self.skipServiceReferenceReset = False
+					self.isCurrentServiceStreamRelay = False
+					self.currentlyPlayingServiceReference = None
+					self.currentlyPlayingServiceOrGroup = None
+					print("[Navigation] Stream relay was active, delay the zap till tuner is freed.")
+					self.retryServicePlayTimer = eTimer()
+					self.retryServicePlayTimer.callback.append(boundFunction(self.playService, ref, checkParentalControl, forceRestart, adjust))
+					delay = 2000 if self.firstStart else config.misc.softcam_streamrelay_delay.value
+					self.firstStart = False
+					self.retryServicePlayTimer.start(delay, True)
+					return 0
+				elif not is_dynamic and self.pnav.playService(playref):
+					print(f"[Navigation] Failed to start '{playref.toString()}'.")
+					self.currentlyPlayingServiceReference = None
+					self.currentlyPlayingServiceOrGroup = None
+					if oldref and ("://" in oldref.getPath() or streamrelay.checkService(oldref)):
+						print("[Navigation] Streaming was active, try again.")  # Use timer to give the stream server the time to deallocate the tuner.
+						self.retryServicePlayTimer = eTimer()
+						self.retryServicePlayTimer.callback.append(boundFunction(self.playService, ref, checkParentalControl, forceRestart, adjust))
+						self.retryServicePlayTimer.start(500, True)
+				self.skipServiceReferenceReset = False
+				if isStreamRelay and not self.isCurrentServiceStreamRelay:
+					self.isCurrentServiceStreamRelay = True
+				return 0
+		elif oldref and InfoBarInstance and InfoBarInstance.servicelist.servicelist.setCurrent(oldref, adjust):
+			self.currentlyPlayingServiceOrGroup = InfoBarInstance.servicelist.servicelist.getCurrent()
+		return 1
+
+
 def playRealService(self, nnref):
 	#self.pnav.stopService()
 	self.currentlyPlayingServiceReference = nnref
@@ -443,6 +576,23 @@ def recordServiceWithIPTV(self, ref, simulate=False):
 		if service is None:
 			print("[Navigation] record returned non-zero")
 	return service
+
+def recordServiceWithIPTVATV(self, ref, simulate=False, type=8):
+		service = None
+		if not simulate:
+			print(f"[Navigation] Recording service is '{str(ref)}'.")
+		if isinstance(ref, ServiceReference.ServiceReference):
+			ref = ref.ref
+		if ref:
+			if ref.flags & eServiceReference.isGroup:
+				ref = getBestPlayableServiceReference(ref, eServiceReference(), simulate)
+			if type != (pNavigation.isPseudoRecording | pNavigation.isFromEPGrefresh):
+				ref, isStreamRelay = streamrelay.streamrelayChecker(ref)
+				ref = processIPTVService(ref, None)[0]
+			service = ref and self.pnav and self.pnav.recordService(ref, simulate, type)
+			if service is None:
+				print("[Navigation] Record returned non-zero.")
+		return service
 
 
 class VoDMoviePlayer(MoviePlayer):
@@ -517,12 +667,12 @@ class M3UIPTVVoDSeries(Screen):
 			</widget>
 			<widget source="description" render="Label" position="%d,%d" zPosition="10" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1" />
 		</screen>""",
-			610, 410,  # screen
-			15, 60, 580, 286,  # Listbox
-			2, 0, 590, 26,  # template
+			980, 600,  # screen
+			15, 60, 950, 450,  # Listbox
+			2, 0, 630, 26,  # template
 			22,  # fonts
 			26,  # ItemHeight
-			5, 360, 600, 50, 22,  # description
+			5, 460, 940, 50, 22,  # description
 			]  # noqa: E124
 
 	def __init__(self, session):
@@ -721,12 +871,12 @@ class M3UIPTVVoDMovies(Screen):
 			</widget>
 			<widget source="description" render="Label" position="%d,%d" zPosition="10" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1" />
 		</screen>""",
-			610, 410,  # screen
-			15, 60, 580, 286,  # Listbox
-			2, 0, 590, 26,  # template
+			980, 600,  # screen
+			15, 60, 950, 450,  # Listbox
+			2, 0, 630, 26,  # template
 			22,  # fonts
 			26,  # ItemHeight
-			5, 360, 600, 50, 22,  # description
+			5, 460, 940, 50, 22,  # description
 			]  # noqa: E124
 
 	def __init__(self, session):
