@@ -72,7 +72,7 @@ class XtreemProvider(IPTVProcessor):
 				stype = "19"
 			sref = self.generateChannelReference(stype, tsid, surl.replace(":", "%3a"), ch_name)
 			tsid += 1
-			groups[service["category_id"] if service["category_id"] else "EMPTY"][1].append((sref, epg_id, ch_name))
+			groups[service["category_id"] if service["category_id"] and service["category_id"] in groups else "EMPTY"][1].append((sref, epg_id, ch_name))
 
 		if not self.ignore_vod:
 			self.getMovieCategories()
