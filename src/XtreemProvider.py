@@ -85,7 +85,7 @@ class XtreemProvider(IPTVProcessor):
 		for groupItem in groups.values():
 			examples.append(groupItem[0])
 			if groupItem[1]:  # don't create the bouquet if there are no services
-				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.{groupItem[0]}.tv")
+				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.{groupItem[0]}.tv")
 				if groupItem[0] in blacklist:
 					self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
 					continue
