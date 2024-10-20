@@ -63,7 +63,7 @@ class XtreemProvider(IPTVProcessor):
 			catchup_days = service["tv_archive_duration"]
 			if catchup_days:
 				surl = self.constructCatchupSufix(str(catchup_days), surl, CATCHUP_XTREME_TEXT)
-			ch_name = service["name"].replace(":", "|") if service["name"] else service["stream_id"]
+			ch_name = service["name"].replace(":", "|") if service["name"] else str(service["stream_id"])
 			epg_id = service["epg_channel_id"]
 			stype = "1"
 			if ("UHD" in ch_name or "4K" in ch_name) and not " HD" in ch_name:
