@@ -1267,7 +1267,7 @@ class M3UIPTVProviderEdit(Setup):
 		Setup.__init__(self, session, None)
 		self.title = _("M3UIPTVManager") + " - " + (_("edit provider") if self.edit else _("add new provider"))
 		if self.edit:
-			self["key_yellow"] = StaticText(_("Delete provider \"%s\"") % providerObj.iptv_service_provider)
+			self["key_yellow"] = StaticText(_("Delete \"%s\"") % providerObj.iptv_service_provider)
 			self["yellowactions"] = HelpableActionMap(self, ["ColorActions"], {
 				"yellow": (self.keyRemove, _("Permanently remove provider \"%s\" from your configuration.") % providerObj.iptv_service_provider)
 			}, prio=0)
