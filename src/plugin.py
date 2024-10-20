@@ -8,7 +8,7 @@ import json
 import base64
 from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner
 try:
-	from enigma import pNavigation as pNavigation
+	from enigma import pNavigation
 except ImportError:
 	pNavigation = None
 from Plugins.Plugin import PluginDescriptor
