@@ -34,7 +34,7 @@ class M3UProvider(IPTVProcessor):
 		if req_timeout_val != "off":
 			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
 		else:
-			response = urllib.request.urlopen(req)
+			response = urllib.request.urlopen(req, timeout=10) # set a timeout to prevent blocking
 		playlist = response.read().decode('utf-8')
 		self.playlist = playlist
 		playlist_splitted = playlist.splitlines()
@@ -55,7 +55,7 @@ class M3UProvider(IPTVProcessor):
 		if req_timeout_val != "off":
 			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
 		else:
-			response = urllib.request.urlopen(req)
+			response = urllib.request.urlopen(req, timeout=10) # set a timeout to prevent blocking
 		playlist = response.read().decode('utf-8')
 		self.playlist = playlist
 		playlist_splitted = playlist.splitlines()
@@ -208,7 +208,7 @@ class M3UProvider(IPTVProcessor):
 				if req_timeout_val != "off":
 					response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
 				else:
-					response = urllib.request.urlopen(req)
+					response = urllib.request.urlopen(req, timeout=10) # set a timeout to prevent blocking
 				playlist = response.read().decode('utf-8')
 				prov.playlist = playlist
 				if cache_time > 0:

@@ -181,7 +181,7 @@ class IPTVProcessor():
 		if req_timeout_val != "off":
 			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
 		else:
-			response = urllib.request.urlopen(req)
+			response = urllib.request.urlopen(req, timeout=10) # set a timeout to prevent blocking
 		return response.read()
 
 	def getUrlToFile(self, url, dest_file):
