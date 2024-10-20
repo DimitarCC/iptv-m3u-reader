@@ -54,17 +54,22 @@ class XtreemProvider(IPTVProcessor):
 		groups_json_obj = json.loads(groups_response)
 
 		for group in groups_json_obj:
-			groups[group["category_id"]] = (group["category_name"], [])
+			if (category_id := group.get("category_id")) and (category_name := group.get("category_name")):
+				groups[category_id] = (category_name, [])
 
 		groups["EMPTY"] = ("UNCATEGORIZED", [])  # put "EMPTY" in last place
 
 		for service in services_json_obj:
-			surl = "%s/live/%s/%s/%s.%s" % (self.url, self.username, self.password, service["stream_id"], "ts" if self.play_system == "1" else "m3u8")
-			catchup_days = service["tv_archive_duration"]
+			stream_id = service.get("stream_id")
+			ch_name = service.get("name") and service["name"].replace(":", "|")
+			epg_id = service.get("epg_channel_id")
+			category_id = service.get("category_id")
+			if not (stream_id and ch_name and epg_id and category_id):
+				continue
+			surl = "%s/live/%s/%s/%s.%s" % (self.url, self.username, self.password, stream_id, "ts" if self.play_system == "1" else "m3u8")
+			catchup_days = service.get("tv_archive_duration")
 			if catchup_days:
 				surl = self.constructCatchupSufix(str(catchup_days), surl, CATCHUP_XTREME_TEXT)
-			ch_name = service["name"].replace(":", "|") if service["name"] else str(service["stream_id"])
-			epg_id = service["epg_channel_id"]
 			stype = "1"
 			if ("UHD" in ch_name or "4K" in ch_name) and not " HD" in ch_name:
 				stype = "1F"
@@ -72,7 +77,7 @@ class XtreemProvider(IPTVProcessor):
 				stype = "19"
 			sref = self.generateChannelReference(stype, tsid, surl.replace(":", "%3a"), ch_name)
 			tsid += 1
-			groups[service["category_id"] if service["category_id"] and service["category_id"] in groups else "EMPTY"][1].append((sref, epg_id, ch_name))
+			groups[category_id if category_id in groups else "EMPTY"][1].append((sref, epg_id, ch_name))
 
 		if not self.ignore_vod:
 			self.getMovieCategories()
