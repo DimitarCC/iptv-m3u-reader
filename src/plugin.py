@@ -1157,13 +1157,13 @@ class M3UIPTVManagerConfig(Screen):
 				providerObj.onBouquetCreated.append(self.onBouquetCreated)
 				providerObj.getPlaylistAndGenBouquet()
 			except Exception as ex:
-				print("[M3UIPTV] Error has occured during bouquet creation: " + str(ex))
 				import traceback
-				traceback.print_exc()
+				err = traceback.format_exc()
+				print("[M3UIPTV] Error has occured during bouquet creation:", err)
 				self.progress_timer.stop()
 				self["progress"].value = -1
-				self.updateDescription(_("%s: an error occured during bouquet creation") % providerObj.iptv_service_provider)
-				self.session.open(MessageBox, _("Unable to create bouquet \"%s\"!\nPossible reason can be no network available.") % providerObj.iptv_service_provider, MessageBox.TYPE_ERROR, timeout=5)
+				self.updateDescription(_("%s: an error occured during bouquet creation\n\nError type: %s") % (providerObj.iptv_service_provider, type(ex).__name__))
+				self.session.open(MessageBox, _("%s: an error occured during bouquet creation\n\n%s") % (providerObj.iptv_service_provider, err), MessageBox.TYPE_ERROR)
 
 	def onBouquetCreated(self, providerObj, error):
 		if not hasattr(self, "session") or not self.session:
