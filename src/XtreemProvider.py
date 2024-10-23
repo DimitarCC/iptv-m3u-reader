@@ -64,7 +64,7 @@ class XtreemProvider(IPTVProcessor):
 			ch_name = service.get("name") and service["name"].replace(":", "|")
 			epg_id = service.get("epg_channel_id")
 			category_id = service.get("category_id")
-			if not (stream_id and ch_name and epg_id and category_id):
+			if not (stream_id and ch_name):
 				continue
 			surl = "%s/live/%s/%s/%s.%s" % (self.url, self.username, self.password, stream_id, "ts" if self.play_system == "1" else "m3u8")
 			catchup_days = service.get("tv_archive_duration")
@@ -77,7 +77,7 @@ class XtreemProvider(IPTVProcessor):
 				stype = "19"
 			sref = self.generateChannelReference(stype, tsid, surl.replace(":", "%3a"), ch_name)
 			tsid += 1
-			groups[category_id if category_id in groups else "EMPTY"][1].append((sref, epg_id, ch_name))
+			groups[category_id if category_id and category_id in groups else "EMPTY"][1].append((sref, epg_id, ch_name))
 
 		if not self.ignore_vod:
 			self.getMovieCategories()

@@ -136,6 +136,14 @@ def injectCatchupIconGMEPG(res, obj, service, service_name, events, picon, servi
 									size=(pix_width, pix_height),
 									png=obj.catchUpIcon,
 									flags=0))
+					
+def constructCompleteCatchupSref(catchup_service_type, sref, url_play, stime, etime, duration):
+	url = constructCatchUpUrl(sref, url_play, stime, etime, duration)
+	split_ref = sref.split(":")
+	split_ref[0] = str(catchup_service_type)
+	result_sref = ":".join(split_ref[:10]) + ":" + url + ":" + split_ref[-1]
+	return eServiceReference(result_sref)
+
 
 
 class CatchupPlayer(MoviePlayer):
@@ -330,8 +338,7 @@ class CatchupPlayer(MoviePlayer):
 			self.duration_curr = self.duration - pts
 		sref_split = self.sref_ret.split(":")
 		sref_ret = sref_split[10:][0]
-		url = constructCatchUpUrl(self.orig_sref, sref_ret, new_start, new_start + self.duration_curr, self.duration_curr)
-		newPlayref = eServiceReference(self.catchup_ref_type, 0, url)
+		newPlayref = constructCompleteCatchupSref(self.catchup_ref_type, self.orig_sref, sref_ret, new_start, new_start + self.duration_curr, self.duration_curr)
 		newPlayref.setName(self.event.getEventName())
 		self.session.nav.playService(newPlayref)
 		self.onProgressTimer()
@@ -420,8 +427,7 @@ def playArchiveEntry(self):
 				duration = event.getDuration()
 				sref_split = sref.split(":")
 				url = sref_split[10:][0]
-				url = constructCatchUpUrl(service.toString(), url, stime, stime + duration, duration)
-				playref = eServiceReference(catchup_ref_type, 0, url)
+				playref = constructCompleteCatchupSref(catchup_ref_type, service.toString(), url, stime, stime + duration, duration)
 				playref.setName(event.getEventName())
 				infobar = InfoBar.instance
 				if infobar:
