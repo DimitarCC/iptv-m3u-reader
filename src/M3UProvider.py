@@ -109,6 +109,10 @@ class M3UProvider(IPTVProcessor):
 						while not found_url:
 							if len(playlist_splitted) > next_line_nr:
 								next_line = playlist_splitted[next_line_nr].strip()
+								if next_line.startswith("#EXTGRP:") and curr_group is None:  # only if no group was found in #EXTINF: group-title
+									curr_group = next_line[8:].strip()
+									if curr_group not in groups:
+										groups[curr_group] = []
 								if next_line.startswith(("http://", "https://")):
 									url = next_line.replace(":", "%3a")
 									url = self.constructCatchupSufix(captchup_days, url, CATCHUP_TYPES[self.catchup_type])
