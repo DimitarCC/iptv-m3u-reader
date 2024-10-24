@@ -163,7 +163,7 @@ class M3UProvider(IPTVProcessor):
 					db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - UNCATEGORIZED", bfilename, [sref[0] for sref in services], False)
 			else:
 				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.tv")
-				db.addOrUpdateBouquet(self.iptv_service_provider.upper(), bfilename, [sref[0] for sref in services], 1)
+				db.addOrUpdateBouquet(self.iptv_service_provider.upper(), bfilename, [sref[0] for sref in services], False)
 			groups_for_epg["EMPTY"] = ("UNCATEGORIZED", services)
 		self.writeExampleBlacklist(examples)
 		self.generateEPGImportFiles(groups_for_epg)
