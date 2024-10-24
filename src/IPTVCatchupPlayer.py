@@ -123,7 +123,7 @@ def injectCatchupIconGMEPG(res, obj, service, service_name, events, picon, servi
 		for ev in events:
 			stime = ev[2]
 			duration = ev[3]
-			xpos, ewidth = obj.calcEventPosAndWidthHelper(stime, duration, start, end, width)
+			xpos, ewidth = obj.calcEntryPosAndWidthHelper(stime, duration, start, end, width)
 			if "catchupdays=" in service and stime < now and obj.catchUpIcon:
 				pix_size = obj.catchUpIcon.size()
 				pix_width = pix_size.width()
