@@ -68,6 +68,8 @@ config.plugins.m3uiptv.check_internet = ConfigSelection(default="2", choices=cho
 config.plugins.m3uiptv.req_timeout = ConfigSelection(default="2", choices=choicelist)
 config.plugins.m3uiptv.inmenu = ConfigYesNo(default=True)
 
+distro = BoxInfo.getItem("distro")
+
 
 file = open("%s/menu.xml" % path.dirname(modules[__name__].__file__), 'r')
 mdom = xml.etree.cElementTree.parse(file)
@@ -232,7 +234,6 @@ def writeProviders():
 # Function for overwrite some functions from Navigation.py so to inject own code
 def injectIntoNavigation():
 	import NavigationInstance
-	distro = BoxInfo.getItem("distro")
 	Navigation.originalPlayingServiceReference = None
 	if distro == "openatv":
 		NavigationInstance.instance.playService = playServiceWithIPTVATV.__get__(NavigationInstance.instance, Navigation)
@@ -579,11 +580,11 @@ def playRealService(self, nnref):
 
 	from Components.ServiceEventTracker import InfoBarCount
 	InfoBarInstance = InfoBarCount == 1 and InfoBar.instance
-	if InfoBarInstance:
-		#if "%3a//" in nnref.toString():
-		#	InfoBarInstance.session.screen["CurrentService"].newService(nnref)
-		#else:
-		#	InfoBarInstance.session.screen["CurrentService"].newService(True)
+	if InfoBarInstance and distro != "openatv":
+		if "%3a//" in nnref.toString():
+			InfoBarInstance.session.screen["CurrentService"].newService(nnref)
+		else:
+			InfoBarInstance.session.screen["CurrentService"].newService(True)
 		InfoBarInstance.serviceStarted()
 
 
