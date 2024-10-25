@@ -24,6 +24,7 @@ from Screens.Screen import Screen, ScreenSummary
 from Screens.InfoBar import InfoBar, MoviePlayer
 from Screens.InfoBarGenerics import streamrelay, saveResumePoints, resumePointCache, resumePointCacheLast, delResumePoint
 from Screens.PictureInPicture import PictureInPicture
+from Screens.ChannelSelection import ChannelSelection
 from Screens.Setup import Setup
 from Screens.Menu import Menu
 from Screens.MessageBox import MessageBox
@@ -232,6 +233,7 @@ def writeProviders():
 def injectIntoNavigation():
 	import NavigationInstance
 	distro = BoxInfo.getItem("distro")
+	Navigation.originalPlayingServiceReference = None
 	if distro == "openatv":
 		NavigationInstance.instance.playService = playServiceWithIPTVATV.__get__(NavigationInstance.instance, Navigation)
 		PictureInPicture.playService = playServiceWithIPTVPiPATV
@@ -241,9 +243,21 @@ def injectIntoNavigation():
 		PictureInPicture.playService = playServiceWithIPTVPiP
 		NavigationInstance.instance.recordService = recordServiceWithIPTV.__get__(NavigationInstance.instance, Navigation)
 	NavigationInstance.instance.playRealService = playRealService.__get__(NavigationInstance.instance, Navigation)
-	
+	NavigationInstance.instance.getCurrentServiceReferenceOriginal = getCurrentServiceReferenceOriginal.__get__(NavigationInstance.instance, Navigation)
+	NavigationInstance.instance.getCurrentlyPlayingServiceOrGroup = getCurrentlyPlayingServiceOrGroup.__get__(NavigationInstance.instance, Navigation)
+	ChannelSelection.saveChannel = saveChannel
 	injectCatchupInEPG()
 	overwriteEPGImportEPGSourceInit()
+
+
+def saveChannel(self, ref):
+		if ref is not None:
+			refstr = ref.toString()
+		else:
+			refstr = ""
+		if refstr != self.lastservice.value:
+			self.lastservice.value = refstr
+			self.lastservice.save()
 
 
 def playServiceWithIPTVPiPATV(self, service):
@@ -329,7 +343,6 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 	oldref = self.currentlyPlayingServiceOrGroup
 	if "%3a//" in ref.toString():
 		self.currentlyPlayingServiceReference = None
-		self.currentlyPlayingServiceOrGroup = None
 		self.currentlyPlayingService = None
 		if InfoBarInstance:
 			InfoBarInstance.session.screen["CurrentService"].newService(False)
@@ -343,6 +356,7 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 
 	self.currentlyPlayingServiceReference = ref
 	self.currentlyPlayingServiceOrGroup = ref
+	self.originalPlayingServiceReference = ref
 
 	if InfoBarInstance:
 		InfoBarInstance.session.screen["CurrentService"].newService(ref)
@@ -368,6 +382,7 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 						print("[Navigation] Failed to start: ", alternativeref.toString())
 						self.currentlyPlayingServiceReference = None
 						self.currentlyPlayingServiceOrGroup = None
+						self.originalPlayingServiceReference = None
 						if oldref and "://" in oldref.getPath():
 							print("[Navigation] Streaming was active -> try again")  # use timer to give the streamserver the time to deallocate the tuner
 							self.retryServicePlayTimer = eTimer()
@@ -430,6 +445,7 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 			if config.misc.softcam_streamrelay_delay.value and self.currentServiceIsStreamRelay:
 				self.currentServiceIsStreamRelay = False
 				self.currentlyPlayingServiceReference = None
+				self.originalPlayingServiceReference = None
 				self.currentlyPlayingServiceOrGroup = None
 				print("[Navigation] Streamrelay was active -> delay the zap till tuner is freed")
 				self.retryServicePlayTimer = eTimer()
@@ -437,6 +453,7 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 				self.retryServicePlayTimer.start(config.misc.softcam_streamrelay_delay.value, True)
 			elif not is_dynamic and self.pnav.playService(playref):
 				self.currentlyPlayingServiceReference = None
+				self.originalPlayingServiceReference = None
 				self.currentlyPlayingServiceOrGroup = None
 				if oldref and "://" in oldref.getPath():
 					print("[Navigation] Streaming was active -> try again")  # use timer to give the streamserver the time to deallocate the tuner
@@ -547,6 +564,13 @@ def playServiceWithIPTVATV(self, ref, checkParentalControl=True, forceRestart=Fa
 			self.currentlyPlayingServiceOrGroup = InfoBarInstance.servicelist.servicelist.getCurrent()
 		return 1
 
+def getCurrentServiceReferenceOriginal(self):
+	return self.originalPlayingServiceReference
+
+def getCurrentlyPlayingServiceOrGroup(self):
+	if not self.currentlyPlayingServiceOrGroup:
+		return None
+	return self.originalPlayingServiceReference or self.currentlyPlayingServiceOrGroup
 
 def playRealService(self, nnref):
 	#self.pnav.stopService()
@@ -556,10 +580,10 @@ def playRealService(self, nnref):
 	from Components.ServiceEventTracker import InfoBarCount
 	InfoBarInstance = InfoBarCount == 1 and InfoBar.instance
 	if InfoBarInstance:
-		if "%3a//" in nnref.toString():
-			InfoBarInstance.session.screen["CurrentService"].newService(nnref)
-		else:
-			InfoBarInstance.session.screen["CurrentService"].newService(True)
+		#if "%3a//" in nnref.toString():
+		#	InfoBarInstance.session.screen["CurrentService"].newService(nnref)
+		#else:
+		#	InfoBarInstance.session.screen["CurrentService"].newService(True)
 		InfoBarInstance.serviceStarted()
 
 
