@@ -38,6 +38,7 @@ from Components.Sources.StaticText import StaticText
 from Components.Sources.List import List
 from Components.Sources.Progress import Progress
 from Components.SystemInfo import SystemInfo, BoxInfo
+from Components.Sources.StreamService import StreamServiceList
 from Tools.Directories import fileExists, isPluginInstalled
 from Tools.BoundFunction import boundFunction
 from Navigation import Navigation
