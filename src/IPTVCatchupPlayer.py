@@ -340,7 +340,7 @@ class CatchupPlayer(MoviePlayer):
 		sref_ret = sref_split[10:][0]
 		newPlayref = constructCompleteCatchupSref(self.catchup_ref_type, self.orig_sref, sref_ret, new_start, new_start + self.duration_curr, self.duration_curr)
 		newPlayref.setName(self.event.getEventName())
-		self.session.nav.playService(newPlayref)
+		self.session.nav.playService(newPlayref, forceRestart=True)
 		self.onProgressTimer()
 
 	def setResumePoint(self):

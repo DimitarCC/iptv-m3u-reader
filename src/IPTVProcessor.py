@@ -25,7 +25,7 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 		catchup_type = match.groups(1)[0]
 
 	if catchup_type == CATCHUP_DEFAULT_TEXT:
-		return url_play.replace("%3a", ":").replace("${start}", str(stime)).replace("${timestamp}", str(now)).replace("${duration}", str(duration))
+		return url_play.replace("${start}", str(stime)).replace("${timestamp}", str(now)).replace("${duration}", str(duration))
 	elif catchup_type == CATCHUP_APPEND_TEXT:
 		pass
 	elif catchup_type == CATCHUP_SHIFT_TEXT:
@@ -44,7 +44,7 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 		if match:
 			end_s = match.group(0)
 			url = url.replace("/live/", "/timeshift/").replace(end_s, f'/{duration}/{datetime.fromtimestamp(stime_offset).strftime("%Y-%m-%d:%H-%M")}{end_s}')
-		return url.replace("%3a", ":")
+		return url
 	elif catchup_type == CATCHUP_STALKER_TEXT:
 		pass
 	return url_play
