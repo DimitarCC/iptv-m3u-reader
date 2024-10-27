@@ -76,7 +76,7 @@ def injectCatchupInEPG():
 		def __new_GraphMultiEPG_init__(self, *args, **kwargs):
 			GraphMultiEPG.playArchiveEntry = playArchiveEntry
 			__old_GraphMultiEPG_init__(self, *args, **kwargs)
-			self["CatchUpActions"] = HelpableActionMap(self, "MediaPlayerActions",
+			self["CatchUpActions"] = HelpableActionMap(self, "M3UIPTVPlayActions",
 			{
 				"play": (self.playArchiveEntry, _("Play Archive")),
 			}, -2)
