@@ -8,7 +8,9 @@ from Components.Sources.Progress import Progress
 from Components.Label import Label
 from Components.Sources.StaticText import StaticText
 from Components.MultiContent import MultiContentEntryPixmapAlphaBlend
-from Components.ActionMap import HelpableActionMap
+from Components.config import config
+from Components.ActionMap import ActionMap, HelpableActionMap
+from Tools.BoundFunction import boundFunction
 from Tools.Directories import resolveFilename, SCOPE_CURRENT_SKIN
 from Tools.LoadPixmap import LoadPixmap
 from .IPTVProcessor import constructCatchUpUrl
@@ -150,6 +152,15 @@ class CatchupPlayer(MoviePlayer):
 	def __init__(self, session, service, sref_ret="", slist=None, lastservice=None, event=None, orig_sref="", orig_url="", start_orig=0, end_org=0, duration=0, catchup_ref_type=4097):
 		MoviePlayer.__init__(self, session, service=service, slist=slist, lastservice=lastservice)
 		self.skinName = ["CatchupPlayer", "ArchiveMoviePlayer", "MoviePlayer"]
+		self["NumberSeekActions"] = ActionMap(["NumberActions"],
+		{
+			"1": boundFunction(self.numberSeek, 1),
+			"3": boundFunction(self.numberSeek, 3),
+			"4": boundFunction(self.numberSeek, 4),
+			"6": boundFunction(self.numberSeek, 6),
+			"7": boundFunction(self.numberSeek, 7),
+			"9": boundFunction(self.numberSeek, 9),
+		}, -10)  # noqa: E123
 		self.onPlayStateChanged.append(self.__playStateChanged)
 		self["progress"] = Progress()
 		self["progress_summary"] = Progress()
@@ -387,6 +398,11 @@ class CatchupPlayer(MoviePlayer):
 
 	def seekFwd(self):
 		self.invokeSeek(1)
+
+	def numberSeek(self, key):
+		self.current_seek_step_multiplier = 1
+		self.current_seek_step = {1: - config.seek.selfdefined_13.value, 3: config.seek.selfdefined_13.value, 4: - config.seek.selfdefined_46.value, 6: config.seek.selfdefined_46.value, 7: - config.seek.selfdefined_79.value, 9: config.seek.selfdefined_79.value}[key]
+		self.invokeSeek()
 
 	# kill some functions
 	def seekFwdSeekbar(self):
