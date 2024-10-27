@@ -221,7 +221,7 @@ class CatchupPlayer(MoviePlayer):
 	def onAudioSubTrackChanged(self):
 		self.doServiceRestart()
 
-	def invokeSeek(self, direction):
+	def invokeSeek(self, direction=0):
 		self.seek_timer.stop()
 		self.showAfterSeek()
 		if self.invoked_seek_stime == -1:
@@ -230,14 +230,15 @@ class CatchupPlayer(MoviePlayer):
 		else:
 			curr_pos = self.invoked_seek_stime
 		p = curr_pos - self.start_orig
-		try:
-			index = self.seek_steps.index(abs(self.current_seek_step))
-			if index < len(self.seek_steps) - 1:
-				self.current_seek_step = self.seek_steps[index + 1] * direction
-			else:
-				self.current_seek_step_multiplier += 1
-		except ValueError:
-			self.current_seek_step = self.seek_steps[0] * direction
+		if direction:  # if direction == 0 skip the incrementing stuff and use self.current_seek_step directly
+			try:
+				index = self.seek_steps.index(abs(self.current_seek_step))
+				if index < len(self.seek_steps) - 1:
+					self.current_seek_step = self.seek_steps[index + 1] * direction
+				else:
+					self.current_seek_step_multiplier += 1
+			except ValueError:
+				self.current_seek_step = self.seek_steps[0] * direction
 		p += self.current_seek_step * self.current_seek_step_multiplier
 		if p >= self.duration:
 			p = self.duration
@@ -374,12 +375,12 @@ class CatchupPlayer(MoviePlayer):
 		self.handleLeave("quit")
 
 	def up(self):
-		self.current_seek_step = 300
-		self.invokeSeek(1)
+		self.current_seek_step = 600
+		self.invokeSeek()
 
 	def down(self):
-		self.current_seek_step = -300
-		self.invokeSeek(-1)
+		self.current_seek_step = -600
+		self.invokeSeek()
 
 	def seekBack(self):
 		self.invokeSeek(-1)
