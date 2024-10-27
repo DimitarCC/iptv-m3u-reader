@@ -22,7 +22,7 @@ class M3UProvider(IPTVProcessor):
 		self.create_epg = True
 		self.catchup_type = CATCHUP_DEFAULT
 		self.play_system_vod = "4097"
-		self.play_system_catchup = self.play_system
+		self.play_system_catchup = "4097"
 
 	def getEpgUrlForSources(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
@@ -222,18 +222,18 @@ class M3UProvider(IPTVProcessor):
 			catchup_source = ""
 			for line in playlist.splitlines():
 				line = line.strip()  # just in case there is surrounding white space present
-				if line.startswith("#EXTINF:"):
+				if line.startswith("#EXTINF"):
 					findurl = (channelSID in line) or (("," + channelForSearch) in line)
-					match = re.search(r"catchup-source=\"(.*)\"\scatchup-days=", line)
+					match = re.search(r"catchup-source=\"(.*?)\"", line)
 					if match:
-						catchup_source = match.groups(1)[0]
+						catchup_source = match.group(1)
 					else:
 						catchup_source = ""
+					if event and catchup_source and findurl:
+						nref_new = origRef + ":" + catchup_source.replace(":", "%3a")
+						break
 				elif findurl and line.startswith(("http://", "https://")):
-					if event and catchup_source:
-						iptv_url = catchup_source.replace(":", "%3a")
-					else:
-						iptv_url = line.replace(":", "%3a")
+					iptv_url = line.replace(":", "%3a")
 					nref_new = origRef + ":" + iptv_url + ":" + orig_name + "•" + prov.iptv_service_provider
 					break
 			self.nnref = eServiceReference(nref_new)

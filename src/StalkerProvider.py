@@ -28,7 +28,7 @@ class StalkerProvider(IPTVProcessor):
 		self.create_epg = False
 		self.catchup_type = CATCHUP_STALKER
 		self.play_system_vod = "4097"
-		self.play_system_catchup = self.play_system
+		self.play_system_catchup = "4097"
 
 	def storePlaylistAndGenBouquet(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value

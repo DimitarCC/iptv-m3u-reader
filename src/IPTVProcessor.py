@@ -75,7 +75,7 @@ class IPTVProcessor():
 		self.epg_url = ""
 		self.catchup_type = CATCHUP_DEFAULT
 		self.play_system_vod = "4097"
-		self.play_system_catchup = self.play_system
+		self.play_system_catchup = "4097"
 		self.movie_categories = {}
 		self.is_dynamic_epg = False
 		self.is_custom_xmltv = False

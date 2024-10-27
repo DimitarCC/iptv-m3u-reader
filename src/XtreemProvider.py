@@ -20,7 +20,7 @@ class XtreemProvider(IPTVProcessor):
 		self.create_epg = True
 		self.catchup_type = CATCHUP_XTREME
 		self.play_system_vod = "4097"
-		self.play_system_catchup = self.play_system
+		self.play_system_catchup = "4097"
 
 	def getEpgUrl(self):
 		return self.custom_xmltv_url if self.is_custom_xmltv and self.custom_xmltv_url else "%s/xmltv.php?username=%s&password=%s" % (self.url, self.username, self.password)

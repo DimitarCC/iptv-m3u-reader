@@ -144,7 +144,7 @@ def constructCompleteCatchupSref(catchup_service_type, sref, url_play, stime, et
 	url = constructCatchUpUrl(sref, url_play, stime, etime, duration)
 	split_ref = sref.split(":")
 	split_ref[0] = str(catchup_service_type)
-	result_sref = ":".join(split_ref[:10]) + ":" + url + ":" + split_ref[-1]
+	result_sref = ":".join(split_ref[:10]) + ":" + url.replace(":", "%3a")
 	return eServiceReference(result_sref)
 
 
@@ -171,7 +171,6 @@ class CatchupPlayer(MoviePlayer):
 		self.skip_progress_update = False
 		self.progress_change_interval = 1000
 		self.catchup_ref_type = catchup_ref_type
-		self.cur_pos_manual = 0
 		self.event = event
 		self.orig_sref = orig_sref
 		self.duration = duration
@@ -269,21 +268,24 @@ class CatchupPlayer(MoviePlayer):
 		self.current_seek_step_multiplier = 1
 
 	def onProgressTimer(self):
-		self.cur_pos_manual += 1
 		curr_pos = self.start_curr + self.getPosition()
 		p = curr_pos - self.start_orig
 		if not self.skip_progress_update:
 			self.setProgress(p)
 
 	def getPosition(self):
-		return self.cur_pos_manual
+		seekable = self.getSeek()
+		if seekable is not None:
+			pos = seekable.getPlayPosition()
+			if not pos[0]:
+				return pos[1] // 90000
+		return 0
 
 	def __evServiceStart(self):
 		if self.progress_timer:
 			self.progress_timer.start(self.progress_change_interval)
 		self.start_curr = self.start_orig + self.seekTo_pos
 		self.seekTo_pos = 0
-		self.cur_pos_manual = 0
 		self.invoked_seek_stime = -1
 
 	def __evServiceEnd(self):
@@ -447,7 +449,7 @@ def playArchiveEntry(self):
 		stime = event.getBeginTime()
 		if "catchupdays=" in service.toString() and stime < now:
 			match = re.search(r"catchupdays=(\d*)", service.toString())
-			catchup_days = int(match.groups(1)[0])
+			catchup_days = int(match.group(1))
 			if now - stime <= datetime.timedelta(days=catchup_days).total_seconds():
 				duration = event.getDuration()
 				sref_split = sref.split(":")

@@ -694,11 +694,11 @@ class M3UIPTVVoDSeries(Screen):
 			<widget source="description" render="Label" position="%d,%d" zPosition="10" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1" />
 		</screen>""",
 			980, 600,  # screen
-			15, 60, 950, 450,  # Listbox
+			15, 60, 950, 430,  # Listbox
 			2, 0, 630, 26,  # template
 			22,  # fonts
 			26,  # ItemHeight
-			5, 460, 940, 50, 22,  # description
+			5, 500, 940, 50, 22,  # description
 			]  # noqa: E124
 
 	def __init__(self, session):
@@ -898,11 +898,11 @@ class M3UIPTVVoDMovies(Screen):
 			<widget source="description" render="Label" position="%d,%d" zPosition="10" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1" />
 		</screen>""",
 			980, 600,  # screen
-			15, 60, 950, 450,  # Listbox
+			15, 60, 950, 430,  # Listbox
 			2, 0, 630, 26,  # template
 			22,  # fonts
 			26,  # ItemHeight
-			5, 460, 940, 50, 22,  # description
+			5, 500, 940, 50, 22,  # description
 			]  # noqa: E124
 
 	def __init__(self, session):
@@ -1075,12 +1075,12 @@ class M3UIPTVManagerConfig(Screen):
 		 	<widget source="progress" render="Progress" position="%d,%d" size="%d,%d" backgroundColor="background" foregroundColor="blue" zPosition="11" borderWidth="0" borderColor="grey" cornerRadius="%d"/>
 		</screen>""",
 			980, 600,  # screen
-			15, 60, 950, 450,  # Listbox
+			15, 60, 950, 430,  # Listbox
 			2, 0, 630, 26,  # template
 			22,  # fonts
 			26,  # ItemHeight
-			5, 460, 940, 50, 22,  # description
-			5, 460, 940, 6, 3,  # progress
+			5, 500, 940, 50, 22,  # description
+			5, 500, 940, 6, 3,  # progress
 			]  # noqa: E124
 
 	def __init__(self, session):
@@ -1282,11 +1282,15 @@ class M3UIPTVProviderEdit(Setup):
 		self.mac = ConfigText(default=providerObj.mac, fixed_size=False)
 		self.is_custom_xmltv = ConfigYesNo(default=providerObj.is_custom_xmltv)
 		self.custom_xmltv_url = ConfigText(default=providerObj.custom_xmltv_url, fixed_size=False)
+		isServiceAppInstalled = isPluginInstalled("ServiceApp")
 		play_system_choices = [("1", "DVB"), ("4097", "HiSilicon" if BoxInfo.getItem("mediaservice") == "servicehisilicon" else "GStreamer")]
-		if isPluginInstalled("ServiceApp"):
+		if isServiceAppInstalled:
 			play_system_choices.append(("5002", "Exteplayer3"))
 		self.play_system = ConfigSelection(default=providerObj.play_system, choices=play_system_choices)
-		self.play_system_catchup = ConfigSelection(default=providerObj.play_system_catchup, choices=play_system_choices)
+		catchup_play_system_choices = [("4097", "HiSilicon" if BoxInfo.getItem("mediaservice") == "servicehisilicon" else "GStreamer")]
+		if isServiceAppInstalled:
+			catchup_play_system_choices.append(("5002", "Exteplayer3"))
+		self.play_system_catchup = ConfigSelection(default=providerObj.play_system_catchup, choices=catchup_play_system_choices)
 		catchup_type_choices = [(CATCHUP_DEFAULT, _("Standard")), (CATCHUP_APPEND, _("Append")), (CATCHUP_SHIFT, _("Shift")), (CATCHUP_XTREME, _("Xtreme Codes")), (CATCHUP_STALKER, _("Stalker"))]
 		self.catchup_type = ConfigSelection(default=providerObj.catchup_type, choices=catchup_type_choices)
 		self.epg_url = ConfigText(default=providerObj.epg_url, fixed_size=False)
