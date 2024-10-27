@@ -1,6 +1,7 @@
 from enigma import eServiceReference, eTimer, iPlayableService
 from Screens.InfoBar import InfoBar, MoviePlayer
 from Screens.InfoBarGenerics import saveResumePoints, resumePointCache, resumePointCacheLast, delResumePoint, isStandardInfoBar
+from Screens.MinuteInput import MinuteInput
 from Screens.Screen import Screen
 from Screens.AudioSelection import AudioSelection
 from Components.ServiceEventTracker import ServiceEventTracker
@@ -404,12 +405,19 @@ class CatchupPlayer(MoviePlayer):
 		self.current_seek_step = {1: - config.seek.selfdefined_13.value, 3: config.seek.selfdefined_13.value, 4: - config.seek.selfdefined_46.value, 6: config.seek.selfdefined_46.value, 7: - config.seek.selfdefined_79.value, 9: config.seek.selfdefined_79.value}[key]
 		self.invokeSeek()
 
-	# kill some functions
 	def seekFwdSeekbar(self):
-		pass
-	
+		seek = self.session.openWithCallback(boundFunction(self.SeekTo, 1), MinuteInput)
+		seek.title = _("Seek forwards")
+
 	def seekBackSeekbar(self):
-		pass
+		seek = self.session.openWithCallback(boundFunction(self.SeekTo, -1), MinuteInput)
+		seek.title = _("Seek back")
+
+	def SeekTo(self, direction, minutes):
+		if minutes:
+			self.current_seek_step_multiplier = 1
+			self.current_seek_step = minutes * 60 * direction
+			self.invokeSeek()
 
 	def createSummary(self):
 		return CatchupPlayerSummary
