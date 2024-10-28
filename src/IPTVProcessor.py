@@ -30,8 +30,8 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 		pass
 	elif catchup_type == CATCHUP_SHIFT_TEXT:
 		sref_split = sref.split(":")
-		url = sref_split[10:][0]
-		return f"{url}&utc={str(stime)}&lutc={str(etime)}"
+		url = sref_split[10:][0].split("?")[0]
+		return f"{url}?utc={str(stime)}&lutc={str(int(now))}"
 	elif catchup_type == CATCHUP_XTREME_TEXT:
 		sref_split = sref.split(":")
 		url = sref_split[10:][0]
