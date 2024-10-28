@@ -443,8 +443,6 @@ class CatchupPlayerSummary(Screen):
 def playArchiveEntry(self):
 	now = time()
 	event, service = self["list"].getCurrent()[:2]
-	if not isinstance(service, eServiceReference):
-		service = eServiceReference(service)
 	playref, old_ref, is_dynamic, catchup_ref_type = processIPTVService(service, None, event)
 	sref = playref.toString()
 	if event is not None:
