@@ -66,7 +66,7 @@ class XtreemProvider(IPTVProcessor):
 			category_id = service.get("category_id")
 			if not (stream_id and ch_name):
 				continue
-			surl = "%s/live/%s/%s/%s.%s" % (self.url, self.username, self.password, stream_id, "ts" if self.play_system == "1" else "m3u8")
+			surl = "%s/live/%s/%s/%s.%s" % (self.url, self.username, self.password, stream_id, "ts")
 			catchup_days = service.get("tv_archive_duration")
 			if catchup_days:
 				surl = self.constructCatchupSufix(str(catchup_days), surl, CATCHUP_XTREME_TEXT)
