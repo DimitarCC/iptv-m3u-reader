@@ -83,6 +83,9 @@ class IPTVProcessor():
 		self.server_timezone_offset = 0
 		self.provider_info = {}
 
+	def isLocalPlaylist(self):
+		return not self.url.startswith(("http://", "https://"))
+
 	def getTempDir(self):
 		return path.join(path.realpath("/tmp"), "M3UIPTV", self.scheme)
 

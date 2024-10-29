@@ -1,13 +1,14 @@
 from enigma import eServiceReference, eDVBDB
 from ServiceReference import ServiceReference
 from Components.config import config
+from Tools.Directories import fileExists
 from time import time
 from twisted.internet import threads
 import socket
 import urllib
 import re
 from .IPTVProcessor import IPTVProcessor
-from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_TYPES
+from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_TYPES
 
 db = eDVBDB.getInstance()
 
@@ -46,17 +47,24 @@ class M3UProvider(IPTVProcessor):
 		return self.getEpgUrl()
 
 	def storePlaylistAndGenBouquet(self):
-		is_check_network_val = config.plugins.m3uiptv.check_internet.value
-		if is_check_network_val != "off":
-			socket.setdefaulttimeout(int(is_check_network_val))
-			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
-		req = urllib.request.Request(self.url, headers={'User-Agent': USER_AGENT})
-		req_timeout_val = config.plugins.m3uiptv.req_timeout.value
-		if req_timeout_val != "off":
-			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
+		playlist = None
+		if not self.isLocalPlaylist():
+			is_check_network_val = config.plugins.m3uiptv.check_internet.value
+			if is_check_network_val != "off":
+				socket.setdefaulttimeout(int(is_check_network_val))
+				socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
+			req = urllib.request.Request(self.url, headers={'User-Agent': USER_AGENT})
+			req_timeout_val = config.plugins.m3uiptv.req_timeout.value
+			if req_timeout_val != "off":
+				response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
+			else:
+				response = urllib.request.urlopen(req, timeout=10) # set a timeout to prevent blocking
+			playlist = response.read().decode('utf-8')
 		else:
-			response = urllib.request.urlopen(req, timeout=10) # set a timeout to prevent blocking
-		playlist = response.read().decode('utf-8')
+			if not fileExists(self.url):
+				return
+			fd = open(self.url, 'rb')
+			playlist = fd.read().decode('utf-8')
 		self.playlist = playlist
 		playlist_splitted = playlist.splitlines()
 		tsid = 1000
@@ -103,7 +111,7 @@ class M3UProvider(IPTVProcessor):
 					match = re.search(r".*tvg-rec=\"(\d*)\".*", line)
 					if match:
 						captchup_days = match.group(1)
-					if self.static_urls:
+					if self.static_urls or self.isLocalPlaylist():
 						found_url = False
 						next_line_nr = line_nr + 1
 						while not found_url:
