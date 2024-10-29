@@ -269,6 +269,9 @@ class CatchupPlayer(MoviePlayer):
 
 	def onProgressTimer(self):
 		curr_pos = self.start_curr + self.getPosition()
+		if curr_pos >= self.end_orig:
+			self.setSeekState(self.SEEK_STATE_EOF)
+			self.leavePlayer()
 		p = curr_pos - self.start_orig
 		if not self.skip_progress_update:
 			self.setProgress(p)
