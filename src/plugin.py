@@ -1534,6 +1534,9 @@ def M3UIPTVVoDMenuCallback(close, answer=None):
 	if close and answer:
 		close(True)
 
+def main(session, **kwargs):
+	session.open(M3UIPTVManagerConfig)
+
 
 def startSetup(menuid):
 	if menuid != "setup":
@@ -1556,7 +1559,8 @@ def sessionstart(reason, **kwargs):
 def Plugins(path, **kwargs):
 	try:
 		result = [PluginDescriptor(where=PluginDescriptor.WHERE_SESSIONSTART, fnc=sessionstart, needsRestart=False),
-		  		PluginDescriptor(where=PluginDescriptor.WHERE_MENU, needsRestart=False, fnc=startSetup)
+		  		PluginDescriptor(where=PluginDescriptor.WHERE_MENU, needsRestart=False, fnc=startSetup),
+				PluginDescriptor(name=_("M3UIPTV"), description=_("IPTV manager Plugin"), where=PluginDescriptor.WHERE_PLUGINMENU, icon='plugin.png', fnc=main)
 		]
 		if config.plugins.m3uiptv.inmenu.value:
 			result += [PluginDescriptor(where=PluginDescriptor.WHERE_MENU, needsRestart=False, fnc=startVoDSetup)]

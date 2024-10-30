@@ -1,9 +1,10 @@
 from enigma import eServiceReference, eTimer, iPlayableService
 from Screens.InfoBar import InfoBar, MoviePlayer
-from Screens.InfoBarGenerics import saveResumePoints, resumePointCache, resumePointCacheLast, delResumePoint, isStandardInfoBar
+from Screens.InfoBarGenerics import saveResumePoints, resumePointCache, resumePointCacheLast
 from Screens.MinuteInput import MinuteInput
 from Screens.Screen import Screen
 from Screens.AudioSelection import AudioSelection
+from Screens.MessageBox import MessageBox
 from Components.ServiceEventTracker import ServiceEventTracker
 from Components.Sources.Progress import Progress
 from Components.Label import Label
@@ -14,6 +15,7 @@ from Components.ActionMap import ActionMap, HelpableActionMap
 from Tools.BoundFunction import boundFunction
 from Tools.Directories import resolveFilename, SCOPE_CURRENT_SKIN
 from Tools.LoadPixmap import LoadPixmap
+from Tools import Notifications
 from .IPTVProcessor import constructCatchUpUrl
 from .IPTVProviders import processService as processIPTVService
 from time import time
@@ -187,6 +189,8 @@ class CatchupPlayer(MoviePlayer):
 		self.seek_timer.callback.append(self.onSeekRequest)
 		self.seekTo_pos = 0
 		self.invoked_seek_stime = -1
+		self.resume_point = None
+		self.isSeeking = False
 		self["progress"].value = 0
 		self["progress_summary"].value = 0
 		self["time_info"] = Label("")
@@ -235,6 +239,7 @@ class CatchupPlayer(MoviePlayer):
 	def invokeSeek(self, direction=0):
 		self.seek_timer.stop()
 		self.showAfterSeek()
+		self.isSeeking = True
 		if self.invoked_seek_stime == -1:
 			curr_pos = self.start_curr + self.getPosition()
 			self.invoked_seek_stime = curr_pos
@@ -270,8 +275,7 @@ class CatchupPlayer(MoviePlayer):
 	def onProgressTimer(self):
 		curr_pos = self.start_curr + self.getPosition()
 		if curr_pos >= self.end_orig:
-			self.setSeekState(self.SEEK_STATE_EOF)
-			self.leavePlayer()
+			self.doEofInternal(True)
 		p = curr_pos - self.start_orig
 		if not self.skip_progress_update:
 			self.setProgress(p)
@@ -283,6 +287,31 @@ class CatchupPlayer(MoviePlayer):
 			if not pos[0]:
 				return pos[1] // 90000
 		return 0
+	
+	def playLastCB(self, answer):
+		if answer is True and self.resume_point:
+			self.isSeeking = True
+			self.seekTo_pos = self.resume_point
+			self.doSeekRelative(self.seekTo_pos)
+
+	def getResumePoint(self):
+		global resumePointCache
+		try:
+			key = self.orig_sref + "|st=" + str(self.start_orig)
+			entry = resumePointCache[key]
+			entry[0] = int(time())  # update LRU timestamp
+			return entry[1]
+		except KeyError:
+			return None
+		
+	def delResumePoint(self):
+		global resumePointCache, resumePointCacheLast
+		try:
+			key = self.orig_sref + "|st=" + str(self.start_orig)
+			del resumePointCache[key]
+		except KeyError:
+			pass
+		saveResumePoints()
 
 	def __evServiceStart(self):
 		if self.progress_timer:
@@ -290,6 +319,14 @@ class CatchupPlayer(MoviePlayer):
 		self.start_curr = self.start_orig + self.seekTo_pos
 		self.seekTo_pos = 0
 		self.invoked_seek_stime = -1
+		self.onProgressTimer()
+		if not self.isSeeking:
+			self.resume_point = self.getResumePoint()
+			if self.resume_point is not None:
+				x = self.resume_point
+				Notifications.AddNotificationWithCallback(self.playLastCB, MessageBox, _("Do you want to resume playback?") + "\n" + (_("Resume position at %s") % ("%d:%02d:%02d" % (x / 3600, x % 3600 / 60, x % 60))), timeout=30, default="yes" in config.usage.on_movie_start.value)
+		
+		self.isSeeking = False
 
 	def __evServiceEnd(self):
 		if self.progress_timer:
@@ -347,8 +384,7 @@ class CatchupPlayer(MoviePlayer):
 		new_start = self.start_orig + pts
 
 		if pts >= self.duration:
-			self.setSeekState(self.SEEK_STATE_EOF)
-			self.leavePlayer()
+			self.doEofInternal(True)
 
 		if pts == 0:
 			self.duration_curr = self.duration
@@ -364,31 +400,24 @@ class CatchupPlayer(MoviePlayer):
 	def setResumePoint(self):
 		global resumePointCache, resumePointCacheLast
 		service = self.session.nav.getCurrentService()
-		ref = self.session.nav.getCurrentlyPlayingServiceOrGroup()
-		if (service is not None) and (ref is not None):
-			seek = service.seek()
-			if seek:
-				pos = seek.getPlayPosition()
-				if not pos[0]:
-					key = ref.toString()
-					lru = int(time())
-					sl = seek.getLength()
-					if sl:
-						sl = sl[1]
-					else:
-						sl = None
-					resumePointCache[key] = [lru, pos[1], sl]
-					saveResumePoints()
+		if (service is not None):
+			curr_pos = self.start_curr + self.getPosition()
+			pos = curr_pos - self.start_orig
+			key = self.orig_sref + "|st=" + str(self.start_orig)
+			lru = int(time())
+			sl = self.duration
+			resumePointCache[key] = [lru, pos, sl]
+			saveResumePoints()
 
 	def doEofInternal(self, playing):
 		if not self.execing:
 			return
 		if not playing:
 			return
-		self.progress_timer.stop()
-		ref = self.session.nav.getCurrentlyPlayingServiceOrGroup()
-		if ref:
-			delResumePoint(ref)
+		if self.progress_timer:
+			self.progress_timer.stop()
+			self.progress_timer.callback.remove(self.onProgressTimer)
+		self.delResumePoint()
 		self.handleLeave("quit")
 
 	def up(self):
