@@ -407,7 +407,7 @@ class CatchupPlayer(MoviePlayer):
 
 	def numberSeek(self, key):
 		self.current_seek_step_multiplier = 1
-		self.current_seek_step = {1: - config.seek.selfdefined_13.value, 3: config.seek.selfdefined_13.value, 4: - config.seek.selfdefined_46.value, 6: config.seek.selfdefined_46.value, 7: - config.seek.selfdefined_79.value, 9: config.seek.selfdefined_79.value}[key]
+		self.current_seek_step += {1: - config.seek.selfdefined_13.value, 3: config.seek.selfdefined_13.value, 4: - config.seek.selfdefined_46.value, 6: config.seek.selfdefined_46.value, 7: - config.seek.selfdefined_79.value, 9: config.seek.selfdefined_79.value}[key]
 		self.invokeSeek()
 
 	def seekFwdSeekbar(self):
