@@ -392,11 +392,11 @@ class CatchupPlayer(MoviePlayer):
 		self.handleLeave("quit")
 
 	def up(self):
-		self.current_seek_step = 600
+		self.current_seek_step += 600
 		self.invokeSeek()
 
 	def down(self):
-		self.current_seek_step = -600
+		self.current_seek_step += -600
 		self.invokeSeek()
 
 	def seekBack(self):
