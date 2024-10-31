@@ -10,7 +10,7 @@ from Components.Label import Label
 from Components.Sources.StaticText import StaticText
 from Components.MultiContent import MultiContentEntryPixmapAlphaBlend
 from Components.config import config
-from Components.ActionMap import ActionMap, HelpableActionMap
+from Components.ActionMap import NumberActionMap, HelpableActionMap
 from Tools.BoundFunction import boundFunction
 from Tools.Directories import resolveFilename, SCOPE_CURRENT_SKIN
 from Tools.LoadPixmap import LoadPixmap
@@ -161,14 +161,14 @@ class CatchupPlayer(MoviePlayer):
 	def __init__(self, session, service, sref_ret="", slist=None, lastservice=None, event=None, orig_sref="", orig_url="", start_orig=0, end_org=0, duration=0, catchup_ref_type=4097):
 		MoviePlayer.__init__(self, session, service=service, slist=slist, lastservice=lastservice)
 		self.skinName = ["CatchupPlayer", "ArchiveMoviePlayer", "MoviePlayer"]
-		self["NumberSeekActions"] = ActionMap(["NumberActions"],
+		self["NumberSeekActions"] = NumberActionMap(["NumberActions"],
 		{
-			"1": boundFunction(self.numberSeek, 1),
-			"3": boundFunction(self.numberSeek, 3),
-			"4": boundFunction(self.numberSeek, 4),
-			"6": boundFunction(self.numberSeek, 6),
-			"7": boundFunction(self.numberSeek, 7),
-			"9": boundFunction(self.numberSeek, 9),
+			"1": self.numberSeek,
+			"3": self.numberSeek,
+			"4": self.numberSeek,
+			"6": self.numberSeek,
+			"7": self.numberSeek,
+			"9": self.numberSeek,
 		}, -10)  # noqa: E123
 		self.onPlayStateChanged.append(self.__playStateChanged)
 		self["progress"] = Progress()
