@@ -1,6 +1,6 @@
 from enigma import eServiceReference, eTimer, iPlayableService
 from Screens.InfoBar import InfoBar, MoviePlayer
-from Screens.InfoBarGenerics import saveResumePoints, resumePointCache, resumePointCacheLast
+from Screens.InfoBarGenerics import saveResumePoints, resumePointCache
 from Screens.MinuteInput import MinuteInput
 from Screens.Screen import Screen
 from Screens.AudioSelection import AudioSelection
@@ -305,7 +305,7 @@ class CatchupPlayer(MoviePlayer):
 			return None
 		
 	def delResumePoint(self):
-		global resumePointCache, resumePointCacheLast
+		global resumePointCache
 		try:
 			key = self.orig_sref + "|st=" + str(self.start_orig)
 			del resumePointCache[key]
@@ -398,7 +398,7 @@ class CatchupPlayer(MoviePlayer):
 		self.onProgressTimer()
 
 	def setResumePoint(self):
-		global resumePointCache, resumePointCacheLast
+		global resumePointCache
 		service = self.session.nav.getCurrentService()
 		if (service is not None):
 			curr_pos = self.start_curr + self.getPosition()
