@@ -295,21 +295,17 @@ class CatchupPlayer(MoviePlayer):
 			self.doSeekRelative(self.seekTo_pos)
 
 	def getResumePoint(self):
-		try:
-			key = self.orig_sref + "|st=" + str(self.start_orig)
+		key = self.orig_sref + "|st=" + str(self.start_orig)
+		if key in resumePointCache:
 			entry = resumePointCache[key]
 			entry[0] = int(time())  # update LRU timestamp
 			return entry[1]
-		except KeyError:
-			return None
 		
 	def delResumePoint(self):
-		try:
-			key = self.orig_sref + "|st=" + str(self.start_orig)
+		key = self.orig_sref + "|st=" + str(self.start_orig)
+		if key in resumePointCache:
 			del resumePointCache[key]
-		except KeyError:
-			pass
-		saveResumePoints()
+			saveResumePoints()
 
 	def __evServiceStart(self):
 		if self.progress_timer:
