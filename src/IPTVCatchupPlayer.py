@@ -295,7 +295,6 @@ class CatchupPlayer(MoviePlayer):
 			self.doSeekRelative(self.seekTo_pos)
 
 	def getResumePoint(self):
-		global resumePointCache
 		try:
 			key = self.orig_sref + "|st=" + str(self.start_orig)
 			entry = resumePointCache[key]
@@ -305,7 +304,6 @@ class CatchupPlayer(MoviePlayer):
 			return None
 		
 	def delResumePoint(self):
-		global resumePointCache
 		try:
 			key = self.orig_sref + "|st=" + str(self.start_orig)
 			del resumePointCache[key]
@@ -398,7 +396,6 @@ class CatchupPlayer(MoviePlayer):
 		self.onProgressTimer()
 
 	def setResumePoint(self):
-		global resumePointCache
 		service = self.session.nav.getCurrentService()
 		if (service is not None):
 			curr_pos = self.start_curr + self.getPosition()
