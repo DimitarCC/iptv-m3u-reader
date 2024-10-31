@@ -22,7 +22,7 @@ from .epgimport_helper import overwriteEPGImportEPGSourceInit
 from .Variables import USER_IPTV_PROVIDERS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_STALKER
 from Screens.Screen import Screen, ScreenSummary
 from Screens.InfoBar import InfoBar, MoviePlayer
-from Screens.InfoBarGenerics import streamrelay, saveResumePoints, resumePointCache, resumePointCacheLast, delResumePoint
+from Screens.InfoBarGenerics import streamrelay
 from Screens.PictureInPicture import PictureInPicture
 from Screens.ChannelSelection import ChannelSelection
 from Screens.Setup import Setup
@@ -42,6 +42,14 @@ from Components.Sources.StreamService import StreamServiceList
 from Tools.Directories import fileExists, isPluginInstalled
 from Tools.BoundFunction import boundFunction
 from Navigation import Navigation
+
+try:
+	from Screens.InfoBarGenerics import resumePointsInstance
+	saveResumePoints = resumePointsInstance.saveResumePoints
+	resumePointCache = resumePointsInstance.resumePointCache
+	delResumePoint = resumePointsInstance.delResumePoint
+except ImportError:
+	from Screens.InfoBarGenerics import saveResumePoints, resumePointCache, delResumePoint
 
 try:
 	from Plugins.Extensions.tmdb.tmdb import tmdbScreen, tmdbScreenMovie, tempDir as tmdbTempDir, tmdb
@@ -637,7 +645,6 @@ class VoDMoviePlayer(MoviePlayer):
 			self.leavePlayer()
 
 	def setResumePoint(self):
-		global resumePointCache, resumePointCacheLast
 		service = self.session.nav.getCurrentService()
 		ref = self.session.nav.getCurrentlyPlayingServiceOrGroup()
 		if (service is not None) and (ref is not None):

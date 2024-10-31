@@ -1,6 +1,5 @@
 from enigma import eServiceReference, eTimer, iPlayableService
 from Screens.InfoBar import InfoBar, MoviePlayer
-from Screens.InfoBarGenerics import saveResumePoints, resumePointCache
 from Screens.MinuteInput import MinuteInput
 from Screens.Screen import Screen
 from Screens.AudioSelection import AudioSelection
@@ -21,6 +20,13 @@ from .IPTVProviders import processService as processIPTVService
 from time import time
 import datetime
 import re
+
+try:
+	from Screens.InfoBarGenerics import resumePointsInstance
+	saveResumePoints = resumePointsInstance.saveResumePoints
+	resumePointCache = resumePointsInstance.resumePointCache
+except ImportError:
+	from Screens.InfoBarGenerics import saveResumePoints, resumePointCache
 
 try:
 	from Components.EpgListGrid import EPGListGrid as EPGListGrid
