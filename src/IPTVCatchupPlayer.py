@@ -15,6 +15,7 @@ from Tools.BoundFunction import boundFunction
 from Tools.Directories import resolveFilename, SCOPE_CURRENT_SKIN
 from Tools.LoadPixmap import LoadPixmap
 from Tools import Notifications
+from Components.SystemInfo import BoxInfo
 from .IPTVProcessor import constructCatchUpUrl
 from .IPTVProviders import processService as processIPTVService
 from time import time
@@ -188,6 +189,7 @@ class CatchupPlayer(MoviePlayer):
 		self.end_orig = end_org
 		self.start_curr = start_orig
 		self.duration_curr = duration
+		self.current_time_manual = 0
 		self.progress_timer = eTimer()
 		self.progress_timer.callback.append(self.onProgressTimer)
 		self.progress_timer.start(self.progress_change_interval)
@@ -280,6 +282,7 @@ class CatchupPlayer(MoviePlayer):
 
 	def onProgressTimer(self):
 		curr_pos = self.start_curr + self.getPosition()
+		self.current_time_manual += 1
 		if curr_pos >= self.end_orig:
 			self.doEofInternal(True)
 		p = curr_pos - self.start_orig
@@ -287,6 +290,8 @@ class CatchupPlayer(MoviePlayer):
 			self.setProgress(p)
 
 	def getPosition(self):
+		if BoxInfo.getItem("mediaservice") == "servicehisilicon" and self.catchup_ref_type == 4097:
+			return self.current_time_manual
 		seekable = self.getSeek()
 		if seekable is not None:
 			pos = seekable.getPlayPosition()
@@ -314,6 +319,7 @@ class CatchupPlayer(MoviePlayer):
 			saveResumePoints()
 
 	def __evServiceStart(self):
+		self.current_time_manual = 0
 		if self.progress_timer:
 			self.progress_timer.start(self.progress_change_interval)
 		self.start_curr = self.start_orig + self.seekTo_pos
