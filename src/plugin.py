@@ -6,6 +6,7 @@ from time import time, localtime, strftime
 from glob import glob
 import json
 import base64
+from urllib.error import HTTPError, URLError
 from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner
 try:
 	from enigma import pNavigation
@@ -785,11 +786,15 @@ class M3UIPTVVoDSeries(Screen):
 				self.buildList()
 				self["list"].index = 0
 			elif self.mode in (self.MODE_SERIES, self.MODE_SEARCH):
-				self.pushStack()
 				id = current[0]
-				self.seriesName = current[1]
 				provider = current[2]
-				self.episodes = providers[provider].getSeriesById(id)
+				try:
+					self.episodes = providers[provider].getSeriesById(id)
+				except (TimeoutError, HTTPError, URLError) as err:
+					print("[M3UIPTVVoDSeries] keySelect, failure in getSeriesById, %s:" % type(err).__name__, err)
+					return
+				self.pushStack()
+				self.seriesName = current[1]
 				self.mode = self.MODE_EPISODE
 				self.buildList()
 				self["list"].index = 0
