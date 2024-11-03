@@ -267,7 +267,7 @@ class IPTVProcessor():
 				remove_file(path.join(USER_FOLDER, file))
 
 	def cleanFilename(self, name):
-		return sanitizeFilename(name.replace(" ", "").replace("(", "").replace(")", "").replace("&", "").replace("'", "").replace('"', "").replace(',', ""))
+		return sanitizeFilename(name.replace(" ", "").replace("(", "").replace(")", "").replace("&", "").replace("'", "").replace('"', "").replace(',', "").replace(":", "").replace(";", ""))
 
 	def readBlacklist(self):
 		file = USER_IPTV_PROVIDER_BLACKLIST_FILE % self.scheme
