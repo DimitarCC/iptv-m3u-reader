@@ -232,7 +232,7 @@ class IPTVProcessor():
 		return self.custom_xmltv_url if self.is_custom_xmltv and self.custom_xmltv_url else self.epg_url
 
 	def generateEPGImportFiles(self, groups):
-		if not self.create_epg:
+		if not self.create_epg or not self.getEpgUrl():
 			return
 		epghelper = epgimport_helper(self)
 		epghelper.createSourcesFile()
