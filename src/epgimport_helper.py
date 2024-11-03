@@ -92,11 +92,12 @@ class epgimport_helper():
 			' <sourcecat sourcecatname="M3UIPTV plugin">',]
 		for channel in sources:
 			source = sources[channel]
-			sources_out += [
-				'  <source type="gen_xmltv" nocheck="1" dynamic-provider="%s" channels="%s">' % (source["dynamic"], channel),
-				'   <description><![CDATA[%s]]></description>' % source["description"],
-				'   <url><![CDATA[%s]]></url>' % source["url"],
-				'  </source>',]
+			for url in source["url"].split(","):
+				sources_out += [
+					'  <source type="gen_xmltv" nocheck="1" dynamic-provider="%s" channels="%s">' % (source["dynamic"], channel),
+					'   <description><![CDATA[%s]]></description>' % source["description"],
+					'   <url><![CDATA[%s]]></url>' % url.strip(),
+					'  </source>',]
 		sources_out += [
 			' </sourcecat>',
 			'</sources>']
