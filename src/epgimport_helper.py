@@ -76,7 +76,10 @@ class epgimport_helper():
 					if s.find("url") is not None:
 						url = s.find("url").text
 					if dynamic and channels and description and url:
-						ret[channels] = {"dynamic": dynamic, "description": description, "url": url}
+						if channels in ret:  # if multiple entries for same channels.xml
+							ret[channels]["url"] += "," + url
+						else:
+							ret[channels] = {"dynamic": dynamic, "description": description, "url": url}
 		return ret
 
 	def createSourcesFile(self):
