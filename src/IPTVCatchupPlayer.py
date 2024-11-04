@@ -68,8 +68,8 @@ def injectCatchupInEPG():
 			self["key_play"] = StaticText("")
 			self["CatchUpActions"] = HelpableActionMap(self, "M3UIPTVPlayActions",
 			{
-				"play": (self.playArchiveEntry, _("Play Archive")),
-			}, -2)
+				"play": (self.playArchiveEntry, _("Play archive")),
+			}, prio=-2, description=_("Catchup player commands"))
 
 		EPGSelectionGrid.__init__ = __new_EPGSelectionGrid_init__
 
