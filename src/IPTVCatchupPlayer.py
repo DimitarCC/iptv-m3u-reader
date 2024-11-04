@@ -4,6 +4,7 @@ from Screens.MinuteInput import MinuteInput
 from Screens.Screen import Screen
 from Screens.AudioSelection import AudioSelection
 from Screens.MessageBox import MessageBox
+from Screens.EpgSelectionBase import EPGSelectionBase
 from Components.ServiceEventTracker import ServiceEventTracker
 from Components.Sources.Progress import Progress
 from Components.Label import Label
@@ -58,11 +59,13 @@ def injectCatchupInEPG():
 		EPGListGrid.__init__ = __init_new__
 
 	if EPGSelectionGrid:
+		EPGSelectionGrid.onSelectionChanged = onSelectionChanged
 		__old_EPGSelectionGrid_init__ = EPGSelectionGrid.__init__
 
 		def __new_EPGSelectionGrid_init__(self, *args, **kwargs):
 			EPGSelectionGrid.playArchiveEntry = playArchiveEntry
 			__old_EPGSelectionGrid_init__(self, *args, **kwargs)
+			self["key_play"] = StaticText("")
 			self["CatchUpActions"] = HelpableActionMap(self, "M3UIPTVPlayActions",
 			{
 				"play": (self.playArchiveEntry, _("Play Archive")),
@@ -94,6 +97,19 @@ def injectCatchupInEPG():
 			}, -2)
 
 		GraphMultiEPG.__init__ = __new_GraphMultiEPG_init__
+
+def onSelectionChanged(self):
+	EPGSelectionBase.onSelectionChanged(self)
+	now = time()
+	event, service = self["list"].getCurrent()[:2]
+	stime = event.getBeginTime()
+	if "catchupdays=" in service.toString() and stime < now:
+		self["key_play"].setText(_("PLAY")) 
+	else:
+		self["key_play"].setText("") 
+	if self.eventviewDialog:
+		self.eventviewDialog.hide()
+		self.openEventViewDialog()
 
 
 def injectCatchupIcon(res, obj, service, serviceName, events, picon, channel):
