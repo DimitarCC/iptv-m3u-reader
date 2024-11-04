@@ -4,7 +4,6 @@ from Screens.MinuteInput import MinuteInput
 from Screens.Screen import Screen
 from Screens.AudioSelection import AudioSelection
 from Screens.MessageBox import MessageBox
-from Screens.EpgSelectionBase import EPGSelectionBase
 from Components.ServiceEventTracker import ServiceEventTracker
 from Components.Sources.Progress import Progress
 from Components.Label import Label
@@ -36,6 +35,7 @@ except ImportError:
 	EPGListGrid = None
 try:
 	from Screens.EpgSelectionGrid import EPGSelectionGrid as EPGSelectionGrid
+	__orig_EPGSelectionGrid_onSelectionChanged__ = EPGSelectionGrid.onSelectionChanged
 except ImportError:
 	EPGSelectionGrid = None
 try:
@@ -99,7 +99,6 @@ def injectCatchupInEPG():
 		GraphMultiEPG.__init__ = __new_GraphMultiEPG_init__
 
 def onSelectionChanged(self):
-	EPGSelectionBase.onSelectionChanged(self)
 	now = time()
 	event, service = self["list"].getCurrent()[:2]
 	stime = event.getBeginTime()
@@ -107,9 +106,7 @@ def onSelectionChanged(self):
 		self["key_play"].setText(_("PLAY")) 
 	else:
 		self["key_play"].setText("") 
-	if self.eventviewDialog:
-		self.eventviewDialog.hide()
-		self.openEventViewDialog()
+	__orig_EPGSelectionGrid_onSelectionChanged__(self)
 
 
 def injectCatchupIcon(res, obj, service, serviceName, events, picon, channel):
