@@ -245,7 +245,7 @@ class IPTVProcessor():
 
 	def constructCatchupSufix(self, days, url, catchup_type):
 		if days.strip() and int(days) > 0:
-			captchup_addon = "%scatchuptype=%s&catchupdays=%s" % ("&" if "?" in url else "?", catchup_type, days)
+			captchup_addon = "%scatchuptype=%s&catchupdays=%s&catchupstype=%s" % ("&" if "?" in url else "?", catchup_type, days, self.play_system_catchup)
 			if catchup_type == CATCHUP_XTREME_TEXT and self.server_timezone_offset:
 				captchup_addon += "&tz_offset=%d" % self.server_timezone_offset
 			return url + captchup_addon
