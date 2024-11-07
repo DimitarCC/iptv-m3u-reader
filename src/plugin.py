@@ -1,5 +1,5 @@
 # for localized messages
-from . import _
+from . import _, PluginLanguageDomain
 
 from sys import modules
 from time import time, localtime, strftime
@@ -1530,7 +1530,10 @@ class PluginSummary(ScreenSummary):
 
 
 def M3UIPTVMenu(session, close=None, **kwargs):
-	session.openWithCallback(boundFunction(M3UIPTVMenuCallback, close), Menu, mdom.getroot())
+	try:
+		session.openWithCallback(boundFunction(M3UIPTVMenuCallback, close), Menu, mdom.getroot(), PluginLanguageDomain=PluginLanguageDomain)
+	except:
+		session.openWithCallback(boundFunction(M3UIPTVMenuCallback, close), Menu, mdom.getroot())
 
 
 def M3UIPTVMenuCallback(close, answer=None):
@@ -1539,7 +1542,10 @@ def M3UIPTVMenuCallback(close, answer=None):
 
 
 def M3UIPTVVoDMenu(session, close=None, **kwargs):
-	session.openWithCallback(boundFunction(M3UIPTVVoDMenuCallback, close), Menu, mdom_vod.getroot())
+	try:
+		session.openWithCallback(boundFunction(M3UIPTVVoDMenuCallback, close), Menu, mdom_vod.getroot(), PluginLanguageDomain=PluginLanguageDomain)
+	except:
+		session.openWithCallback(boundFunction(M3UIPTVVoDMenuCallback, close), Menu, mdom_vod.getroot())
 
 
 def M3UIPTVVoDMenuCallback(close, answer=None):
