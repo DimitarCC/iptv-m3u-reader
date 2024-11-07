@@ -1462,7 +1462,7 @@ class IPTVPluginConfig(Setup):
 				configlist.append((_("Automatically start time shift after"), config.timeshift.startDelay, _("When enabled, time shift starts automatically in background after specified time.")))
 			if hasattr(config.timeshift, "check"):
 				configlist.append((_("Show warning when time shift is stopped"), config.timeshift.check, _("When enabled, a warning will be displayed and the user will get an option to stop or to continue the time shift.")))
-			else:
+			elif hasattr(config.timeshift, "check_timeshift"):
 				configlist.append((_("Show warning when timeshift is stopped"), config.usage.check_timeshift, _("When enabled, a warning will be displayed and the user will get an option to stop or to continue the timeshift.")))
 			if hasattr(config.timeshift, "favoriteSaveAction"):
 				# configlist.append((_("Time shift save action on zap"), config.timeshift.favoriteSaveAction, _("Select if time shift must continue when set to record.")))
