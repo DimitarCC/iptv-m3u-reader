@@ -1530,9 +1530,9 @@ class PluginSummary(ScreenSummary):
 
 
 def M3UIPTVMenu(session, close=None, **kwargs):
-	try:
+	if "PluginLanguageDomain" in Menu.__init__.__code__.co_varnames:
 		session.openWithCallback(boundFunction(M3UIPTVMenuCallback, close), Menu, mdom.getroot(), PluginLanguageDomain=PluginLanguageDomain)
-	except:
+	else:
 		session.openWithCallback(boundFunction(M3UIPTVMenuCallback, close), Menu, mdom.getroot())
 
 
@@ -1542,9 +1542,9 @@ def M3UIPTVMenuCallback(close, answer=None):
 
 
 def M3UIPTVVoDMenu(session, close=None, **kwargs):
-	try:
+	if "PluginLanguageDomain" in Menu.__init__.__code__.co_varnames:
 		session.openWithCallback(boundFunction(M3UIPTVVoDMenuCallback, close), Menu, mdom_vod.getroot(), PluginLanguageDomain=PluginLanguageDomain)
-	except:
+	else:
 		session.openWithCallback(boundFunction(M3UIPTVVoDMenuCallback, close), Menu, mdom_vod.getroot())
 
 
