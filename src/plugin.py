@@ -85,10 +85,6 @@ file = open("%s/menu.xml" % path.dirname(modules[__name__].__file__), 'r')
 mdom = xml.etree.cElementTree.parse(file)
 file.close()
 
-file_vod = open("%s/vod_menu.xml" % path.dirname(modules[__name__].__file__), 'r')
-mdom_vod = xml.etree.cElementTree.parse(file_vod)
-file_vod.close()
-
 
 def tmdbScreenMovieHelper(VoDObj):
 	url = "%s/player_api.php?username=%s&password=%s&action=get_vod_info&vod_id=%s" % (VoDObj.providerObj.url, VoDObj.providerObj.username, VoDObj.providerObj.password, VoDObj.id)
@@ -1201,7 +1197,7 @@ class M3UIPTVManagerConfig(Screen):
 				self.progress_timer.stop()
 				self["progress"].value = -1
 				self.updateDescription(_("%s: an error occured during bouquet creation\n\nError type: %s") % (providerObj.iptv_service_provider, type(ex).__name__))
-				self.session.open(MessageBox, _("%s: an error occured during bouquet creation\n\n%s") % (providerObj.iptv_service_provider, err), MessageBox.TYPE_ERROR)
+				self.session.open(MessageBox, _("%s: an error occured during bouquet creation\n\nError type: %s") % (providerObj.iptv_service_provider, type(ex).__name__), MessageBox.TYPE_ERROR)
 
 	def onBouquetCreated(self, providerObj, error):
 		if not hasattr(self, "session") or not self.session:
@@ -1530,10 +1526,12 @@ class PluginSummary(ScreenSummary):
 
 
 def M3UIPTVMenu(session, close=None, **kwargs):
-	if "PluginLanguageDomain" in Menu.__init__.__code__.co_varnames:
-		session.openWithCallback(boundFunction(M3UIPTVMenuCallback, close), Menu, mdom.getroot(), PluginLanguageDomain=PluginLanguageDomain)
-	else:
-		session.openWithCallback(boundFunction(M3UIPTVMenuCallback, close), Menu, mdom.getroot())
+	for node in mdom.getroot():
+		if node.tag == "menu" and node.get("key") == "iptvmenu":
+			if "PluginLanguageDomain" in Menu.__init__.__code__.co_varnames:
+				session.openWithCallback(boundFunction(M3UIPTVMenuCallback, close), Menu, node, PluginLanguageDomain=PluginLanguageDomain)
+			else:
+				session.openWithCallback(boundFunction(M3UIPTVMenuCallback, close), Menu, node)
 
 
 def M3UIPTVMenuCallback(close, answer=None):
@@ -1542,10 +1540,12 @@ def M3UIPTVMenuCallback(close, answer=None):
 
 
 def M3UIPTVVoDMenu(session, close=None, **kwargs):
-	if "PluginLanguageDomain" in Menu.__init__.__code__.co_varnames:
-		session.openWithCallback(boundFunction(M3UIPTVVoDMenuCallback, close), Menu, mdom_vod.getroot(), PluginLanguageDomain=PluginLanguageDomain)
-	else:
-		session.openWithCallback(boundFunction(M3UIPTVVoDMenuCallback, close), Menu, mdom_vod.getroot())
+	for node in mdom.getroot():
+		if node.tag == "menu" and node.get("key") == "vod_menu":
+			if "PluginLanguageDomain" in Menu.__init__.__code__.co_varnames:
+				session.openWithCallback(boundFunction(M3UIPTVVoDMenuCallback, close), Menu, node, PluginLanguageDomain=PluginLanguageDomain)
+			else:
+				session.openWithCallback(boundFunction(M3UIPTVVoDMenuCallback, close), Menu, node)
 
 
 def M3UIPTVVoDMenuCallback(close, answer=None):
