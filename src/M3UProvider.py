@@ -145,6 +145,9 @@ class M3UProvider(IPTVProcessor):
 						groups[curr_group].append((sref, epg_id, ch_name))
 					else:
 						services.append((sref, epg_id, ch_name))
+					if "tvg-logo" in line and (stream_icon_match := re.search(r"tvg-logo=\"(.+?)\"", line)):
+						self.piconsAdd(stream_icon_match.group(1), sref)
+						
 			line_nr += 1
 
 		examples = []

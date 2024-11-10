@@ -82,6 +82,7 @@ class IPTVProcessor():
 		self.custom_xmltv_url = ""
 		self.server_timezone_offset = 0
 		self.provider_info = {}
+		self.picon_database = {}
 
 	def isLocalPlaylist(self):
 		return not self.url.startswith(("http://", "https://"))
@@ -294,3 +295,21 @@ class IPTVProcessor():
 	def writeBlacklist(self, blacklist):
 		file = USER_IPTV_PROVIDER_BLACKLIST_FILE % self.scheme
 		open(file, "w").write("\n".join(blacklist))
+
+	def piconsAdd(self, stream_icon, sref):
+		if not stream_icon.startswith('http'):
+			stream_icon = 'http://' + stream_icon
+		# picon_srefs must be upper case to match value from Components.Renderer.Picon.source.text
+		picon_sref = self.picon_sref(sref)
+		if stream_icon not in self.picon_database:
+			self.picon_database[stream_icon] = []
+		if picon_sref not in self.picon_database[stream_icon]:
+			self.picon_database[stream_icon].append(picon_sref)
+
+	def picon_sref(self, sref):
+		fields = sref.split(":", 10)[:10]
+		fields[0] = "1"
+		fields[2] = "1"
+		return "_".join(fields)
+		
+		
