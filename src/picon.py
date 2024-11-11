@@ -73,8 +73,11 @@ class Fetcher():
 			filepath = path.join(self.pluginPiconDir, file)
 			for ch_name in self.provider.picon_database[url]:
 				softlinkpath = path.join(self.piconDir, ch_name + ".png")
+				svgpath = path.join(self.piconDir, ch_name + ".svg")
 				islink = path.islink(softlinkpath)
-				if not islink and path.isfile(softlinkpath):  # isfile follows symbolic links so we need to check this is not a symbolic link first
+				# isfile follows symbolic links so we need to check this is not a symbolic link first
+				# or if user.svg exists do not write symbolic link 
+				if not islink and path.isfile(softlinkpath) or path.isfile(svgpath):
 					continue  # if a file exists here don't touch it, it is not ours
 				if islink:
 					if readlink(softlinkpath) == filepath:
