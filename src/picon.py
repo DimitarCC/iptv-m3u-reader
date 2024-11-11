@@ -2,7 +2,6 @@ from os import listdir, path, readlink, remove, symlink, makedirs as os_makedirs
 from requests import get, exceptions
 from shutil import rmtree
 import threading
-from time import sleep
 
 from .Variables import USER_AGENT
 
@@ -25,7 +24,7 @@ class Fetcher():
 		self.provider = provider
 		self.pluginPiconDir = path.join(self.piconDir, "m3uiptv", self.provider.scheme)
 		self.downloaded = []
-		self.maxthreads = 500  # max simultaneous requests
+		self.maxthreads = 1000  # max simultaneous requests
 		
 	def downloadURL(self, url, success, fail=None):
 		try:
@@ -51,11 +50,7 @@ class Fetcher():
 			for i in range(len(self.provider.picon_database) // self.maxthreads + 1):  # split downloads in batches of "maxthreads"
 				threads = [threading.Thread(target=self.downloadURL, args=(url, self.success, self.failure)) for url in database[i*self.maxthreads:i*self.maxthreads+self.maxthreads]]
 				for thread in threads:
-					try:
-						thread.start()
-					except RuntimeError:
-						sleep(10)
-						thread.start()
+					thread.start()
 				for thread in threads:
 					thread.join()
 		print("[Fetcher] all fetched")
