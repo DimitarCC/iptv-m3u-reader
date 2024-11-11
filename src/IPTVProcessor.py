@@ -2,6 +2,7 @@ from twisted.internet import threads
 from .epgimport_helper import epgimport_helper
 from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_FOLDER
 from .VoDItem import VoDItem
+from .picon import Fetcher
 from Components.config import config
 from Tools.Directories import sanitizeFilename, fileExists
 from os import fsync, rename, path, makedirs, listdir, remove as remove_file
@@ -82,6 +83,8 @@ class IPTVProcessor():
 		self.custom_xmltv_url = ""
 		self.server_timezone_offset = 0
 		self.provider_info = {}
+		self.picons = False
+		self.picon_database = {}
 
 	def isLocalPlaylist(self):
 		return not self.url.startswith(("http://", "https://"))
@@ -294,3 +297,24 @@ class IPTVProcessor():
 	def writeBlacklist(self, blacklist):
 		file = USER_IPTV_PROVIDER_BLACKLIST_FILE % self.scheme
 		open(file, "w").write("\n".join(blacklist))
+
+	def piconsAdd(self, stream_icon, ch_name):
+		if ch_name := sanitizeFilename(ch_name.lower()):
+			if not stream_icon.startswith('http'):
+				stream_icon = 'http://' + stream_icon
+			if stream_icon not in self.picon_database:
+				self.picon_database[stream_icon] = []
+			if ch_name not in self.picon_database[stream_icon]:
+				self.picon_database[stream_icon].append(ch_name)
+
+	def piconsDownload(self):
+		if self.picons:
+			fetcher = Fetcher(self)
+			fetcher.fetchall()
+			fetcher.createSoftlinks()
+
+	# This function should be made available to the interface.
+	# Removes all picons for the current provider.
+	def removePicons(self):
+		fetcher = Fetcher(self)
+		fetcher.removeall()

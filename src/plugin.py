@@ -128,6 +128,7 @@ def readProviders():
 				providerObj.epg_url = provider.find("epg_url").text or providerObj.epg_url if provider.find("epg_url") is not None and provider.find("epg_url").text is not None else providerObj.epg_url
 				providerObj.is_custom_xmltv = provider.find("is_custom_xmltv") is not None and provider.find("is_custom_xmltv").text == "on"
 				providerObj.custom_xmltv_url = provider.find("custom_xmltv_url").text if provider.find("custom_xmltv_url") is not None and provider.find("custom_xmltv_url").text is not None else providerObj.custom_xmltv_url
+				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("xtreemprovider"):
 				providerObj = XtreemProvider()
@@ -151,6 +152,7 @@ def readProviders():
 					providerObj.loadMovieCategoriesFromFile()
 					providerObj.loadVoDMoviesFromFile()
 					providerObj.loadVoDSeriesFromFile()
+				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("stalkerprovider"):
 				providerObj = StalkerProvider()
@@ -165,6 +167,7 @@ def readProviders():
 				providerObj.create_epg = provider.find("epg") is not None and provider.find("epg").text == "on"
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.onid = int(provider.find("onid").text)
+				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
 				if not providerObj.ignore_vod:
 					providerObj.loadVoDMoviesFromFile()
 					providerObj.loadVoDSeriesFromFile()
@@ -193,6 +196,7 @@ def writeProviders():
 			xml.append(f"\t\t<epg_url><![CDATA[{val.epg_url}]]></epg_url>\n")
 			xml.append(f"\t\t<is_custom_xmltv>{'on' if val.is_custom_xmltv else 'off'}</is_custom_xmltv>\n")
 			xml.append(f"\t\t<custom_xmltv_url><![CDATA[{val.custom_xmltv_url}]]></custom_xmltv_url>\n")
+			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
 			xml.append("\t</provider>\n")
 		elif isinstance(val, XtreemProvider):
 			xml.append("\t<xtreemprovider>\n")
@@ -211,6 +215,7 @@ def writeProviders():
 			xml.append(f"\t\t<server_timezone_offset>{val.server_timezone_offset}</server_timezone_offset><!-- timezone offset of the server in seconds from the perspective of the client -->\n")
 			xml.append(f"\t\t<is_custom_xmltv>{'on' if val.is_custom_xmltv else 'off'}</is_custom_xmltv>\n")
 			xml.append(f"\t\t<custom_xmltv_url><![CDATA[{val.custom_xmltv_url}]]></custom_xmltv_url>\n")
+			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
 			xml.append("\t</xtreemprovider>\n")
 		else:
 			xml.append("\t<stalkerprovider>\n")
@@ -225,6 +230,7 @@ def writeProviders():
 			xml.append(f"\t\t<system_catchup>{val.play_system_catchup}</system_catchup>\n")
 			xml.append(f"\t\t<epg>{'on' if val.create_epg else 'off'}</epg>\n")
 			xml.append(f"\t\t<onid>{val.onid}</onid>\n")
+			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
 			xml.append("\t</stalkerprovider>\n")
 	xml.append("</providers>\n")
 	makedirs(path.dirname(USER_IPTV_PROVIDERS_FILE), exist_ok=True)  # create config folder recursive if not exists
@@ -1302,6 +1308,7 @@ class M3UIPTVProviderEdit(Setup):
 		catchup_type_choices = [(CATCHUP_DEFAULT, _("Standard")), (CATCHUP_APPEND, _("Append")), (CATCHUP_SHIFT, _("Shift")), (CATCHUP_XTREME, _("Xtreme Codes")), (CATCHUP_STALKER, _("Stalker"))]
 		self.catchup_type = ConfigSelection(default=providerObj.catchup_type, choices=catchup_type_choices)
 		self.epg_url = ConfigText(default=providerObj.epg_url, fixed_size=False)
+		self.picons = ConfigYesNo(default=providerObj.picons)
 		Setup.__init__(self, session, None)
 		self.title = _("M3UIPTVManager") + " - " + (_("edit provider") if self.edit else _("add new provider"))
 		if self.edit:
@@ -1344,6 +1351,7 @@ class M3UIPTVProviderEdit(Setup):
 		configlist.append((_("Playback system for Catchup/Archive"), self.play_system_catchup, _("The player used for playing Catchup/Archive. Can be DVB, GStreamer, HiSilicon, Extplayer3")))
 		if self.type.value == "M3U":
 			configlist.append((_("Catchup Type"), self.catchup_type, _("The catchup API used.")))
+		configlist.append((_("Download picons"), self.picons, _("Download picons if available from the provider and install them. Note: enabling this option increases the time to generate bouquets significantly. Can be disabled for subsequent regenerations.")))
 		self["config"].list = configlist
 
 	def keySave(self):
@@ -1367,6 +1375,7 @@ class M3UIPTVProviderEdit(Setup):
 		providerObj.ignore_vod = self.novod.value
 		providerObj.play_system_catchup = self.play_system_catchup.value
 		providerObj.create_epg = self.create_epg.value
+		providerObj.picons = self.picons.value
 		if self.type.value == "M3U":
 			providerObj.refresh_interval = self.refresh_interval.value
 			providerObj.static_urls = self.staticurl.value
@@ -1397,6 +1406,7 @@ class M3UIPTVProviderEdit(Setup):
 			providerObj = providers[self.scheme.value]
 			providerObj.removeBouquets()
 			providerObj.removeVoDData()
+			providerObj.removePicons()
 			del providers[self.scheme.value]
 			writeProviders()
 			self.close(True)

@@ -145,6 +145,9 @@ class M3UProvider(IPTVProcessor):
 						groups[curr_group].append((sref, epg_id, ch_name))
 					else:
 						services.append((sref, epg_id, ch_name))
+					if "tvg-logo" in line and (stream_icon_match := re.search(r"tvg-logo=\"(.+?)\"", line)):
+						self.piconsAdd(stream_icon_match.group(1), ch_name)
+						
 			line_nr += 1
 
 		examples = []
@@ -174,6 +177,7 @@ class M3UProvider(IPTVProcessor):
 				db.addOrUpdateBouquet(self.iptv_service_provider.upper(), bfilename, [sref[0] for sref in services], False)
 			groups_for_epg["EMPTY"] = ("UNCATEGORIZED", services)
 		self.writeExampleBlacklist(examples)
+		self.piconsDownload()
 		self.generateEPGImportFiles(groups_for_epg)
 		self.bouquetCreated(None)
 
