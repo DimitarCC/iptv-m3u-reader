@@ -32,7 +32,7 @@ from Screens.MessageBox import MessageBox
 from Screens.TextBox import TextBox
 from Screens.VirtualKeyBoard import VirtualKeyBoard
 from Components.ActionMap import ActionMap, HelpableActionMap
-from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigText, ConfigPassword
+from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigText, ConfigPassword, ConfigSelectionNumber
 from Components.ParentalControl import parentalControl
 from Components.SelectionList import SelectionList, SelectionEntryComponent
 from Components.Sources.StaticText import StaticText
@@ -77,6 +77,7 @@ choicelist = [("off", _("off"))] + [(str(i), ngettext("%d second", "%d seconds",
 config.plugins.m3uiptv.check_internet = ConfigSelection(default="2", choices=choicelist)
 config.plugins.m3uiptv.req_timeout = ConfigSelection(default="2", choices=choicelist)
 config.plugins.m3uiptv.inmenu = ConfigYesNo(default=True)
+config.plugins.m3uiptv.picon_threads = ConfigSelectionNumber(min=50, max=1000, stepwidth=50, default=100, wraparound=True)
 
 distro = BoxInfo.getItem("distro")
 
@@ -1455,6 +1456,7 @@ class IPTVPluginConfig(Setup):
 		configlist.append((_("Enable IPTV manager") + " *", config.plugins.m3uiptv.enabled, _("Enable IPTV functionality and managment.")))
 		configlist.append((_("Check for Network"), config.plugins.m3uiptv.check_internet, _("Do a check is network available before try to retrieve the iptv playlist. If no network try backup services.")))
 		configlist.append((_("Request timeout"), config.plugins.m3uiptv.req_timeout, _("Timeout in seconds for the requests of getting playlist.")))
+		configlist.append((_("Picon max threads"), config.plugins.m3uiptv.picon_threads, _("Maximum number of threads during picon downloads. If the box returns errors or fails to download some picons, set a lower number.")))
 		configlist.append((_("Show 'Video on Demand' menu entry") + " *", config.plugins.m3uiptv.inmenu, _("Allow showing of 'Video on Demand' menu entry in Main Menu.")))
 		configlist.append(("---",))
 		if hasattr(config, "recording") and hasattr(config.recording, "setstreamto1"):
