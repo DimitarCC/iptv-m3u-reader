@@ -15,6 +15,11 @@ import shutil
 from time import time
 from datetime import datetime
 
+try:
+	from multiprocessing import Process
+except ImportError:
+	Process = None
+
 write_lock = threading.Lock()
 
 
@@ -309,12 +314,23 @@ class IPTVProcessor():
 
 	def piconsDownload(self):
 		if self.picons:
-			fetcher = Fetcher(self)
-			fetcher.fetchall()
-			fetcher.createSoftlinks()
+			if Process:
+				p = Process(target=piconsDownloadProcess, args=(self,))
+				p.start()
+			else:
+				fetcher = Fetcher(self)
+				fetcher.fetchall()
+				fetcher.createSoftlinks()
 
 	# This function should be made available to the interface.
 	# Removes all picons for the current provider.
 	def removePicons(self):
 		fetcher = Fetcher(self)
 		fetcher.removeall()
+
+def piconsDownloadProcess(self):
+	print("Downloading picons starting")
+	fetcher = Fetcher(self)
+	fetcher.fetchall()
+	fetcher.createSoftlinks()
+	print("Picon download completed")
