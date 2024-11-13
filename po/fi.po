@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-11-05 21:15+0100\n"
-"PO-Revision-Date: 2024-11-07 13:27+0200\n"
+"PO-Revision-Date: 2024-11-13 19:29+0200\n"
 "Last-Translator: Orlandox <huoltovalikko.com>\n"
 "Language-Team: Orlandox\n"
 "Language: fi\n"
@@ -43,17 +43,6 @@ msgstr[0] "%d sekunti"
 msgstr[1] "%d sukuntia"
 
 #: ../src/plugin.py:1204
-#, python-format
-msgid ""
-"%s: an error occured during bouquet creation\n"
-"\n"
-"%s"
-msgstr ""
-"%s: virhe tapahtui suosikkilistan luomisen aikana\n"
-"\n"
-"%s"
-
-#: ../src/plugin.py:1203
 #, python-format
 msgid ""
 "%s: an error occured during bouquet creation\n"
@@ -763,3 +752,15 @@ msgstr "TV-sarjat"
 #: ../src/vod_menu.xml:8
 msgid "Video On Demand TV Shows listing."
 msgstr "Tilaus-TV:n (VoD) TV-sarjojen luettelo."
+
+msgid "Download picons"
+msgstr "Lataa piconit"
+
+msgid "Download picons, if available from the provider, and install them. Picon download is done in the background after bouquet generation."
+msgstr "Lataa piconit, jos saatavilla palveluntarjoajalta, ja asenna ne. Piconien lataus tapahtuu taustalla suosikkilistan luomisen jälkeen."
+
+msgid "Picon max threads"
+msgstr "Piconien maksimi säikeet"
+
+msgid "Maximum number of threads during picon downloads. If the box returns errors or fails to download some picons, set a lower number."
+msgstr "Säikeiden enimmäismäärä piconien latausten aikana. Jos boksi palauttaa virheitä tai ei pysty lataamaan joitain piconeja, aseta pienempi luku."
