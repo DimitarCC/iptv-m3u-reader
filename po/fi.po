@@ -422,7 +422,7 @@ msgstr "Tallenna"
 
 #: ../src/plugin.py:1346
 msgid "Scheme"
-msgstr ""
+msgstr "Skeema"
 
 #: ../src/plugin.py:1356
 #, python-format
