@@ -1352,7 +1352,7 @@ class M3UIPTVProviderEdit(Setup):
 		configlist.append((_("Playback system for Catchup/Archive"), self.play_system_catchup, _("The player used for playing Catchup/Archive. Can be DVB, GStreamer, HiSilicon, Extplayer3")))
 		if self.type.value == "M3U":
 			configlist.append((_("Catchup Type"), self.catchup_type, _("The catchup API used.")))
-		configlist.append((_("Download picons"), self.picons, _("Download picons if available from the provider and install them. Note: enabling this option increases the time to generate bouquets significantly. Can be disabled for subsequent regenerations.")))
+		configlist.append((_("Download picons"), self.picons, _("Download picons, if available from the provider, and install them. Picon download is done in the background after bouquet generation.")))
 		self["config"].list = configlist
 
 	def keySave(self):
