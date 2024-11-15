@@ -48,19 +48,20 @@ class Fetcher():
 
 	def fetchall(self):
 		failed = []
-		os_makedirs(self.pluginPiconDir, exist_ok=True)
-		threads = [threading.Thread(target=self.downloadURL, args=(url, self.success, self.failure)) for url in self.provider.picon_database]
-		for thread in threads:
-			while threading.activeCount() > self.maxthreads:
-				sleep(1)
-			try:
-				thread.start()
-			except RuntimeError:
-				failed.append(thread)
-		for thread in threads:
-			if thread not in failed:
-				thread.join()
-		print("[Fetcher] all fetched")
+		if self.provider.picon_database:
+			os_makedirs(self.pluginPiconDir, exist_ok=True)
+			threads = [threading.Thread(target=self.downloadURL, args=(url, self.success, self.failure)) for url in self.provider.picon_database]
+			for thread in threads:
+				while threading.activeCount() > self.maxthreads:
+					sleep(1)
+				try:
+					thread.start()
+				except RuntimeError:
+					failed.append(thread)
+			for thread in threads:
+				if thread not in failed:
+					thread.join()
+			print("[Fetcher] all fetched")
 
 	def success(self, file):
 		self.downloaded.append(file)
