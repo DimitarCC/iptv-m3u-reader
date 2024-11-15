@@ -90,4 +90,5 @@ class Fetcher():
 			item = path.join(self.piconDir, f)
 			if path.islink(item) and self.pluginPiconDir in readlink(item):
 				remove(item)
-		rmtree(self.pluginPiconDir)
+		if path.exists(self.pluginPiconDir):
+			rmtree(self.pluginPiconDir)

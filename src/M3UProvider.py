@@ -108,7 +108,11 @@ class M3UProvider(IPTVProcessor):
 					if not sid:
 						sid = ch_name.replace(":", "%3a")
 					url = ""
-					match = re.search(r".*tvg-rec=\"(\d*)\".*", line)
+					match = re.search(r"tvg-rec=\"(\d.*?)\"", line)
+					if not match:
+						match = re.search(r"catchup-days=\"(\d.*?)\"", line)
+					if not match:
+						match = re.search(r"timeshift=\"(\d.*?)\"", line)
 					if match:
 						captchup_days = match.group(1)
 					if self.static_urls or self.isLocalPlaylist():

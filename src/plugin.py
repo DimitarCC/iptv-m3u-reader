@@ -20,7 +20,7 @@ from .StalkerProvider import StalkerProvider
 from .IPTVProviders import providers, processService as processIPTVService
 from .IPTVCatchupPlayer import injectCatchupInEPG
 from .epgimport_helper import overwriteEPGImportEPGSourceInit
-from .Variables import USER_IPTV_PROVIDERS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_STALKER
+from .Variables import USER_IPTV_PROVIDERS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_STALKER, CATCHUP_FLUSSONIC
 from Screens.Screen import Screen, ScreenSummary
 from Screens.InfoBar import InfoBar, MoviePlayer
 from Screens.InfoBarGenerics import streamrelay
@@ -1306,7 +1306,7 @@ class M3UIPTVProviderEdit(Setup):
 		if isServiceAppInstalled:
 			catchup_play_system_choices.append(("5002", "Exteplayer3"))
 		self.play_system_catchup = ConfigSelection(default=providerObj.play_system_catchup, choices=catchup_play_system_choices)
-		catchup_type_choices = [(CATCHUP_DEFAULT, _("Standard")), (CATCHUP_APPEND, _("Append")), (CATCHUP_SHIFT, _("Shift")), (CATCHUP_XTREME, _("Xtreme Codes")), (CATCHUP_STALKER, _("Stalker"))]
+		catchup_type_choices = [(CATCHUP_DEFAULT, _("Standard")), (CATCHUP_APPEND, _("Append")), (CATCHUP_SHIFT, _("Shift")), (CATCHUP_XTREME, _("Xtreme Codes")), (CATCHUP_STALKER, _("Stalker")), (CATCHUP_FLUSSONIC, _("Flussonic"))]
 		self.catchup_type = ConfigSelection(default=providerObj.catchup_type, choices=catchup_type_choices)
 		self.epg_url = ConfigText(default=providerObj.epg_url, fixed_size=False)
 		self.picons = ConfigYesNo(default=providerObj.picons)

@@ -1,6 +1,6 @@
 from twisted.internet import threads
 from .epgimport_helper import epgimport_helper
-from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_FOLDER
+from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, CATCHUP_FLUSSONIC_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_FOLDER
 from .VoDItem import VoDItem
 from .picon import Fetcher
 from Components.config import config
@@ -53,6 +53,24 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 		return url.replace("%3a", ":")
 	elif catchup_type == CATCHUP_STALKER_TEXT:
 		pass
+	elif catchup_type == CATCHUP_FLUSSONIC_TEXT:
+		url = url.replace("%3a", ":")
+		match = re.search(r"^(http[s]?:\/\/[^\/]+)\/(.*)\/([^\/]*)(mpegts|\\.m3u8)(\\?.+=.+)?$", url)
+		if len(match.groups()) > 4:
+			fsHost = match.group(1)
+			fsChannelId = match.group(2)
+			fsListType = match.group(3)
+			fsStreamType = match.group(4)
+			fsUrlAppend = match.group(5)
+			isCatchupTSStream = fsStreamType == "mpegts"
+			if isCatchupTSStream:
+				catchupSource = fsHost + "/" + fsChannelId + "/timeshift_abs-${start}.ts" + fsUrlAppend
+			else:
+				if fsListType == "index":
+					catchupSource = fsHost + "/" + fsChannelId + "/timeshift_rel-{offset:1}.m3u8" + fsUrlAppend
+				else:
+					catchupSource = fsHost + "/" + fsChannelId + "/" + fsListType + "-timeshift_rel-{offset:1}.m3u8" + fsUrlAppend
+			return catchupSource
 	return url_play
 
 
