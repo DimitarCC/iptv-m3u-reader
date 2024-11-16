@@ -54,6 +54,8 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 	elif catchup_type == CATCHUP_STALKER_TEXT:
 		pass
 	elif catchup_type == CATCHUP_FLUSSONIC_TEXT:
+		sref_split = sref.split(":")
+		url = sref_split[10:][0]
 		url = url.replace("%3a", ":")
 		match = re.search(r"^(http[s]?:\/\/[^\/]+)\/(.*)\/([^\/]*)(mpegts|\\.m3u8)(\\?.+=.+)?$", url)
 		if len(match.groups()) > 4:
@@ -61,7 +63,7 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 			fsChannelId = match.group(2)
 			fsListType = match.group(3)
 			fsStreamType = match.group(4)
-			fsUrlAppend = match.group(5)
+			fsUrlAppend = match.group(5).split("&")[0]
 			isCatchupTSStream = fsStreamType == "mpegts"
 			if isCatchupTSStream:
 				catchupSource = fsHost + "/" + fsChannelId + "/timeshift_abs-${start}.ts" + fsUrlAppend
