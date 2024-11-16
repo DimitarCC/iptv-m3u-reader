@@ -72,7 +72,7 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 					catchupSource = fsHost + "/" + fsChannelId + "/timeshift_rel-{offset:1}.m3u8" + fsUrlAppend
 				else:
 					catchupSource = fsHost + "/" + fsChannelId + "/" + fsListType + "-timeshift_rel-{offset:1}.m3u8" + fsUrlAppend
-			return catchupSource
+			return catchupSource.replace("${start}", str(stime))
 	return url_play
 
 
