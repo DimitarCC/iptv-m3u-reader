@@ -36,7 +36,9 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 	if catchup_type == CATCHUP_DEFAULT_TEXT:
 		return url_play.replace("%3a", ":").replace("${start}", str(stime)).replace("${timestamp}", str(now)).replace("${duration}", str(duration))
 	elif catchup_type == CATCHUP_APPEND_TEXT:
-		pass
+		sref_split = sref.split(":")
+		url = sref_split[10:][0]
+		return f"{url}?utc={str(stime)}&lutc={str(int(now))}&duration={str(int(duration))}"
 	elif catchup_type == CATCHUP_SHIFT_TEXT:
 		sref_split = sref.split(":")
 		url = sref_split[10:][0].split("?")[0]

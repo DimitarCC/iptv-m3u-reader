@@ -40,11 +40,19 @@ class M3UProvider(IPTVProcessor):
 		self.playlist = playlist
 		playlist_splitted = playlist.splitlines()
 		for line in playlist_splitted:
-			if line.startswith("#EXTM3U") and "tvg-url" in line:
-				epg_match = re.search(r"x-tvg-url=\"(.*?)\"", line) or re.search(r"tvg-url=\"(.*?)\"", line)
-				if epg_match:
-					return epg_match.group(1)
+			epg_match = self.searchForXMLTV(line)
+			if epg_match:
+				return epg_match.group(1)
 		return self.getEpgUrl()
+	
+	def searchForXMLTV(self, line, isCustomUrl=False):
+		epg_match - None
+		if line.startswith("#EXTM3U") and not isCustomUrl:
+			if "tvg-url" in line:
+				epg_match = re.search(r"x-tvg-url=\"(.*?)\"", line) or re.search(r"tvg-url=\"(.*?)\"", line)
+			elif "url-tvg" in line:
+				epg_match = re.search(r"url-tvg=\"(.*?)\"", line)
+		return epg_match
 
 	def storePlaylistAndGenBouquet(self):
 		playlist = None
@@ -76,11 +84,10 @@ class M3UProvider(IPTVProcessor):
 		for line in playlist_splitted:
 			if self.ignore_vod and "group-title=\"VOD" in line:
 				continue
-			if line.startswith("#EXTM3U") and "tvg-url" in line and not self.is_custom_xmltv:
-				epg_match = re.search(r"x-tvg-url=\"(.*?)\"", line) or re.search(r"tvg-url=\"(.*?)\"", line)
-				if epg_match:
-					self.epg_url = epg_match.group(1)
-					self.is_dynamic_epg = not self.static_urls
+			epg_match = self.searchForXMLTV(line, self.is_custom_xmltv)
+			if epg_match:
+				self.epg_url = epg_match.group(1)
+				self.is_dynamic_epg = not self.static_urls
 			if line.startswith("#EXTINF:"):
 				gr_match = re.search(r"group-title=\"(.*?)\"", line)
 				if gr_match:
@@ -222,7 +229,7 @@ class M3UProvider(IPTVProcessor):
 			if (prov.refresh_interval == -1 and prov.playlist) or (prov.refresh_interval > 0 and time_delta and time_delta < cache_time):
 				playlist = prov.playlist
 			else:
-				req = urllib.request.Request(prov.url, headers={'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"})
+				req = urllib.request.Request(prov.url, headers={'User-Agent': USER_AGENT})
 				req_timeout_val = config.plugins.m3uiptv.req_timeout.value
 				if req_timeout_val != "off":
 					response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
