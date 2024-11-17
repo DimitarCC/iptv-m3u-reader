@@ -58,21 +58,37 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 		url = sref_split[10:][0]
 		url = url.replace("%3a", ":")
 		match = re.search(r"^(http[s]?:\/\/[^\/]+)\/(.*)\/([^\/]*)(mpegts|\\.m3u8)(\\?.+=.+)?$", url)
-		if len(match.groups()) > 4:
-			fsHost = match.group(1)
-			fsChannelId = match.group(2)
-			fsListType = match.group(3)
-			fsStreamType = match.group(4)
-			fsUrlAppend = match.group(5).split("&")[0]
-			isCatchupTSStream = fsStreamType == "mpegts"
-			if isCatchupTSStream:
-				catchupSource = fsHost + "/" + fsChannelId + "/timeshift_abs-${start}.ts" + fsUrlAppend
-			else:
-				if fsListType == "index":
-					catchupSource = fsHost + "/" + fsChannelId + "/timeshift_rel-{offset:1}.m3u8" + fsUrlAppend
-				else:
-					catchupSource = fsHost + "/" + fsChannelId + "/" + fsListType + "-timeshift_rel-{offset:1}.m3u8" + fsUrlAppend
-			return catchupSource.replace("${start}", str(stime))
+		if match:
+			if len(match.groups()) > 4:
+				fsHost = match.group(1)
+				fsChannelId = match.group(2)
+				fsListType = match.group(3)
+				fsStreamType = match.group(4)
+				fsUrlAppend = match.group(5)
+				isCatchupTSStream = fsStreamType == "mpegts"
+				if isCatchupTSStream: # the catchup type was "flussonic-ts" or "fs"
+					catchupSource = fsHost + "/" + fsChannelId + "/timeshift_abs-${start}.ts" + fsUrlAppend
+				else: # the catchup type was "flussonic" or "flussonic-hls"
+					if fsListType == "index":
+						catchupSource = fsHost + "/" + fsChannelId + "/timeshift_rel-${offset}.m3u8" + fsUrlAppend
+					else:
+						catchupSource = fsHost + "/" + fsChannelId + "/" + fsListType + "-timeshift_rel-${offset}.m3u8" + fsUrlAppend
+				return catchupSource.replace("${start}", str(stime)).replace("${offset}", str(now-stime))
+		else:
+			match = re.search(r"^(http[s]?:\/\/[^\/]+)\/(.*)\/([^\\?]*)(\\?.+=.+)?$", url)
+			if match:
+				if len(match.groups()) > 3:
+					fsHost = match.group(1)
+					fsChannelId = match.group(2)
+					fsStreamType = match.group(3)
+					fsUrlAppend = match.group(4)
+					isCatchupTSStream = fsStreamType == "mpegts"
+					if isCatchupTSStream: # the catchup type was "flussonic-ts" or "fs"
+						catchupSource = fsHost + "/" + fsChannelId + "/timeshift_abs-${start}.ts" + fsUrlAppend
+					else: # the catchup type was "flussonic" or "flussonic-hls"
+						catchupSource = fsHost + "/" + fsChannelId + "/timeshift_rel-${offset}.m3u8" + fsUrlAppend
+					return catchupSource.replace("${start}", str(stime)).replace("${offset}", str(now-stime))
+
 	return url_play
 
 
