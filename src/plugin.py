@@ -1094,7 +1094,7 @@ class M3UIPTVManagerConfig(Screen):
 				</convert>
 			</widget>
 			<widget source="description" render="Label" position="%d,%d" zPosition="10" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1" />
-		 	<widget source="progress" render="Progress" position="%d,%d" size="%d,%d" backgroundColor="background" foregroundColor="blue" zPosition="11" borderWidth="0" borderColor="grey" cornerRadius="%d"/>
+			<widget source="progress" render="Progress" position="%d,%d" size="%d,%d" backgroundColor="background" foregroundColor="blue" zPosition="11" borderWidth="0" borderColor="grey" cornerRadius="%d"/>
 		</screen>""",
 			980, 600,  # screen
 			15, 60, 950, 430,  # Listbox
@@ -1597,9 +1597,9 @@ def sessionstart(reason, **kwargs):
 def Plugins(path, **kwargs):
 	try:
 		result = [
-				PluginDescriptor(where=PluginDescriptor.WHERE_SESSIONSTART, fnc=sessionstart, needsRestart=False),
-				PluginDescriptor(where=PluginDescriptor.WHERE_MENU, needsRestart=False, fnc=startSetup),
-				PluginDescriptor(name=_("M3UIPTV"), description=_("IPTV manager Plugin"), where=PluginDescriptor.WHERE_PLUGINMENU, icon='plugin.png', fnc=main)
+			PluginDescriptor(where=PluginDescriptor.WHERE_SESSIONSTART, fnc=sessionstart, needsRestart=False),
+			PluginDescriptor(where=PluginDescriptor.WHERE_MENU, needsRestart=False, fnc=startSetup),
+			PluginDescriptor(name=_("M3UIPTV"), description=_("IPTV manager Plugin"), where=PluginDescriptor.WHERE_PLUGINMENU, icon='plugin.png', fnc=main)
 		]
 		if config.plugins.m3uiptv.inmenu.value:
 			result += [PluginDescriptor(where=PluginDescriptor.WHERE_MENU, needsRestart=False, fnc=startVoDSetup)]

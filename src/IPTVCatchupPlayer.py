@@ -155,6 +155,7 @@ def onSelectionChangedGrid(self):
 	setupKeyPlayButtonDisplay(self)
 	__orig_EPGSelectionGrid_onSelectionChanged__(self)
 
+
 def onSelectionChangedSingle(self):
 	setupKeyPlayButtonDisplay(self)
 	__orig_EPGSelectionSingle_onSelectionChanged__(self)
@@ -546,7 +547,7 @@ class CatchupPlayer(MoviePlayer):
 
 class CatchupPlayerSummary(Screen):
 	skin = """
-	<screen position="0,0" size="800,480" resolution="800,480"> 
+	<screen position="0,0" size="800,480" resolution="800,480">
 		<widget source="session.CurrentService" render="Label" position="40,90" size="720,260" font="Regular;30" halign="center" valign="center" zPosition="2">
 			<convert type="ServiceName">Name</convert>
 		</widget>

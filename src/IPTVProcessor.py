@@ -90,7 +90,7 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 						catchupSource = fsHost + "/" + fsChannelId + "/timeshift_abs-${start}.ts" + fsUrlAppend
 					else:  # the catchup type was "flussonic" or "flussonic-hls"
 						catchupSource = fsHost + "/" + fsChannelId + "/timeshift_rel-${offset}.m3u8" + fsUrlAppend
-					return catchupSource.replace("${start}", str(stime)).replace("${offset}", str(now-stime))
+					return catchupSource.replace("${start}", str(stime)).replace("${offset}", str(now - stime))
 
 	return url_play
 
@@ -300,7 +300,7 @@ class IPTVProcessor():
 
 	def removeBouquets(self):
 		from enigma import eDVBDB
-		eDVBDB.getInstance().removeBouquet(re.escape(self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.")) + r".*[.]tv")  # left temporarilly so we can delete bouquets with the old filenames 
+		eDVBDB.getInstance().removeBouquet(re.escape(self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.")) + r".*[.]tv")  # left temporarilly so we can delete bouquets with the old filenames
 		eDVBDB.getInstance().removeBouquet(re.escape(self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.")) + r".*[.]tv")
 
 	def removeBouquet(self, filename):
