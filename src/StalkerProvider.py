@@ -54,7 +54,7 @@ class StalkerProvider(IPTVProcessor):
 					surl = self.constructCatchupSufix(str(catchup_days), surl, CATCHUP_STALKER_TEXT)
 				ch_name = service.name.replace(":", "|")
 				stype = "1"
-				if ("UHD" in ch_name or "4K" in ch_name) and not " HD" in ch_name:
+				if ("UHD" in ch_name or "4K" in ch_name) and " HD" not in ch_name:
 					stype = "1F"
 				elif "HD" in ch_name:
 					stype = "19"
@@ -116,7 +116,7 @@ class StalkerProvider(IPTVProcessor):
 				response = session.get(url, cookies=cookies, headers=headers)
 
 			if response.status_code == 200:
-				#print("[M3UIPTV] GETTING CHANNELS FOR PAGE %d" % page_number)
+				# print("[M3UIPTV] GETTING CHANNELS FOR PAGE %d" % page_number)
 				try:
 					response_json = response.json()
 					channels_data = response_json["js"]["data"]
@@ -148,7 +148,7 @@ class StalkerProvider(IPTVProcessor):
 				genre_id = group["genre_id"]
 				if genre_id != "*":
 					self.get_channels_for_group(groups[genre_id][1], session, cookies, headers, genre_id)
-					#print("[M3UIPTV] [Stalker] GENERATE CHANNELS FOR GROUP %d/%d" % (i, len(genres)))
+					# print("[M3UIPTV] [Stalker] GENERATE CHANNELS FOR GROUP %d/%d" % (i, len(genres)))
 					self.progress_percentage = int((i / len(genres)) * 100)
 				i += 1
 
@@ -159,12 +159,12 @@ class StalkerProvider(IPTVProcessor):
 			self.bouquetCreated(ex)
 			pass
 
-#	def getVoDMovies(self):
-#		self.vod_movies = []
-#		url = "%s/player_api.php?username=%s&password=%s&action=get_vod_streams" % (self.url, self.username, self.password)
-#		dest_file = USER_IPTV_VOD_MOVIES_FILE % self.scheme
-#		json_string = self.getUrlToFile(url, dest_file)
-#		self.makeVodListFromJson(json_string)
+# 	def getVoDMovies(self):
+# 		self.vod_movies = []
+# 		url = "%s/player_api.php?username=%s&password=%s&action=get_vod_streams" % (self.url, self.username, self.password)
+# 		dest_file = USER_IPTV_VOD_MOVIES_FILE % self.scheme
+# 		json_string = self.getUrlToFile(url, dest_file)
+# 		self.makeVodListFromJson(json_string)
 
 	def loadVoDMoviesFromFile(self):
 		self.vod_movies = []

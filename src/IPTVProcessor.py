@@ -1,3 +1,6 @@
+# for localized messages
+from . import _
+
 from twisted.internet import threads
 from .epgimport_helper import epgimport_helper
 from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, CATCHUP_FLUSSONIC_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_FOLDER
@@ -66,14 +69,14 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 				fsStreamType = match.group(4)
 				fsUrlAppend = match.group(5)
 				isCatchupTSStream = fsStreamType == "mpegts"
-				if isCatchupTSStream: # the catchup type was "flussonic-ts" or "fs"
+				if isCatchupTSStream:  # the catchup type was "flussonic-ts" or "fs"
 					catchupSource = fsHost + "/" + fsChannelId + "/timeshift_abs-${start}.ts" + fsUrlAppend
-				else: # the catchup type was "flussonic" or "flussonic-hls"
+				else:  # the catchup type was "flussonic" or "flussonic-hls"
 					if fsListType == "index":
 						catchupSource = fsHost + "/" + fsChannelId + "/timeshift_rel-${offset}.m3u8" + fsUrlAppend
 					else:
 						catchupSource = fsHost + "/" + fsChannelId + "/" + fsListType + "-timeshift_rel-${offset}.m3u8" + fsUrlAppend
-				return catchupSource.replace("${start}", str(stime)).replace("${offset}", str(now-stime))
+				return catchupSource.replace("${start}", str(stime)).replace("${offset}", str(now - stime))
 		else:
 			match = re.search(r"^(http[s]?:\/\/[^\/]+)\/(.*)\/([^\\?]*)(\\?.+=.+)?$", url)
 			if match:
@@ -83,9 +86,9 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 					fsStreamType = match.group(3)
 					fsUrlAppend = match.group(4)
 					isCatchupTSStream = fsStreamType == "mpegts"
-					if isCatchupTSStream: # the catchup type was "flussonic-ts" or "fs"
+					if isCatchupTSStream:  # the catchup type was "flussonic-ts" or "fs"
 						catchupSource = fsHost + "/" + fsChannelId + "/timeshift_abs-${start}.ts" + fsUrlAppend
-					else: # the catchup type was "flussonic" or "flussonic-hls"
+					else:  # the catchup type was "flussonic" or "flussonic-hls"
 						catchupSource = fsHost + "/" + fsChannelId + "/timeshift_rel-${offset}.m3u8" + fsUrlAppend
 					return catchupSource.replace("${start}", str(stime)).replace("${offset}", str(now-stime))
 
@@ -228,7 +231,7 @@ class IPTVProcessor():
 		if req_timeout_val != "off":
 			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
 		else:
-			response = urllib.request.urlopen(req, timeout=10) # set a timeout to prevent blocking
+			response = urllib.request.urlopen(req, timeout=10)  # set a timeout to prevent blocking
 		return response.read()
 
 	def getUrlToFile(self, url, dest_file):
@@ -282,7 +285,7 @@ class IPTVProcessor():
 		epghelper.createSourcesFile()
 		epghelper.createChannelsFile(groups)
 
-		epghelper.importepg()  # auto epg update after bouquet generation
+		epghelper.importepg()   # auto epg update after bouquet generation
 
 	def generateEPGChannelReference(self, original_sref):
 		return f"{':'.join(original_sref.split(':', 10)[:10])}:http%3a//m3u.iptv.com"
@@ -297,7 +300,7 @@ class IPTVProcessor():
 
 	def removeBouquets(self):
 		from enigma import eDVBDB
-		eDVBDB.getInstance().removeBouquet(re.escape(self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.")) + r".*[.]tv") # left temporarilly so we can delete bouquets with the old filenames 
+		eDVBDB.getInstance().removeBouquet(re.escape(self.cleanFilename(f"userbouquet.m3uiptv.{self.iptv_service_provider}.")) + r".*[.]tv")  # left temporarilly so we can delete bouquets with the old filenames 
 		eDVBDB.getInstance().removeBouquet(re.escape(self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.")) + r".*[.]tv")
 
 	def removeBouquet(self, filename):
@@ -363,6 +366,7 @@ class IPTVProcessor():
 	def removePicons(self):
 		fetcher = Fetcher(self)
 		fetcher.removeall()
+
 
 def piconsDownloadProcess(self):
 	print("Downloading picons starting")

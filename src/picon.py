@@ -28,7 +28,7 @@ class Fetcher():
 		self.pluginPiconDir = path.join(self.piconDir, "m3uiptv", self.provider.scheme)
 		self.downloaded = []
 		self.maxthreads = config.plugins.m3uiptv.picon_threads.value  # max simultaneous requests
-		
+
 	def downloadURL(self, url, success, fail=None):
 		try:
 			file = self.provider.picon_database[url][0] + ".png"
@@ -77,7 +77,7 @@ class Fetcher():
 				svgpath = path.join(self.piconDir, ch_name + ".svg")
 				islink = path.islink(softlinkpath)
 				# isfile follows symbolic links so we need to check this is not a symbolic link first
-				# or if user.svg exists do not write symbolic link 
+				# or if user.svg exists do not write symbolic link
 				if not islink and path.isfile(softlinkpath) or path.isfile(svgpath):
 					continue  # if a file exists here don't touch it, it is not ours
 				if islink:

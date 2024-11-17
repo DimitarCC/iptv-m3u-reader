@@ -1,6 +1,8 @@
+# for localized messages
+from . import _
+
 import os
 import random
-from xml.sax.saxutils import escape
 from .IPTVProviders import providers
 
 from Tools.Directories import fileReadXML
@@ -27,13 +29,13 @@ def EPGSource__init_new__(self, path, elem, category=None, offset=0):
 	self.parser = elem.get('type')
 	nocheck = elem.get('nocheck')
 	provider_scheme_for_url = elem.get('dynamic-provider')
-	if nocheck == None:
+	if nocheck is None:
 		self.nocheck = 0
 	elif nocheck == "1":
 		self.nocheck = 1
 	else:
 		self.nocheck = 0
-	if provider_scheme_for_url == None or provider_scheme_for_url == "STATIC":
+	if provider_scheme_for_url is None or provider_scheme_for_url == "STATIC":
 		self.urls = [e.text.strip() for e in elem.findall('url')]
 	else:
 		self.urls = [providers[provider_scheme_for_url].getEpgUrlForSources()]

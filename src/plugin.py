@@ -73,7 +73,7 @@ write_lock = threading.Lock()
 
 config.plugins.m3uiptv = ConfigSubsection()
 config.plugins.m3uiptv.enabled = ConfigYesNo(default=True)
-choicelist = [("off", _("off"))] + [(str(i), ngettext("%d second", "%d seconds", i) % i) for i in [1, 2, 3, 5, 7, 10]]
+choicelist = [("off", _("off"))] + [(str(i), ngettext("%d second", "%d seconds", i) % i) for i in [1, 2, 3, 5, 7, 10]]  # noqa: F821
 config.plugins.m3uiptv.check_internet = ConfigSelection(default="2", choices=choicelist)
 config.plugins.m3uiptv.req_timeout = ConfigSelection(default="2", choices=choicelist)
 config.plugins.m3uiptv.inmenu = ConfigYesNo(default=True)
@@ -282,6 +282,7 @@ def playServiceWithIPTVPiPATV(self, service):
 		ref, isStreamRelay = streamrelay.streamrelayChecker(self.resolveAlternatePipService(service))
 		ref = processService(ref, None)[0]
 		if ref:
+			import Tools.Notifications
 			if self.isPlayableForPipService(ref):
 				print("playing pip service", ref and ref.toString())
 			else:
@@ -310,6 +311,7 @@ def playServiceWithIPTVPiP(self, service):
 			return False
 		from Screens.InfoBarGenerics import streamrelay
 		from .IPTVProviders import processService
+		import Tools.Notifications
 		ref = streamrelay.streamrelayChecker(service)
 		ref = processService(ref, None)[0]
 		if ref:
@@ -320,8 +322,8 @@ def playServiceWithIPTVPiP(self, service):
 				if not config.usage.hide_zap_errors.value:
 					Tools.Notifications.AddPopup(text="PiP...\n" + _("Connected transcoding, limit - no PiP!"), type=MessageBox.TYPE_ERROR, timeout=5, id="ZapPipError")
 				return False
-			#if ref.toString().startswith("4097"):		#  Change to service type 1 and try to play a stream as type 1
-			#	ref = eServiceReference("1" + ref.toString()[4:])
+			# if ref.toString().startswith("4097"):		#  Change to service type 1 and try to play a stream as type 1
+			# 	ref = eServiceReference("1" + ref.toString()[4:])
 			if not self.isPlayableForPipService(ref):
 				if not config.usage.hide_zap_errors.value:
 					Tools.Notifications.AddPopup(text="PiP...\n" + _("No free tuner!"), type=MessageBox.TYPE_ERROR, timeout=5, id="ZapPipError")
@@ -578,16 +580,19 @@ def playServiceWithIPTVATV(self, ref, checkParentalControl=True, forceRestart=Fa
 			self.currentlyPlayingServiceOrGroup = InfoBarInstance.servicelist.servicelist.getCurrent()
 		return 1
 
+
 def getCurrentServiceReferenceOriginal(self):
 	return self.originalPlayingServiceReference
+
 
 def getCurrentlyPlayingServiceOrGroup(self):
 	if not self.currentlyPlayingServiceOrGroup:
 		return None
 	return self.originalPlayingServiceReference or self.currentlyPlayingServiceOrGroup
 
+
 def playRealService(self, nnref):
-	#self.pnav.stopService()
+	# self.pnav.stopService()
 	self.currentlyPlayingServiceReference = nnref
 	self.pnav.playService(nnref)
 
@@ -615,7 +620,9 @@ def recordServiceWithIPTV(self, ref, simulate=False):
 			print("[Navigation] record returned non-zero")
 	return service
 
+
 def recordServiceWithIPTVATV(self, ref, simulate=False, type=8):
+		import ServiceReference
 		service = None
 		if not simulate:
 			print(f"[Navigation] Recording service is '{str(ref)}'.")
@@ -1285,7 +1292,7 @@ class M3UIPTVProviderEdit(Setup):
 		self.type = ConfigSelection(default=providerObj.type, choices=[("M3U", _("M3U/M3U8")), ("Xtreeme", _("Xtreme Codes")), ("Stalker", _("Stalker portal"))])
 		self.iptv_service_provider = ConfigText(default=providerObj.iptv_service_provider, fixed_size=False)
 		self.url = ConfigText(default=providerObj.url, fixed_size=False)
-		refresh_interval_choices = [(-1, _("off")), (0, _("on"))] + [(i, ngettext("%d hour", "%d hours", i) % i) for i in [1, 2, 3, 4, 5, 6, 12, 24]]
+		refresh_interval_choices = [(-1, _("off")), (0, _("on"))] + [(i, ngettext("%d hour", "%d hours", i) % i) for i in [1, 2, 3, 4, 5, 6, 12, 24]]  # noqa: F821
 		self.refresh_interval = ConfigSelection(default=providerObj.refresh_interval, choices=refresh_interval_choices)
 		self.novod = ConfigYesNo(default=providerObj.ignore_vod)
 		self.create_epg = ConfigYesNo(default=providerObj.create_epg)
@@ -1564,6 +1571,7 @@ def M3UIPTVVoDMenuCallback(close, answer=None):
 	if close and answer:
 		close(True)
 
+
 def main(session, **kwargs):
 	session.open(M3UIPTVManagerConfig)
 
@@ -1588,8 +1596,9 @@ def sessionstart(reason, **kwargs):
 
 def Plugins(path, **kwargs):
 	try:
-		result = [PluginDescriptor(where=PluginDescriptor.WHERE_SESSIONSTART, fnc=sessionstart, needsRestart=False),
-		  		PluginDescriptor(where=PluginDescriptor.WHERE_MENU, needsRestart=False, fnc=startSetup),
+		result = [
+				PluginDescriptor(where=PluginDescriptor.WHERE_SESSIONSTART, fnc=sessionstart, needsRestart=False),
+				PluginDescriptor(where=PluginDescriptor.WHERE_MENU, needsRestart=False, fnc=startSetup),
 				PluginDescriptor(name=_("M3UIPTV"), description=_("IPTV manager Plugin"), where=PluginDescriptor.WHERE_PLUGINMENU, icon='plugin.png', fnc=main)
 		]
 		if config.plugins.m3uiptv.inmenu.value:

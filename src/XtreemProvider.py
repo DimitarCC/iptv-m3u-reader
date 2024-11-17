@@ -37,7 +37,7 @@ class XtreemProvider(IPTVProcessor):
 		if req_timeout_val != "off":
 			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
 		else:
-			response = urllib.request.urlopen(req, timeout=10) # set a timeout to prevent blocking
+			response = urllib.request.urlopen(req, timeout=10)  # set a timeout to prevent blocking
 		services_response = response.read()
 		services_json_obj = json.loads(services_response)
 		tsid = 1000
@@ -48,7 +48,7 @@ class XtreemProvider(IPTVProcessor):
 		if req_timeout_val != "off":
 			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
 		else:
-			response = urllib.request.urlopen(req, timeout=10) # set a timeout to prevent blocking
+			response = urllib.request.urlopen(req, timeout=10)  # set a timeout to prevent blocking
 
 		groups_response = response.read()
 		groups_json_obj = json.loads(groups_response)
@@ -71,7 +71,7 @@ class XtreemProvider(IPTVProcessor):
 			if catchup_days:
 				surl = self.constructCatchupSufix(str(catchup_days), surl, CATCHUP_XTREME_TEXT)
 			stype = "1"
-			if ("UHD" in ch_name or "4K" in ch_name) and not " HD" in ch_name:
+			if ("UHD" in ch_name or "4K" in ch_name) and " HD" not in ch_name:
 				stype = "1F"
 			elif "HD" in ch_name:
 				stype = "19"

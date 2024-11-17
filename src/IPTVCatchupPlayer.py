@@ -1,3 +1,6 @@
+# for localized messages
+from . import _
+
 from enigma import eServiceReference, eTimer, iPlayableService
 from Screens.InfoBar import InfoBar, MoviePlayer
 from Screens.MinuteInput import MinuteInput
@@ -134,17 +137,19 @@ def injectCatchupInEPG():
 
 		GraphMultiEPG.__init__ = __new_GraphMultiEPG_init__
 
+
 def setupKeyPlayButtonDisplay(self):
 	now = time()
 	event, service = self["list"].getCurrent()[:2]
 	if event:
 		stime = event.getBeginTime()
 		if "catchupdays=" in service.toString() and stime < now:
-			self["key_play"].setText(_("PLAY")) 
+			self["key_play"].setText(_("PLAY"))
 		else:
-			self["key_play"].setText("") 
+			self["key_play"].setText("")
 	else:
 		self["key_play"].setText("")
+
 
 def onSelectionChangedGrid(self):
 	setupKeyPlayButtonDisplay(self)
@@ -180,7 +185,8 @@ def injectCatchupIcon(res, obj, service, serviceName, events, picon, channel):
 									size=(pix_width, pix_height),
 									png=obj.catchUpIcon,
 									flags=0))
-					
+
+
 def injectCatchupIconSingle(res, obj, service, eventId, beginTime, duration, eventName):
 	r3 = obj._descrRect
 	t = beginTime
@@ -225,14 +231,14 @@ def injectCatchupIconGMEPG(res, obj, service, service_name, events, picon, servi
 									size=(pix_width, pix_height),
 									png=obj.catchUpIcon,
 									flags=0))
-					
+
+
 def constructCompleteCatchupSref(catchup_service_type, sref, url_play, stime, etime, duration):
 	url = constructCatchUpUrl(sref, url_play, stime, etime, duration)
 	split_ref = sref.split(":")
 	split_ref[0] = str(catchup_service_type)
 	result_sref = ":".join(split_ref[:10]) + ":" + url.replace(":", "%3a")
 	return eServiceReference(result_sref)
-
 
 
 class CatchupPlayer(MoviePlayer):
@@ -375,7 +381,7 @@ class CatchupPlayer(MoviePlayer):
 			if not pos[0]:
 				return pos[1] // 90000
 		return 0
-	
+
 	def playLastCB(self, answer):
 		if answer is True and self.resume_point:
 			self.isSeeking = True
@@ -388,7 +394,7 @@ class CatchupPlayer(MoviePlayer):
 			entry = resumePointCache[key]
 			entry[0] = int(time())  # update LRU timestamp
 			return entry[1]
-		
+
 	def delResumePoint(self):
 		key = self.orig_sref + "|st=" + str(self.start_orig)
 		if key in resumePointCache:
@@ -408,7 +414,6 @@ class CatchupPlayer(MoviePlayer):
 			if self.resume_point is not None:
 				x = self.resume_point
 				Notifications.AddNotificationWithCallback(self.playLastCB, MessageBox, _("Do you want to resume playback?") + "\n" + (_("Resume position at %s") % ("%d:%02d:%02d" % (x / 3600, x % 3600 / 60, x % 60))), timeout=30, default="yes" in config.usage.on_movie_start.value)
-		
 		self.isSeeking = False
 
 	def __evServiceEnd(self):
