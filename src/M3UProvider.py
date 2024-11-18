@@ -46,7 +46,7 @@ class M3UProvider(IPTVProcessor):
 		return self.getEpgUrl()
 	
 	def searchForXMLTV(self, line, isCustomUrl=False):
-		epg_match - None
+		epg_match = None
 		if line.startswith("#EXTM3U") and not isCustomUrl:
 			if "tvg-url" in line:
 				epg_match = re.search(r"x-tvg-url=\"(.*?)\"", line) or re.search(r"tvg-url=\"(.*?)\"", line)
