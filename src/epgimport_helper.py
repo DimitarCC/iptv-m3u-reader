@@ -90,7 +90,8 @@ class epgimport_helper():
 
 		sources = self.readSources()
 		sources[self.getChannelsFilename()] = {"dynamic": self.provider.scheme if self.provider.is_dynamic_epg else "STATIC", "description": self.provider.iptv_service_provider, "url": self.provider.getEpgUrl()}
-
+		cfg = EPGConfig.loadUserSettings()
+		sources_selected = list(set([s.description for s in EPGConfig.enumSources(EPGIMPORTPATH, filter=cfg["sources"])]))
 		sources_out = [
 			'<?xml version="1.0" encoding="utf-8"?>',
 			'<sources>',
@@ -103,11 +104,13 @@ class epgimport_helper():
 					'   <description><![CDATA[%s]]></description>' % source["description"],
 					'   <url><![CDATA[%s]]></url>' % url.strip(),
 					'  </source>',]
+				sources_selected.append(source["description"])
 		sources_out += [
 			' </sourcecat>',
 			'</sources>']
 		with open(os.path.join(self.getSourcesFilename()), "w") as f:
 			f.write("\n".join(sources_out))
+		EPGConfig.storeUserSettings(sources=sources_selected)
 
 	def createChannelsFile(self, groups):
 		if not EPGImport:
