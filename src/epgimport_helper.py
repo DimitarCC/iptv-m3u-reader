@@ -90,8 +90,13 @@ class epgimport_helper():
 
 		sources = self.readSources()
 		sources[self.getChannelsFilename()] = {"dynamic": self.provider.scheme if self.provider.is_dynamic_epg else "STATIC", "description": self.provider.iptv_service_provider, "url": self.provider.getEpgUrl()}
+		self.writeSources(sources)
+
 		cfg = EPGConfig.loadUserSettings()
-		sources_selected = list(set([s.description for s in EPGConfig.enumSources(EPGIMPORTPATH, filter=cfg["sources"])]))
+		sources_selected = list(set([s.description for s in EPGConfig.enumSources(EPGIMPORTPATH, filter=cfg["sources"])])) + [source["description"] for source in sources.values()]
+		EPGConfig.storeUserSettings(sources=sources_selected)
+
+	def writeSources(self, sources):
 		sources_out = [
 			'<?xml version="1.0" encoding="utf-8"?>',
 			'<sources>',
@@ -104,13 +109,11 @@ class epgimport_helper():
 					'   <description><![CDATA[%s]]></description>' % source["description"],
 					'   <url><![CDATA[%s]]></url>' % url.strip(),
 					'  </source>',]
-				sources_selected.append(source["description"])
 		sources_out += [
 			' </sourcecat>',
 			'</sources>']
 		with open(os.path.join(self.getSourcesFilename()), "w") as f:
 			f.write("\n".join(sources_out))
-		EPGConfig.storeUserSettings(sources=sources_selected)
 
 	def createChannelsFile(self, groups):
 		if not EPGImport:
@@ -151,3 +154,20 @@ class epgimport_helper():
 		self.update_status_timer.stop()
 		for f in self.provider.update_status_callback:
 			f(_("EPG Import: Importing events for %s completed") % self.provider.iptv_service_provider)
+
+	def removeSources(self):
+		sources = self.readSources()
+		channelsFilename = self.getChannelsFilename()
+		if sources and channelsFilename in sources:
+			del sources[channelsFilename]
+			if sources:  # only write sources if populated, otherwise remove file
+				self.writeSources(sources)
+			else:
+				try:
+					os.remove(self.getSourcesFilename())
+				except FileNotFoundError:
+					pass
+			try:
+				os.remove(channelsFilename)
+			except FileNotFoundError:
+				pass

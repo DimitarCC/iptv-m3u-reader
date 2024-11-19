@@ -1414,6 +1414,7 @@ class M3UIPTVProviderEdit(Setup):
 			providerObj = providers[self.scheme.value]
 			providerObj.removeBouquets()
 			providerObj.removeVoDData()
+			providerObj.removeEpgSources()
 			providerObj.removePicons()
 			del providers[self.scheme.value]
 			writeProviders()

@@ -314,6 +314,10 @@ class IPTVProcessor():
 			if file.startswith(self.scheme):
 				remove_file(path.join(USER_FOLDER, file))
 
+	def removeEpgSources(self):
+		epghelper = epgimport_helper(self)
+		epghelper.removeSources()
+
 	def cleanFilename(self, name):
 		return sanitizeFilename(name.replace(" ", "").replace("(", "").replace(")", "").replace("&", "").replace("'", "").replace('"', "").replace(',', "").replace(":", "").replace(";", ""))
 
