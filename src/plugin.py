@@ -1340,7 +1340,7 @@ class M3UIPTVProviderEdit(Setup):
 			configlist.append((_("Use static URLs"), self.staticurl, _("If enabled URL will be static and not aliases. That means if the URL of a service changes in the playlist bouquet entry will stop working.")))
 			if not self.staticurl.value:
 				configlist.append((_("Refresh interval"), self.refresh_interval, _("Interval in which the playlist will be automatically updated")))
-			configlist.append((_("Filter"), self.search_criteria, _("The search criter by which the service will be searched in the playlist file.")))
+				configlist.append((_("Filter"), self.search_criteria, _("The search criter by which the service will be searched in the playlist file.")))
 		elif self.type.value == "Xtreeme":
 			configlist.append((_("Username"), self.username, _("User name used for authenticating in Xtreme codes server.")))
 			configlist.append((_("Password"), self.password, _("Password used for authenticating in Xtreme codes server.")))
