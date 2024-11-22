@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-11-05 21:15+0100\n"
-"PO-Revision-Date: 2024-11-13 19:29+0200\n"
+"PO-Revision-Date: 2024-11-22 19:40+0200\n"
 "Last-Translator: Orlandox <huoltovalikko.com>\n"
 "Language-Team: Orlandox\n"
 "Language: fi\n"
@@ -582,8 +582,8 @@ msgid "The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3"
 msgstr "Käytetty soitin. Voi olla DVB, GStreamer, HiSilicon, Extplayer3"
 
 #: ../src/plugin.py:1327
-msgid "The playlist URL (*.m3u; *.m3u8) or the Xtreme codes server URL."
-msgstr "Soittolistan URL-osoite (*.m3u; *.m3u8) tai Xtreme Codes -palvelimen URL-osoite."
+msgid "The playlist URL (*.m3u; *.m3u8) or the Xtreme codes server URL. Including the port if differs from 80."
+msgstr "Soittolistan URL-osoite (*.m3u; *.m3u8) tai Xtreme codes -palvelimen URL-osoite. Sisältäen portin, jos se eroaa 80:stä."
 
 #: ../src/plugin.py:1332
 msgid "The search criter by which the service will be searched in the playlist file."
@@ -764,3 +764,9 @@ msgstr "Piconien maksimi säikeet"
 
 msgid "Maximum number of threads during picon downloads. If the box returns errors or fails to download some picons, set a lower number."
 msgstr "Säikeiden enimmäismäärä piconien latausten aikana. Jos boksi palauttaa virheitä tai ei pysty lataamaan joitain piconeja, aseta pienempi luku."
+
+msgid "The pin code you entered is wrong."
+msgstr "Syöttämäsi PIN-koodi on väärä."
+
+msgid "TVHeadend streaming server"
+msgstr "TV Headend -suoratoistopalvelin"
