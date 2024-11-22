@@ -9,12 +9,7 @@ from .picon import Fetcher
 from Components.config import config
 from Tools.Directories import sanitizeFilename, fileExists
 from os import fsync, rename, path, makedirs, listdir, remove as remove_file
-import re
-import json
-import socket
-import urllib
-import threading
-import shutil
+import re, json, socket, urllib, threading, shutil, base64
 from time import time
 from datetime import datetime
 
@@ -131,6 +126,22 @@ class IPTVProcessor():
 		self.provider_info = {}
 		self.picons = False
 		self.picon_database = {}
+
+	def checkForNetwrok(self):
+		is_check_network_val = config.plugins.m3uiptv.check_internet.value
+		if is_check_network_val != "off":
+			socket.setdefaulttimeout(int(is_check_network_val))
+			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
+
+	def constructRequest(self, url):
+		headers = {'User-Agent': USER_AGENT}
+		auth_match = re.search(r"\/\/(.*?)@", url)
+		if auth_match:
+			auth = auth_match.group(1)
+			url = url.replace(f"{auth}@", "")
+			headers["Authorization"] = "Basic %s" % base64.b64encode(bytes(auth, "ascii")).decode("utf-8")
+		req = urllib.request.Request(url, headers=headers)
+		return req
 
 	def isLocalPlaylist(self):
 		return not self.url.startswith(("http://", "https://"))

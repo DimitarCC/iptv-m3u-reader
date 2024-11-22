@@ -35,9 +35,10 @@ class Fetcher():
 			if not path.exists(piconname := path.join(self.pluginPiconDir, file)):
 				response = get(url, timeout=2.50, headers={"User-Agent": USER_AGENT})
 				response.raise_for_status()
-				if response.headers['content-type'].lower() != 'image/png':
+				content_type = response.headers.get('content-type')
+				if content_type and content_type.lower() != 'image/png':
 					if callable(fail):
-						fail("Wrong content type: %s , Link: %s" % (response.headers['content-type'], url))
+						fail("Wrong content type: %s , Link: %s" % (content_type, url))
 					return
 				with open(piconname, "wb") as f:
 					f.write(response.content)

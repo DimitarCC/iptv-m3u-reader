@@ -1,6 +1,4 @@
 from enigma import eDVBDB
-from Components.config import config
-import socket
 from twisted.internet import threads
 import requests
 import time
@@ -31,11 +29,7 @@ class StalkerProvider(IPTVProcessor):
 		self.play_system_catchup = "4097"
 
 	def storePlaylistAndGenBouquet(self):
-		is_check_network_val = config.plugins.m3uiptv.check_internet.value
-		if is_check_network_val != "off":
-			socket.setdefaulttimeout(int(is_check_network_val))
-			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
-
+		self.checkForNetwrok()
 		session = requests.Session()
 		token = self.get_token(session)
 		if token:

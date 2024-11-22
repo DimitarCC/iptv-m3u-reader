@@ -1,70 +1,50 @@
-from enigma import eServiceReference, eDVBDB
-from ServiceReference import ServiceReference
+from enigma import eDVBDB
 from Components.config import config
-from Tools.Directories import fileExists
-from time import time
-from twisted.internet import threads
-import socket, urllib, re
+import urllib, re, base64
 from .IPTVProcessor import IPTVProcessor
-from .Variables import CATCHUP_DEFAULT, CATCHUP_TYPES
+from .Variables import CATCHUP_TYPES, USER_AGENT, CATCHUP_DEFAULT
 
 db = eDVBDB.getInstance()
 
 
-class M3UProvider(IPTVProcessor):
+class TVHeadendProvider(IPTVProcessor):
 	def __init__(self):
 		IPTVProcessor.__init__(self)
-		self.playlist = None
-		self.isPlayBackup = False
-		self.offset = 0
+		self.type = "TVH"
+		self.refresh_interval = -1
+		self.vod_movies = []
 		self.progress_percentage = -1
 		self.create_epg = True
 		self.catchup_type = CATCHUP_DEFAULT
 		self.play_system_vod = "4097"
 		self.play_system_catchup = "4097"
 
-	def getEpgUrlForSources(self):
+	def constructRequest(self, url):
+		headers = {'User-Agent': USER_AGENT}
+		headers["Authorization"] = "Basic %s" % base64.b64encode(bytes("%s:%s" % (self.username, self.password), "ascii")).decode("utf-8")
+		if "http://" not in url and "https://" not in url:
+			url = "http://" + url
+		req = urllib.request.Request(url, headers=headers)
+		return req
+
+	def getEpgUrl(self):
+		url = self.url
+		if "http://" not in url and "https://" not in url:
+			url = "http://" + url
+		return self.custom_xmltv_url if self.is_custom_xmltv and self.custom_xmltv_url else "%s/xmltv/channels/epg.xml" % (url.replace("://", "://%s:%s@" % (self.username, self.password)))
+
+	def storePlaylistAndGenBouquet(self):
+		playlist = None
 		self.checkForNetwrok()
-		req = self.constructRequest(self.url)
+		url = "%s/playlist/auth/channels.m3u" % self.url
+		req = self.constructRequest(url)
 		req_timeout_val = config.plugins.m3uiptv.req_timeout.value
 		if req_timeout_val != "off":
 			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
 		else:
 			response = urllib.request.urlopen(req, timeout=10)  # set a timeout to prevent blocking
 		playlist = response.read().decode('utf-8')
-		self.playlist = playlist
-		playlist_splitted = playlist.splitlines()
-		for line in playlist_splitted:
-			epg_match = self.searchForXMLTV(line)
-			if epg_match:
-				return epg_match.group(1)
-		return self.getEpgUrl()
-	
-	def searchForXMLTV(self, line, isCustomUrl=False):
-		epg_match = None
-		if line.startswith("#EXTM3U") and not isCustomUrl:
-			if "tvg-url" in line:
-				epg_match = re.search(r"x-tvg-url=\"(.*?)\"", line) or re.search(r"tvg-url=\"(.*?)\"", line)
-			elif "url-tvg" in line:
-				epg_match = re.search(r"url-tvg=\"(.*?)\"", line)
-		return epg_match
 
-	def storePlaylistAndGenBouquet(self):
-		playlist = None
-		if not self.isLocalPlaylist():
-			self.checkForNetwrok()
-			req = self.constructRequest(self.url)
-			req_timeout_val = config.plugins.m3uiptv.req_timeout.value
-			if req_timeout_val != "off":
-				response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
-			else:
-				response = urllib.request.urlopen(req, timeout=10)  # set a timeout to prevent blocking
-			playlist = response.read().decode('utf-8')
-		else:
-			if not fileExists(self.url):
-				return
-			fd = open(self.url, 'rb')
-			playlist = fd.read().decode('utf-8')
 		self.playlist = playlist
 		playlist_splitted = playlist.splitlines()
 		tsid = 1000
@@ -74,12 +54,6 @@ class M3UProvider(IPTVProcessor):
 		captchup_days = ""
 		curr_group = None
 		for line in playlist_splitted:
-			if self.ignore_vod and "group-title=\"VOD" in line:
-				continue
-			epg_match = self.searchForXMLTV(line, self.is_custom_xmltv)
-			if epg_match:
-				self.epg_url = epg_match.group(1)
-				self.is_dynamic_epg = not self.static_urls
 			if line.startswith("#EXTINF:"):
 				gr_match = re.search(r"group-title=\"(.*?)\"", line)
 				if gr_match:
@@ -182,76 +156,3 @@ class M3UProvider(IPTVProcessor):
 		self.piconsDownload()
 		self.generateEPGImportFiles(groups_for_epg)
 		self.bouquetCreated(None)
-
-	def processService(self, nref, iptvinfodata, callback=None, event=None):
-		splittedRef = nref.toString().split(":")
-		sRef = nref and ServiceReference(nref.toString())
-		origRef = ":".join(splittedRef[:10])
-		iptvInfoDataSplit = iptvinfodata.split("?")
-		channelForSearch = iptvInfoDataSplit[0].split(":")[0]
-		orig_name = sRef and sRef.getServiceName()
-		backup_ref = nref.toString()
-		try:
-			match_backup = re.search(r"backupref=\"(.*?)\"", iptvInfoDataSplit[1])
-			if match_backup:
-				backup_ref = match_backup.group(1).replace("%3a", ":")
-		except:
-			pass
-		if callback:
-			threads.deferToThread(self.processDownloadPlaylist, nref, channelForSearch, origRef, backup_ref, orig_name, event).addCallback(callback)
-		else:
-			return self.processDownloadPlaylist(nref, channelForSearch, origRef, backup_ref, orig_name, event), nref, False
-		return nref, nref, True
-
-	def processDownloadPlaylist(self, nref, channelForSearch, origRef, backup_ref, orig_name, event=None):
-		try:
-			self.checkForNetwrok()
-			channelForSearch = channelForSearch.replace("%3a", ":")
-			channelSID = self.search_criteria.replace("{SID}", channelForSearch)
-			prov = self
-			cache_time = 0
-			if prov.refresh_interval > -1:
-				cache_time = int(prov.refresh_interval * 60 * 60)
-			nref_new = nref.toString()
-			cur_time = time()
-			time_delta = prov.last_exec and cur_time - prov.last_exec or None
-			if (prov.refresh_interval == -1 and prov.playlist) or (prov.refresh_interval > 0 and time_delta and time_delta < cache_time):
-				playlist = prov.playlist
-			else:
-				req = self.constructRequest(prov.url)
-				req_timeout_val = config.plugins.m3uiptv.req_timeout.value
-				if req_timeout_val != "off":
-					response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
-				else:
-					response = urllib.request.urlopen(req, timeout=10)  # set a timeout to prevent blocking
-				playlist = response.read().decode('utf-8')
-				prov.playlist = playlist
-				if cache_time > 0:
-					prov.last_exec = cur_time
-
-			findurl = False
-			catchup_source = ""
-			for line in playlist.splitlines():
-				line = line.strip()  # just in case there is surrounding white space present
-				if line.startswith("#EXTINF"):
-					findurl = (channelSID in line) or (("," + channelForSearch) in line)
-					match = re.search(r"catchup-source=\"(.*?)\"", line)
-					if match:
-						catchup_source = match.group(1)
-					else:
-						catchup_source = ""
-					if event and catchup_source and findurl:
-						nref_new = origRef + ":" + catchup_source.replace(":", "%3a")
-						break
-				elif findurl and line.startswith(("http://", "https://")):
-					iptv_url = line.replace(":", "%3a")
-					nref_new = origRef + ":" + iptv_url + ":" + orig_name + "•" + prov.iptv_service_provider
-					break
-			self.nnref = eServiceReference(nref_new)
-			self.isPlayBackup = False
-			return self.nnref  # , nref
-		except Exception as ex:
-			print("[M3UIPTV] [M3U] Error downloading playlist: " + str(ex))
-			self.isPlayBackup = True
-			self.nnref = eServiceReference(backup_ref + ":")
-			return self.nnref  # , nref

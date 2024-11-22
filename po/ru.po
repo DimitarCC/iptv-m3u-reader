@@ -1,0 +1,866 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: m3uiptv\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-11-05 21:15+0100\n"
+"PO-Revision-Date: 2024-11-21 14:41+0100\n"
+"Last-Translator: \n"
+"Language-Team: spartak73 <spartak73@inbox.ru\n"
+"Language: ru_RU\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"X-Generator: Poedit 3.5\n"
+
+#: ../src/plugin.py:1216
+#, python-format
+msgid "\"%s\" bouquets have been generated successfully"
+msgstr "\"%s\" букетов были успешно созданы"
+
+#: ../src/IPTVProcessor.py:291
+#, python-format
+msgid ""
+"# only leave the groups you want to remove in blacklist below and then "
+"rename the file to %s and regenerate the bouquets"
+msgstr ""
+"# оставьте только те группы, которые вы хотите удалить, в черном списке "
+"ниже, а затем переименуйте файл в %s и заново создайте букеты"
+
+#: ../src/plugin.py:1285
+#, python-format
+msgid "%d hour"
+msgid_plural "%d hours"
+msgstr[0] "%d час"
+msgstr[1] "%d часа"
+msgstr[2] "%d часов"
+
+#: ../src/plugin.py:76
+#, python-format
+msgid "%d second"
+msgid_plural "%d seconds"
+msgstr[0] "%d секунда"
+msgstr[1] "%d секунды"
+msgstr[2] "%d секунд"
+
+#: ../src/plugin.py:1204
+#, python-format
+msgid ""
+"%s: an error occured during bouquet creation\n"
+"\n"
+"%s"
+msgstr ""
+"%s: произошла ошибка при создании букета\n"
+"\n"
+"%s"
+
+#: ../src/plugin.py:1203
+#, python-format
+msgid ""
+"%s: an error occured during bouquet creation\n"
+"\n"
+"Error type: %s"
+msgstr ""
+"%s: произошла ошибка при создании букета\n"
+"\n"
+"Тип ошибки: %s"
+
+#: ../src/plugin.py:1215
+#, python-format
+msgid "%s: bouquets generated successfully"
+msgstr "%s: букеты успешно сгенерированы"
+
+#: ../src/plugin.py:1230
+#, python-format
+msgid "%s: bouquets removed successfully"
+msgstr "%s: букеты успешно удалены"
+
+#: ../src/plugin.py:1184
+#, python-format
+msgid "%s: starting bouquet creation"
+msgstr "%s: начало создания букета"
+
+#: ../src/plugin.py:1212
+#, python-format
+msgid "%s: unable to create bouquet"
+msgstr "%s: невозможно создать букет"
+
+#: ../src/plugin.py:1250
+msgid "Account created"
+msgstr "Аккаунт создан"
+
+#: ../src/plugin.py:1252
+msgid "Account expires"
+msgstr "Срок действия аккаунта истекает"
+
+#: ../src/plugin.py:1248
+msgid "Account status"
+msgstr "Статус аккаунта"
+
+#: ../src/plugin.py:1111
+msgid "Add provider"
+msgstr "Добавить провайдера"
+
+#: ../src/plugin.py:720 ../src/plugin.py:928
+msgid "All"
+msgstr "Все"
+
+#: ../src/plugin.py:1356
+msgid "All fields must be filled in."
+msgstr "Все поля должны быть заполнены."
+
+#: ../src/plugin.py:1452
+msgid "Allow showing of 'Video on Demand' menu entry in Main Menu."
+msgstr "Разрешить показ пункта меню 'Видео по запросу' в главном меню."
+
+#: ../src/plugin.py:1306
+msgid "Append"
+msgstr "Добавить"
+
+#: ../src/plugin.py:1397
+#, python-format
+msgid ""
+"Are you sure you want to permanently remove provider \"%s\" from your "
+"configuration?"
+msgstr ""
+"Вы уверены, что хотите навсегда удалить провайдера \"%s\" из вашей "
+"конфигурации?"
+
+#: ../src/plugin.py:1462
+msgid "Automatically start time shift after"
+msgstr "Автоматически запускать таймшифт после"
+
+#: ../src/plugin.py:1460
+msgid "Automatically start timeshift after"
+msgstr "Автоматически запускать таймшифт после"
+
+#: ../src/plugin.py:1317
+msgid "Bouquet blacklist"
+msgstr "Черный список букета"
+
+#: ../src/plugin.py:743 ../src/plugin.py:940 ../src/plugin.py:1419
+msgid "Cancel"
+msgstr "Отменить"
+
+#: ../src/plugin.py:1350
+msgid "Catchup Type"
+msgstr "Catchup тип"
+
+#: ../src/IPTVCatchupPlayer.py:72
+msgid "Catchup player commands"
+msgstr "Catchup команда плеера"
+
+#: ../src/plugin.py:1484
+msgid ""
+"Change the playback system to one of the players available in ServiceApp "
+"plugin."
+msgstr ""
+"Измените систему воспроизведения на один из плееров, доступных в плагине "
+"ServiceApp."
+
+#: ../src/plugin.py:1450
+msgid "Check for Network"
+msgstr "Проверить наличие сети"
+
+#: ../src/plugin.py:1113
+msgid "Clear bouquets"
+msgstr "Очистить букеты"
+
+#: ../src/plugin.py:1110
+msgid "Close"
+msgstr "Закрыть"
+
+#: ../src/plugin.py:318
+msgid "Connected transcoding, limit - no PiP!"
+msgstr "Подключено транскодирование, ограничение - нет PiP!"
+
+#: ../src/plugin.py:1340
+msgid "Creates files needed for importing EPG via EPGImport plugin"
+msgstr "Создает файлы, необходимые для импорта EPG через плагин EPGImport"
+
+#: ../src/plugin.py:1344
+msgid "Custom XMLTV URL"
+msgstr "Пользовательский XMLTV URL"
+
+#: ../src/plugin.py:1312
+#, python-format
+msgid "Delete \"%s\""
+msgstr "Удалить \"%s\""
+
+#: ../src/plugin.py:1450
+msgid ""
+"Do a check is network available before try to retrieve the iptv playlist. If "
+"no network try backup services."
+msgstr ""
+"Проверьте, доступна ли сеть, прежде чем пытаться получить плейлист iptv. "
+"Если сети нет, попробуйте резервные сервисы."
+
+#: ../src/IPTVCatchupPlayer.py:346
+msgid "Do you want to resume playback?"
+msgstr ""
+
+#: ../src/IPTVProcessor.py:165
+#, python-format
+msgid "Duration: %s"
+msgstr "Продолжительность: %s"
+
+#: ../src/epgimport_helper.py:135
+#, python-format
+msgid "EPG Import: Importing %s %s events"
+msgstr "Импорт EPG: Импорт %s %s событий"
+
+#: ../src/epgimport_helper.py:148
+#, python-format
+msgid "EPG Import: Importing events for %s completed"
+msgstr "Импорт EPG: Импорт событий для %s завершен"
+
+#: ../src/plugin.py:1319
+#, python-format
+msgid "Edit bouquet blacklist for provider \"%s\"."
+msgstr "Редактировать черный список букетов для провайдера \"%s\"."
+
+#: ../src/plugin.py:1449
+msgid "Enable IPTV functionality and managment."
+msgstr "Включить функциональность и управление IPTV."
+
+#: ../src/plugin.py:1449
+msgid "Enable IPTV manager"
+msgstr "Включить менеджер IPTV"
+
+#: ../src/plugin.py:1456
+msgid "Enable new GStreamer playback"
+msgstr "Включить новое воспроизведение GStreamer"
+
+#: ../src/plugin.py:1484
+msgid "Enigma2 playback system"
+msgstr "Система воспроизведения Enigma2"
+
+#: ../src/IPTVProcessor.py:161
+#, python-format
+msgid "Ep%s"
+msgstr "Ep%s"
+
+#: ../src/plugin.py:1332
+msgid "Filter"
+msgstr "Фильтр"
+
+#: ../src/plugin.py:1340
+msgid "Generate EPG files for EPGImport plugin"
+msgstr "Генерация файлов EPG для плагина EPGImport"
+
+#: ../src/plugin.py:1112
+msgid "Generate bouquets"
+msgstr "Сгенерировать букеты"
+
+#: ../src/plugin.py:877 ../src/plugin.py:986
+msgid "IMDb search"
+msgstr "Поиск IMDb"
+
+#: ../src/plugin.py:1235
+msgid "INFO"
+msgstr "ИНФО"
+
+#: ../src/plugin.py:1556
+msgid "IPTV"
+msgstr "IPTV"
+
+#: ../src/plugin.py:1445
+msgid "IPTV Settings"
+msgstr "Настройки IPTV"
+
+#: ../src/plugin.py:1575
+msgid "IPTV manager Plugin"
+msgstr "Плагин менеджера IPTV"
+
+#: ../src/plugin.py:1329
+msgid ""
+"If enabled URL will be static and not aliases. That means if the URL of a "
+"service changes in the playlist bouquet entry will stop working."
+msgstr ""
+"Если включено, URL будет статическим, а не псевдонимами. Это означает, что "
+"если URL сервиса изменится в плейлисте, запись букета перестанет работать."
+
+#: ../src/plugin.py:1456
+msgid "If enabled, the new GStreamer playback engine will be used."
+msgstr ""
+"Если включено, будет использоваться новый движок воспроизведения GStreamer."
+
+#: ../src/plugin.py:1475
+msgid ""
+"If set to 'yes', allows you to use the seekbar to jump to a point within the "
+"event."
+msgstr ""
+"Если установлено значение 'да', позволяет использовать полосу поиска для "
+"перехода к нужной точке события."
+
+#: ../src/plugin.py:1479 ../src/plugin.py:1481
+msgid ""
+"If set to 'yes', allows you to use timeshift with alternative audio plugins."
+msgstr ""
+"Если установлено значение 'да', позволяет использовать таймшифт с "
+"альтернативными аудио плагинами."
+
+#: ../src/plugin.py:340
+msgid "Incorrect service type for PiP!"
+msgstr "Неверный тип сервиса для PiP!"
+
+#: ../src/plugin.py:301
+msgid "Incorrect type service for PiP!"
+msgstr "Неправильный тип сервиса для PiP!"
+
+#: ../src/plugin.py:1331
+msgid "Interval in which the playlist will be automatically updated"
+msgstr "Интервал, через который плейлист будет автоматически обновляться"
+
+#: ../src/plugin.py:1254
+msgid "Is trial"
+msgstr "Пробная"
+
+#: ../src/plugin.py:1100
+msgid "M3U IPTV Manager - providers"
+msgstr "M3U IPTV менеджер - провайдеры"
+
+#: ../src/plugin.py:1244
+msgid "M3U IPTV Provider Info"
+msgstr "M3U IPTV информация о провайдере"
+
+#: ../src/plugin.py:1282
+msgid "M3U/M3U8"
+msgstr "M3U/M3U8"
+
+#: ../src/plugin.py:1575
+msgid "M3UIPTV"
+msgstr "M3UIPTV"
+
+#: ../src/plugin.py:1310
+msgid "M3UIPTVManager"
+msgstr "M3UIPTV менеджер"
+
+#: ../src/plugin.py:1337
+msgid "MAC address"
+msgstr "MAC адрес"
+
+#: ../src/plugin.py:1337
+msgid "MAC address used for authenticating in Stalker portal."
+msgstr "MAC-адрес, используемый для аутентификации на портале Stalker."
+
+#: ../src/plugin.py:1256
+msgid "Maximum connections"
+msgstr "Максимальное количество подключений"
+
+#: ../src/plugin.py:286 ../src/plugin.py:324
+msgid "No free tuner!"
+msgstr "Нет свободного тюнера!"
+
+#: ../src/IPTVCatchupPlayer.py:106
+msgid "PLAY"
+msgstr "ВОСПРОИЗВЕДЕНИЕ"
+
+#: ../src/plugin.py:1335
+msgid "Password"
+msgstr "Пароль"
+
+#: ../src/plugin.py:1335
+msgid "Password used for authenticating in Xtreme codes server."
+msgstr "Пароль, используемый для аутентификации на сервере Xtreme codes."
+
+#: ../src/plugin.py:1314
+#, python-format
+msgid "Permanently remove provider \"%s\" from your configuration."
+msgstr "Навсегда удалить провайдера \"%s\" из вашей конфигурации."
+
+#: ../src/IPTVCatchupPlayer.py:96
+msgid "Play Archive"
+msgstr "Воспроизведение архива"
+
+#: ../src/IPTVCatchupPlayer.py:71
+msgid "Play archive"
+msgstr "Воспроизведение архива"
+
+#: ../src/plugin.py:1347
+msgid "Playback system"
+msgstr "Система воспроизведения"
+
+#: ../src/plugin.py:1348
+msgid "Playback system for Catchup/Archive"
+msgstr "Система воспроизведения для Catchup/Архива"
+
+#: ../src/plugin.py:765
+msgid "Press OK to access selected item"
+msgstr "Нажмите OK, чтобы получить доступ к выбранному элементу"
+
+#: ../src/plugin.py:1115
+msgid "Press OK to edit the currently selected provider"
+msgstr "Нажмите OK, чтобы изменить выбранного провайдера"
+
+#: ../src/plugin.py:962 ../src/plugin.py:1040 ../src/plugin.py:1049
+msgid "Press OK to play selected movie"
+msgstr "Нажмите OK, чтобы воспроизвести выбранный фильм"
+
+#: ../src/plugin.py:849
+msgid "Press OK to play selected show"
+msgstr "Нажмите OK, чтобы воспроизвести выбранное шоу"
+
+#: ../src/plugin.py:841 ../src/plugin.py:1044
+msgid "Press OK to select a category"
+msgstr "Нажмите ОК для выбора категории"
+
+#: ../src/plugin.py:845
+msgid "Press OK to select a series"
+msgstr "Нажмите OK, чтобы выбрать сериалы"
+
+#: ../src/plugin.py:853
+msgid "Press OK to select the current item"
+msgstr "Нажмите OK, чтобы выбрать текущий элемент"
+
+#: ../src/plugin.py:1325
+msgid "Provider Type"
+msgstr "Тип провайдера"
+
+#: ../src/plugin.py:1326
+msgid "Provider name"
+msgstr "Название провайдера"
+
+#: ../src/plugin.py:1455
+msgid ""
+"Recording 4097, 5001 and 5002 streams not possible with external players, so "
+"convert recordings to servicetype 1."
+msgstr ""
+"Запись потоков 4097, 5001 и 5002 невозможна с помощью внешних "
+"проигрывателей, поэтому преобразуйте записи в servicetype 1."
+
+#: ../src/plugin.py:1455
+msgid "Recordings - convert IPTV servicetypes to  1"
+msgstr "Записи - конвертировать типы сервисов IPTV в 1"
+
+#: ../src/plugin.py:1331
+msgid "Refresh interval"
+msgstr "Интервал обновления"
+
+#: ../src/IPTVProcessor.py:169
+#, python-format
+msgid "Released: %s"
+msgstr "Выпущено: %s"
+
+#: ../src/plugin.py:1451
+msgid "Request timeout"
+msgstr "Время ожидания запроса"
+
+#: ../src/IPTVCatchupPlayer.py:346
+#, python-format
+msgid "Resume position at %s"
+msgstr "Возобновить с позиции %s"
+
+#: ../src/IPTVProcessor.py:158
+#, python-format
+msgid "S%s"
+msgstr "S%s"
+
+#: ../src/plugin.py:1420
+msgid "Save"
+msgstr "Сохранить"
+
+#: ../src/plugin.py:1346
+msgid "Scheme"
+msgstr "Схема"
+
+#: ../src/plugin.py:1356
+#, python-format
+msgid ""
+"Scheme must be unique. \"%s\" is already in use. Please update this field."
+msgstr ""
+"Схема должна быть уникальной. \"%s\" уже используется. Пожалуйста, обновите "
+"это поле."
+
+#: ../src/plugin.py:744 ../src/plugin.py:941
+msgid "Search"
+msgstr "Поиск"
+
+#: ../src/IPTVCatchupPlayer.py:466
+msgid "Seek back"
+msgstr "Искать назад"
+
+#: ../src/IPTVCatchupPlayer.py:462
+msgid "Seek forwards"
+msgstr "Искать вперед"
+
+#: ../src/plugin.py:1477
+msgid ""
+"Select 'Yes' to allow use of the seek bar to jump to a selected point within "
+"the event."
+msgstr ""
+"Выберите 'Да', чтобы разрешить использование строки поиска для перехода к "
+"выбранной точке события."
+
+#: ../src/plugin.py:1485
+msgid "Select a player to be in use."
+msgstr "Выберите проигрыватель, который будет использоваться."
+
+#: ../src/plugin.py:1469
+msgid "Select if timeshift should continue when set to record."
+msgstr ""
+"Выберите, следует ли продолжать функцию таймшифта при настройке на запись."
+
+#: ../src/plugin.py:1422
+msgid ""
+"Select the bouquets you want to blacklist and press ok. Blacklisted bouquets "
+"will be removed and not regenerated on rebuild. To reactive a bouquet, "
+"deselect it and regenerate bouquets."
+msgstr ""
+"Выберите букеты, которые вы хотите добавить в черный список, и нажмите ok. "
+"Букеты из черного списка будут удалены и не будут восстановлены при "
+"генерации. Чтобы реактивировать букет, снимите с него выбор и восстановите "
+"букеты."
+
+#: ../src/plugin.py:1485
+msgid "Select the player which will be used for Enigma2 playback."
+msgstr ""
+"Выберите проигрыватель, который будет использоваться для воспроизведения "
+"Enigma2."
+
+#: ../src/plugin.py:1263
+msgid "Server https port"
+msgstr "Порт сервера https"
+
+#: ../src/plugin.py:1261
+msgid "Server port"
+msgstr "Порт сервера"
+
+#: ../src/plugin.py:1267
+msgid "Server protocol"
+msgstr "Протокол сервера"
+
+#: ../src/plugin.py:1265
+msgid "Server rtmp port"
+msgstr "Порт rtmp сервера"
+
+#: ../src/plugin.py:1269
+msgid "Server timezone"
+msgstr "Часовой пояс сервера"
+
+#: ../src/plugin.py:1259
+msgid "Server url"
+msgstr "Url сервера"
+
+#: ../src/plugin.py:1306
+msgid "Shift"
+msgstr "Сдвиг"
+
+#: ../src/plugin.py:1452
+msgid "Show 'Video on Demand' menu entry"
+msgstr "Показать пункт меню 'Видео по запросу'"
+
+#: ../src/plugin.py:1464
+msgid "Show warning when time shift is stopped"
+msgstr "Показывать предупреждение при остановке таймшифта"
+
+#: ../src/plugin.py:1466
+msgid "Show warning when timeshift is stopped"
+msgstr "Показывать предупреждение при остановке таймшифта"
+
+#: ../src/plugin.py:1339
+msgid "Skip VOD entries"
+msgstr "Пропустить записи VOD"
+
+#: ../src/plugin.py:1339
+msgid "Skip VOD entries in the playlist"
+msgstr "Пропустить записи VOD в плейлисте"
+
+#: ../src/plugin.py:1481
+msgid "Skip jumping to live TV while timeshifting with plugins"
+msgstr ""
+"Пропустите переход к прямому эфиру при использовании функции таймшифта с "
+"помощью плагинов"
+
+#: ../src/plugin.py:1479
+msgid "Skip jumping to live while timeshifting with plugins"
+msgstr ""
+"Пропустите переход к прямому эфиру во время сдвига во времени с помощью "
+"плагинов"
+
+#: ../src/plugin.py:1325
+msgid "Specify the provider type."
+msgstr "Укажите тип провайдера."
+
+#: ../src/plugin.py:1326
+msgid ""
+"Specify the provider user friendly name that will be used for the bouquet "
+"name and for displaying in the infobar."
+msgstr ""
+"Укажите удобное для пользователя имя провайдера, которое будет "
+"использоваться для наименования букета и для отображения на информационной "
+"панели."
+
+#: ../src/plugin.py:1346
+msgid ""
+"Specifying the URL scheme that unicly identify the provider.\n"
+"Can be anything you like without spaces and special characters."
+msgstr ""
+"Указание схемы URL, которая однозначно идентифицирует провайдера.\n"
+"Может быть любым, без пробелов и специальных символов."
+
+#: ../src/plugin.py:1306
+msgid "Stalker"
+msgstr "Stalker"
+
+#: ../src/plugin.py:1282
+msgid "Stalker portal"
+msgstr "Stalker портал"
+
+#: ../src/plugin.py:1306
+msgid "Standard"
+msgstr "Стандартный"
+
+#: ../src/plugin.py:1473
+msgid "Stop time shift while recording"
+msgstr "Остановить таймшифт во время записи"
+
+#: ../src/plugin.py:1471
+msgid "Stop timeshift while recording?"
+msgstr "Остановить таймшифт во время записи?"
+
+#: ../src/plugin.py:1473
+msgid ""
+"Stops time shift being used if a recording is in progress. (Advisable for "
+"USB sticks.)"
+msgstr ""
+"Останавливает использование таймшифта, если идет запись. (Рекомендуется для "
+"USB-накопителей.)"
+
+#: ../src/plugin.py:1471
+msgid ""
+"Stops timeshift being used if a recording is in progress. (Advisable for USB "
+"sticks)"
+msgstr ""
+"Останавливает использование таймшифта, если идет запись. (Рекомендуется для "
+"USB-накопителей)"
+
+#: ../src/plugin.py:875 ../src/plugin.py:984
+msgid "TMDb search"
+msgstr "Поиск TMDb"
+
+#: ../src/plugin.py:1344
+msgid "The URL where EPG data for this provider can be downloaded."
+msgstr ""
+"URL-адрес, по которому можно загрузить данные EPG для этого провайдера."
+
+#: ../src/plugin.py:1350
+msgid "The catchup API used."
+msgstr "Используемый catchup API."
+
+#: ../src/plugin.py:1348
+msgid ""
+"The player used for playing Catchup/Archive. Can be DVB, GStreamer, "
+"HiSilicon, Extplayer3"
+msgstr ""
+"Плеер, используемый для воспроизведения Catchup/Архива. Может быть DVB, "
+"GStreamer, HiSilicon, Extplayer3"
+
+#: ../src/plugin.py:1347
+msgid "The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3"
+msgstr "Используемый плеер. Может быть DVB, GStreamer, HiSilicon, Extplayer3"
+
+#: ../src/plugin.py:1327
+msgid "The playlist URL (*.m3u; *.m3u8) or the Xtreme codes server URL."
+msgstr ""
+"URL-адрес плейлиста (*.m3u; *.m3u8) или URL-адрес сервера Xtreme codes."
+
+#: ../src/plugin.py:1332
+msgid ""
+"The search criter by which the service will be searched in the playlist file."
+msgstr ""
+"Критерий поиска, по которому будет осуществляться поиск сервиса в файле "
+"плейлиста."
+
+#: ../src/plugin.py:1451
+msgid "Timeout in seconds for the requests of getting playlist."
+msgstr "Тайм-аут в секундах для запросов на получение плейлиста."
+
+#: ../src/plugin.py:1469
+msgid "Timeshift-save action on zap"
+msgstr "Таймшифт — действие сохранения при переключении"
+
+#: ../src/plugin.py:1421
+msgid "Toggle all"
+msgstr "Переключить все"
+
+#: ../src/plugin.py:1213
+#, python-format
+msgid ""
+"Unable to create bouquet \"%s\"!\n"
+"Possible reason can be no network available."
+msgstr ""
+"Невозможно создать букет \"%s\"!\n"
+"Возможная причина — отсутствие сети."
+
+#: ../src/plugin.py:1342
+msgid "Use custom XMLTV URL"
+msgstr "Использовать пользовательский URL XMLTV"
+
+#: ../src/plugin.py:1329
+msgid "Use static URLs"
+msgstr "Использовать статические URL-адреса"
+
+#: ../src/plugin.py:1477
+msgid "Use time shift SeekBar while time shifting"
+msgstr "Использование панели поиска таймшифта во время таймшифта"
+
+#: ../src/plugin.py:1475
+msgid "Use timeshift seekbar while timeshifting?"
+msgstr "Использовать панель поиска таймшифта во время таймшифта?"
+
+#: ../src/plugin.py:1342
+msgid "Use your own XMLTV url for EPG importing."
+msgstr "Используйте собственный URL-адрес XMLTV для импорта EPG."
+
+#: ../src/plugin.py:1334
+msgid "User name used for authenticating in Xtreme codes server."
+msgstr ""
+"Имя пользователя, используемое для аутентификации на сервере Xtreme codes."
+
+#: ../src/plugin.py:1334
+msgid "Username"
+msgstr "Имя пользователя"
+
+#: ../src/plugin.py:1562
+msgid "Video on Demand"
+msgstr "Видео по запросу"
+
+#: ../src/plugin.py:1043
+msgid "VoD Movie Categories"
+msgstr "Категории фильмов VoD"
+
+#: ../src/plugin.py:1048
+#, python-format
+msgid "VoD Movie Category: %s"
+msgstr "Категория фильма VoD: %s"
+
+#: ../src/plugin.py:1039
+msgid "VoD Movie Search"
+msgstr "Поиск фильмов VoD"
+
+#: ../src/plugin.py:1014
+msgid "VoD Movie: enter search terms"
+msgstr "VoD фильмы: введите условия поиска"
+
+#: ../src/plugin.py:840
+msgid "VoD Series Categories"
+msgstr "Категории сериалов VoD"
+
+#: ../src/plugin.py:844
+#, python-format
+msgid "VoD Series Category: %s"
+msgstr "Категория сериалов VoD: %s"
+
+#: ../src/plugin.py:852
+msgid "VoD Series Search"
+msgstr "Поиск сериалов VoD"
+
+#: ../src/plugin.py:848
+#, python-format
+msgid "VoD Series: %s"
+msgstr "Сериалы VoD: %s"
+
+#: ../src/plugin.py:811
+msgid "VoD Series: enter search terms"
+msgstr "Сериалы VoD: введите условия поиска"
+
+#: ../src/plugin.py:1464
+msgid ""
+"When enabled, a warning will be displayed and the user will get an option to "
+"stop or to continue the time shift."
+msgstr ""
+"При включении этой функции будет отображено предупреждение, и пользователь "
+"получит возможность остановить или продолжить таймшифт."
+
+#: ../src/plugin.py:1466
+msgid ""
+"When enabled, a warning will be displayed and the user will get an option to "
+"stop or to continue the timeshift."
+msgstr ""
+"При включении этой функции будет отображено предупреждение, и пользователь "
+"получит возможность остановить или продолжить таймшифт."
+
+#: ../src/plugin.py:1462
+msgid ""
+"When enabled, time shift starts automatically in background after specified "
+"time."
+msgstr ""
+"Если эта функция включена, сдвиг во времени запускается автоматически в "
+"фоновом режиме по истечении указанного времени."
+
+#: ../src/plugin.py:1460
+msgid ""
+"When enabled, timeshift starts automatically in background after the "
+"specified time."
+msgstr ""
+"Если эта функция включена, сдвиг во времени запускается автоматически в "
+"фоновом режиме по истечении указанного времени."
+
+#: ../src/plugin.py:1282 ../src/plugin.py:1306
+msgid "Xtreme Codes"
+msgstr "Xtreme Codes"
+
+#: ../src/plugin.py:1310
+msgid "add new provider"
+msgstr "добавить нового провайдеора"
+
+#: ../src/plugin.py:1310
+msgid "edit provider"
+msgstr "редактирование провайдера"
+
+#: ../src/plugin.py:76 ../src/plugin.py:1285
+msgid "off"
+msgstr "выкл"
+
+#: ../src/plugin.py:1285
+msgid "on"
+msgstr "вкл"
+
+#: ../src/menu.xml:2
+msgid "Settings"
+msgstr "Настройки"
+
+#: ../src/menu.xml:2
+msgid "General settings for IPTV subsystem."
+msgstr "Общие настройки подсистемы IPTV."
+
+#: ../src/menu.xml:8
+msgid "Playlist manager"
+msgstr "Менеджер плейлиста"
+
+#: ../src/menu.xml:8
+msgid ""
+"Manage M3U/Xtreme Codes playlist IPTV providers and adds support for playing "
+"IPTV services from autogenerated bouquets."
+msgstr ""
+"Управление плейлистами M3U/Xtreme Codes IPTV-провайдеров и добавление "
+"поддержки воспроизведения IPTV-сервисов из автоматически сгенерированных "
+"букетов."
+
+#: ../src/vod_menu.xml:1
+msgid "Video On Demand"
+msgstr "Видео по запросу"
+
+#: ../src/vod_menu.xml:2
+msgid "Movies"
+msgstr "Фильмы"
+
+#: ../src/vod_menu.xml:2
+msgid "Video On Demand Movies listing."
+msgstr "Список фильмов по запросу."
+
+#: ../src/vod_menu.xml:8
+msgid "TV Shows"
+msgstr "ТВ шоу"
+
+#: ../src/vod_menu.xml:8
+msgid "Video On Demand TV Shows listing."
+msgstr "Список телешоу по запросу."

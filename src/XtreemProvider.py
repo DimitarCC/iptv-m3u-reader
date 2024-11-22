@@ -26,10 +26,7 @@ class XtreemProvider(IPTVProcessor):
 		return self.custom_xmltv_url if self.is_custom_xmltv and self.custom_xmltv_url else "%s/xmltv.php?username=%s&password=%s" % (self.url, self.username, self.password)
 
 	def storePlaylistAndGenBouquet(self):
-		is_check_network_val = config.plugins.m3uiptv.check_internet.value
-		if is_check_network_val != "off":
-			socket.setdefaulttimeout(int(is_check_network_val))
-			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
+		self.checkForNetwrok()
 		self.getServerTZoffset()
 		url = "%s/player_api.php?username=%s&password=%s&action=get_live_streams" % (self.url, self.username, self.password)
 		req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT})

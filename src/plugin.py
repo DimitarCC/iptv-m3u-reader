@@ -17,6 +17,7 @@ from .M3UProvider import M3UProvider
 from .IPTVProcessor import IPTVProcessor
 from .XtreemProvider import XtreemProvider
 from .StalkerProvider import StalkerProvider
+from .TVHeadendProvider import TVHeadendProvider
 from .IPTVProviders import providers, processService as processIPTVService
 from .IPTVCatchupPlayer import injectCatchupInEPG
 from .epgimport_helper import overwriteEPGImportEPGSourceInit
@@ -40,8 +41,10 @@ from Components.Sources.List import List
 from Components.Sources.Progress import Progress
 from Components.SystemInfo import SystemInfo, BoxInfo
 from Components.Sources.StreamService import StreamServiceList
+from Components.ParentalControl import ParentalControl
 from Tools.Directories import fileExists, isPluginInstalled
 from Tools.BoundFunction import boundFunction
+from Tools.Notifications import AddPopup
 from Navigation import Navigation
 
 try:
@@ -173,6 +176,24 @@ def readProviders():
 					providerObj.loadVoDMoviesFromFile()
 					providerObj.loadVoDSeriesFromFile()
 				providers[providerObj.scheme] = providerObj
+			for provider in elem.findall("tvhprovider"):
+				providerObj = TVHeadendProvider()
+				providerObj.type = "TVH"
+				providerObj.scheme = provider.find("scheme").text
+				providerObj.iptv_service_provider = provider.find("servicename").text
+				providerObj.url = provider.find("url").text
+				providerObj.refresh_interval = int(provider.find("refresh_interval").text)
+				providerObj.username = provider.find("username").text
+				providerObj.password = provider.find("password").text
+				providerObj.play_system = provider.find("system").text
+				providerObj.play_system_catchup = provider.find("system_catchup").text if provider.find("system_catchup") is not None and provider.find("system_catchup").text is not None else providerObj.play_system
+				providerObj.create_epg = provider.find("epg") is not None and provider.find("epg").text == "on"
+				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
+				providerObj.onid = int(provider.find("onid").text)
+				providerObj.is_custom_xmltv = provider.find("is_custom_xmltv") is not None and provider.find("is_custom_xmltv").text == "on"
+				providerObj.custom_xmltv_url = provider.find("custom_xmltv_url").text if provider.find("custom_xmltv_url") is not None and provider.find("custom_xmltv_url").text is not None else providerObj.custom_xmltv_url
+				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
+				providers[providerObj.scheme] = providerObj
 	fd.close()
 
 
@@ -218,6 +239,25 @@ def writeProviders():
 			xml.append(f"\t\t<custom_xmltv_url><![CDATA[{val.custom_xmltv_url}]]></custom_xmltv_url>\n")
 			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
 			xml.append("\t</xtreemprovider>\n")
+		elif isinstance(val, TVHeadendProvider):
+			xml.append("\t<tvhprovider>\n")
+			xml.append(f"\t\t<servicename>{val.iptv_service_provider}</servicename>\n")
+			xml.append(f"\t\t<url><![CDATA[{val.url}]]></url>\n")
+			xml.append(f"\t\t<refresh_interval>{val.refresh_interval}</refresh_interval>\n")
+			xml.append(f"\t\t<novod>{'on' if val.ignore_vod else 'off'}</novod>\n")
+			xml.append(f"\t\t<groups>{'on' if val.ignore_vod else 'off'}</groups>\n")
+			xml.append(f"\t\t<username><![CDATA[{val.username}]]></username>\n")
+			xml.append(f"\t\t<password><![CDATA[{val.password}]]></password>\n")
+			xml.append(f"\t\t<scheme><![CDATA[{val.scheme}]]></scheme>\n")
+			xml.append(f"\t\t<system>{val.play_system}</system>\n")
+			xml.append(f"\t\t<system_catchup>{val.play_system_catchup}</system_catchup>\n")
+			xml.append(f"\t\t<epg>{'on' if val.create_epg else 'off'}</epg>\n")
+			xml.append(f"\t\t<onid>{val.onid}</onid>\n")
+			xml.append(f"\t\t<server_timezone_offset>{val.server_timezone_offset}</server_timezone_offset><!-- timezone offset of the server in seconds from the perspective of the client -->\n")
+			xml.append(f"\t\t<is_custom_xmltv>{'on' if val.is_custom_xmltv else 'off'}</is_custom_xmltv>\n")
+			xml.append(f"\t\t<custom_xmltv_url><![CDATA[{val.custom_xmltv_url}]]></custom_xmltv_url>\n")
+			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
+			xml.append("\t</tvhprovider>\n")
 		else:
 			xml.append("\t<stalkerprovider>\n")
 			xml.append(f"\t\t<servicename>{val.iptv_service_provider}</servicename>\n")
@@ -260,6 +300,7 @@ def injectIntoNavigation():
 	NavigationInstance.instance.getCurrentServiceReferenceOriginal = getCurrentServiceReferenceOriginal.__get__(NavigationInstance.instance, Navigation)
 	NavigationInstance.instance.getCurrentlyPlayingServiceOrGroup = getCurrentlyPlayingServiceOrGroup.__get__(NavigationInstance.instance, Navigation)
 	ChannelSelection.saveChannel = saveChannel
+	ParentalControl.servicePinEntered = servicePinEntered
 	injectCatchupInEPG()
 	overwriteEPGImportEPGSourceInit()
 
@@ -273,6 +314,17 @@ def saveChannel(self, ref):
 			self.lastservice.value = refstr
 			self.lastservice.save()
 
+def servicePinEntered(self, service, result=None):
+	if result:
+		self.setSessionPinCached()
+		self.hideBlacklist()
+		self.callback(ref=service, forceRestart=True)
+	elif result is False:
+		messageText = _("The pin code you entered is wrong.")
+		if self.session:
+			self.session.open(MessageBox, messageText, MessageBox.TYPE_INFO, timeout=3)
+		else:
+			AddPopup(messageText, MessageBox.TYPE_ERROR, timeout=3)
 
 def playServiceWithIPTVPiPATV(self, service):
 		if service is None:
@@ -357,6 +409,7 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 	InfoBarInstance = InfoBarCount == 1 and InfoBar.instance
 
 	oldref = self.currentlyPlayingServiceOrGroup
+	oldref_orig = self.originalPlayingServiceReference
 	if "%3a//" in ref.toString():
 		self.currentlyPlayingServiceReference = None
 		self.currentlyPlayingService = None
@@ -373,7 +426,6 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 	self.currentlyPlayingServiceReference = ref
 	self.currentlyPlayingServiceOrGroup = ref
 	self.originalPlayingServiceReference = ref
-
 	if InfoBarInstance:
 		InfoBarInstance.session.screen["CurrentService"].newService(ref)
 		InfoBarInstance.session.screen["Event_Now"].updateSource(ref)
@@ -485,8 +537,12 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 			if InfoBarInstance and playref.toString().find("%3a//") > -1 and not is_dynamic:
 				InfoBarInstance.serviceStarted()
 			return 0
-	elif oldref and InfoBarInstance and InfoBarInstance.servicelist.servicelist.setCurrent(oldref, adjust):
-		self.currentlyPlayingServiceOrGroup = InfoBarInstance.servicelist.servicelist.getCurrent()
+	elif InfoBarInstance:
+		self.stopService()
+		InfoBarInstance.session.screen["Event_Now"].updateSource(ref)
+		InfoBarInstance.session.screen["Event_Next"].updateSource(ref)
+		if InfoBarInstance.servicelist.servicelist.setCurrent(ref, adjust):
+			self.currentlyPlayingServiceOrGroup = InfoBarInstance.servicelist.servicelist.getCurrent()
 	return 1
 
 
@@ -1289,7 +1345,7 @@ class M3UIPTVProviderEdit(Setup):
 		providerObj = providers.get(provider, IPTVProcessor())
 		blacklist = self.edit and bool(providerObj.readExampleBlacklist())
 		self.providerObj = providerObj
-		self.type = ConfigSelection(default=providerObj.type, choices=[("M3U", _("M3U/M3U8")), ("Xtreeme", _("Xtreme Codes")), ("Stalker", _("Stalker portal"))])
+		self.type = ConfigSelection(default=providerObj.type, choices=[("M3U", _("M3U/M3U8")), ("Xtreeme", _("Xtreme Codes")), ("Stalker", _("Stalker portal")), ("TVH", _("TVHeadend streaming server"))])
 		self.iptv_service_provider = ConfigText(default=providerObj.iptv_service_provider, fixed_size=False)
 		self.url = ConfigText(default=providerObj.url, fixed_size=False)
 		refresh_interval_choices = [(-1, _("off")), (0, _("on"))] + [(i, ngettext("%d hour", "%d hours", i) % i) for i in [1, 2, 3, 4, 5, 6, 12, 24]]  # noqa: F821
@@ -1335,13 +1391,13 @@ class M3UIPTVProviderEdit(Setup):
 		if not self.edit:  # Only show when adding a provider so to select the output type.
 			configlist.append((_("Provider Type"), self.type, _("Specify the provider type.")))
 		configlist.append((_("Provider name"), self.iptv_service_provider, _("Specify the provider user friendly name that will be used for the bouquet name and for displaying in the infobar.")))
-		configlist.append(("URL", self.url, _("The playlist URL (*.m3u; *.m3u8) or the Xtreme codes server URL.")))
+		configlist.append(("URL", self.url, _("The playlist URL (*.m3u; *.m3u8) or the Xtreme codes server URL. Including the port if differs from 80.")))
 		if self.type.value == "M3U":
 			configlist.append((_("Use static URLs"), self.staticurl, _("If enabled URL will be static and not aliases. That means if the URL of a service changes in the playlist bouquet entry will stop working.")))
 			if not self.staticurl.value:
 				configlist.append((_("Refresh interval"), self.refresh_interval, _("Interval in which the playlist will be automatically updated")))
 				configlist.append((_("Filter"), self.search_criteria, _("The search criter by which the service will be searched in the playlist file.")))
-		elif self.type.value == "Xtreeme":
+		elif self.type.value == "Xtreeme" or self.type.value == "TVH":
 			configlist.append((_("Username"), self.username, _("User name used for authenticating in Xtreme codes server.")))
 			configlist.append((_("Password"), self.password, _("Password used for authenticating in Xtreme codes server.")))
 		else:
@@ -1349,7 +1405,7 @@ class M3UIPTVProviderEdit(Setup):
 		if self.type.value == "Xtreeme":
 			configlist.append((_("Skip VOD entries"), self.novod, _("Skip VOD entries in the playlist")))
 		configlist.append((_("Generate EPG files for EPGImport plugin"), self.create_epg, _("Creates files needed for importing EPG via EPGImport plugin")))
-		if (self.type.value == "M3U" or self.type.value == "Xtreeme") and self.create_epg.value:
+		if (self.type.value == "M3U" or self.type.value == "Xtreeme" or self.type.value == "TVH") and self.create_epg.value:
 			configlist.append((_("Use custom XMLTV URL"), self.is_custom_xmltv, _("Use your own XMLTV url for EPG importing.")))
 			if self.is_custom_xmltv.value:
 				configlist.append((_("Custom XMLTV URL"), self.custom_xmltv_url, _("The URL where EPG data for this provider can be downloaded.")))
@@ -1373,6 +1429,8 @@ class M3UIPTVProviderEdit(Setup):
 			providerObj = self.providerObj if isinstance(self.providerObj, M3UProvider) else M3UProvider()
 		elif self.type.value == "Xtreeme":
 			providerObj = self.providerObj if isinstance(self.providerObj, XtreemProvider) else XtreemProvider()
+		elif self.type.value == "TVH":
+			providerObj = self.providerObj if isinstance(self.providerObj, TVHeadendProvider) else TVHeadendProvider()
 		else:
 			providerObj = self.providerObj if isinstance(self.providerObj, StalkerProvider) else StalkerProvider()
 		providerObj.iptv_service_provider = self.iptv_service_provider.value
@@ -1392,7 +1450,7 @@ class M3UIPTVProviderEdit(Setup):
 			providerObj.epg_url = self.epg_url.value
 			providerObj.is_custom_xmltv = self.is_custom_xmltv.value
 			providerObj.custom_xmltv_url = self.custom_xmltv_url.value
-		elif self.type.value == "Xtreeme":
+		elif self.type.value == "Xtreeme" or self.type.value == "TVH":
 			providerObj.username = self.username.value
 			providerObj.password = self.password.value
 			providerObj.is_custom_xmltv = self.is_custom_xmltv.value
