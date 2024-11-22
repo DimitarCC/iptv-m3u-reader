@@ -36,6 +36,7 @@ remote="origin"
 branch="main"
 python="python"
 localgsed="sed"
+xml2po="xml2po.py"
 findoptions=""
 delete=1
 plugin="m3uiptv" # this is plugin language domain (in __init__.py)
@@ -157,8 +158,10 @@ languages=($(ls *.po | tr "\n" " " | sed 's/.po//g'))
 printf "Creating temporary file %s-py.pot\n" $plugin
 find $findoptions .. -name "*.py" -exec xgettext --no-wrap -L Python --from-code=UTF-8 -kpgettext:1c,2 --add-comments="TRANSLATORS:" -d enigma2 -s -o "$plugin"-py.pot {} \+
 "$localgsed" --in-place "$plugin"-py.pot --expression=s/CHARSET/UTF-8/
+printf "Creating temporary file %s-xml.pot\n" $plugin
+find $findoptions .. -name "*.xml" -exec "$python" "$xml2po" {} \+ >  "$plugin"-xml.pot
 printf "Merging pot files to create: %s.pot\n" "$plugin"
-cat "$plugin"-py.pot | msguniq --no-wrap -o "$plugin".pot -
+cat "$plugin"-py.pot "$plugin"-xml.pot | msguniq --no-wrap -o "$plugin".pot -
 OLDIFS=$IFS
 IFS=" "
 
@@ -186,7 +189,7 @@ for lang in "${languages[@]}" ; do
 	fi
 done
 if [ $delete -eq 1 ]; then \
-	rm "$plugin"-py.pot
+	rm "$plugin"-py.pot "$plugin"-xml.pot
 fi
 IFS=$OLDIFS
 printf "Po files update/creation from script finished!\n"
