@@ -7,14 +7,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-22 21:56+0100\n"
+"POT-Creation-Date: 2024-11-23 12:22+0200\n"
 "PO-Revision-Date: 2024-11-13 19:29+0200\n"
 "Last-Translator: Orlandox <huoltovalikko.com>\n"
 "Language-Team: Orlandox\n"
-"Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: fi\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.5\n"
 
@@ -353,7 +353,8 @@ msgid "Password"
 msgstr "Salasana"
 
 #: ../src/plugin.py:1402
-msgid "Password used for authenticating in Xtreme codes server."
+#, fuzzy
+msgid "Password used for authenticating in the streaming server."
 msgstr "Salasana, jota käytetään todentamiseen Xtreme-koodipalvelimessa."
 
 #: ../src/plugin.py:1381
@@ -610,7 +611,7 @@ msgid "TV Shows"
 msgstr "TV-sarjat"
 
 #: ../src/plugin.py:1348
-msgid "TVHeadend streaming server"
+msgid "TVHeadend server"
 msgstr ""
 
 #: ../src/plugin.py:1411
@@ -626,7 +627,8 @@ msgid "The pin code you entered is wrong."
 msgstr ""
 
 #: ../src/plugin.py:1415
-msgid "The player used for playing Catchup/Archive. Can be DVB, GStreamer, HiSilicon, Extplayer3"
+#, fuzzy
+msgid "The player used for playing Catchup/Archive. Can be GStreamer/HiSilicon, Extplayer3"
 msgstr "Alusta aloittamisen/arkiston toistamiseen käytetty soitin. Voi olla DVB, GStreamer, HiSilicon, Extplayer3"
 
 #: ../src/plugin.py:1414
@@ -635,11 +637,12 @@ msgstr "Käytetty soitin. Voi olla DVB, GStreamer, HiSilicon, Extplayer3"
 
 #: ../src/plugin.py:1394
 #, fuzzy
-msgid "The playlist URL (*.m3u; *.m3u8) or the Xtreme codes server URL. Including the port if differs from 80."
+msgid "The playlist URL (*.m3u; *.m3u8) or streaming server URL. Including the port if differs from 80."
 msgstr "Soittolistan URL-osoite (*.m3u; *.m3u8) tai Xtreme Codes -palvelimen URL-osoite."
 
 #: ../src/plugin.py:1399
-msgid "The search criter by which the service will be searched in the playlist file."
+#, fuzzy
+msgid "The search criteria by which the service will be searched in the playlist file."
 msgstr "Hakukriteeri, jolla palvelua haetaan soittolistatiedostosta."
 
 #: ../src/plugin.py:1524
@@ -684,7 +687,8 @@ msgid "Use your own XMLTV url for EPG importing."
 msgstr "Käytä omaa XMLTV-URL-osoitettasi EPG-tuontiin."
 
 #: ../src/plugin.py:1401
-msgid "User name used for authenticating in Xtreme codes server."
+#, fuzzy
+msgid "User name used for authenticating in the streaming server."
 msgstr "Käyttäjätunnus, jota käytetään todentamiseen Xtreme codes -palvelimessa."
 
 #: ../src/plugin.py:1401

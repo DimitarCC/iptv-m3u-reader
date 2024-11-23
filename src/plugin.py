@@ -1345,7 +1345,7 @@ class M3UIPTVProviderEdit(Setup):
 		providerObj = providers.get(provider, IPTVProcessor())
 		blacklist = self.edit and bool(providerObj.readExampleBlacklist())
 		self.providerObj = providerObj
-		self.type = ConfigSelection(default=providerObj.type, choices=[("M3U", _("M3U/M3U8")), ("Xtreeme", _("Xtreme Codes")), ("Stalker", _("Stalker portal")), ("TVH", _("TVHeadend streaming server"))])
+		self.type = ConfigSelection(default=providerObj.type, choices=[("M3U", _("M3U/M3U8")), ("Xtreeme", _("Xtreme Codes")), ("Stalker", _("Stalker portal")), ("TVH", _("TVHeadend server"))])
 		self.iptv_service_provider = ConfigText(default=providerObj.iptv_service_provider, fixed_size=False)
 		self.url = ConfigText(default=providerObj.url, fixed_size=False)
 		refresh_interval_choices = [(-1, _("off")), (0, _("on"))] + [(i, ngettext("%d hour", "%d hours", i) % i) for i in [1, 2, 3, 4, 5, 6, 12, 24]]  # noqa: F821
@@ -1391,15 +1391,15 @@ class M3UIPTVProviderEdit(Setup):
 		if not self.edit:  # Only show when adding a provider so to select the output type.
 			configlist.append((_("Provider Type"), self.type, _("Specify the provider type.")))
 		configlist.append((_("Provider name"), self.iptv_service_provider, _("Specify the provider user friendly name that will be used for the bouquet name and for displaying in the infobar.")))
-		configlist.append(("URL", self.url, _("The playlist URL (*.m3u; *.m3u8) or the Xtreme codes server URL. Including the port if differs from 80.")))
+		configlist.append(("URL", self.url, _("The playlist URL (*.m3u; *.m3u8) or streaming server URL. Including the port if differs from 80.")))
 		if self.type.value == "M3U":
 			configlist.append((_("Use static URLs"), self.staticurl, _("If enabled URL will be static and not aliases. That means if the URL of a service changes in the playlist bouquet entry will stop working.")))
 			if not self.staticurl.value:
 				configlist.append((_("Refresh interval"), self.refresh_interval, _("Interval in which the playlist will be automatically updated")))
-				configlist.append((_("Filter"), self.search_criteria, _("The search criter by which the service will be searched in the playlist file.")))
+				configlist.append((_("Filter"), self.search_criteria, _("The search criteria by which the service will be searched in the playlist file.")))
 		elif self.type.value == "Xtreeme" or self.type.value == "TVH":
-			configlist.append((_("Username"), self.username, _("User name used for authenticating in Xtreme codes server.")))
-			configlist.append((_("Password"), self.password, _("Password used for authenticating in Xtreme codes server.")))
+			configlist.append((_("Username"), self.username, _("User name used for authenticating in the streaming server.")))
+			configlist.append((_("Password"), self.password, _("Password used for authenticating in the streaming server.")))
 		else:
 			configlist.append((_("MAC address"), self.mac, _("MAC address used for authenticating in Stalker portal.")))
 		if self.type.value == "Xtreeme":
@@ -1412,7 +1412,7 @@ class M3UIPTVProviderEdit(Setup):
 		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited.
 			configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
 		configlist.append((_("Playback system"), self.play_system, _("The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3")))
-		configlist.append((_("Playback system for Catchup/Archive"), self.play_system_catchup, _("The player used for playing Catchup/Archive. Can be DVB, GStreamer, HiSilicon, Extplayer3")))
+		configlist.append((_("Playback system for Catchup/Archive"), self.play_system_catchup, _("The player used for playing Catchup/Archive. Can be GStreamer/HiSilicon, Extplayer3")))
 		if self.type.value == "M3U":
 			configlist.append((_("Catchup Type"), self.catchup_type, _("The catchup API used.")))
 		configlist.append((_("Download picons"), self.picons, _("Download picons, if available from the provider, and install them. Picon download is done in the background after bouquet generation.")))

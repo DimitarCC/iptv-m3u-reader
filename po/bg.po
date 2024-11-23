@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-22 21:56+0100\n"
-"PO-Revision-Date: 2024-11-17 10:43+0200\n"
+"POT-Creation-Date: 2024-11-23 12:22+0200\n"
+"PO-Revision-Date: 2024-11-23 12:38+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: bg\n"
@@ -153,7 +153,7 @@ msgstr "Изход"
 
 #: ../src/plugin.py:375
 msgid "Connected transcoding, limit - no PiP!"
-msgstr ""
+msgstr "Connected transcoding, limit - no PiP!"
 
 #: ../src/plugin.py:1407
 msgid "Creates files needed for importing EPG via EPGImport plugin"
@@ -178,11 +178,11 @@ msgstr "Искате ли да възобновите възпроизвежда
 
 #: ../src/plugin.py:1418
 msgid "Download picons"
-msgstr ""
+msgstr "Зареждане на пикони"
 
 #: ../src/plugin.py:1418
 msgid "Download picons, if available from the provider, and install them. Picon download is done in the background after bouquet generation."
-msgstr ""
+msgstr "Сваля логота, ако са налични от провайдъра и инсталиране. Прави се на заден план след създаване на букетите."
 
 #: ../src/IPTVProcessor.py:225
 #, python-format
@@ -214,7 +214,7 @@ msgstr "Включване на  IPTV управление"
 
 #: ../src/plugin.py:1530
 msgid "Enable new GStreamer playback"
-msgstr ""
+msgstr "Enable new GStreamer playback"
 
 #: ../src/plugin.py:1558
 msgid "Enigma2 playback system"
@@ -231,7 +231,7 @@ msgstr "Филтър"
 
 #: ../src/plugin.py:1372
 msgid "Flussonic"
-msgstr ""
+msgstr "Flussonic"
 
 #: ../src/menu.xml
 msgid "General settings for IPTV subsystem."
@@ -251,11 +251,11 @@ msgstr "IMDb търсене"
 
 #: ../src/plugin.py:1301
 msgid "INFO"
-msgstr ""
+msgstr "ИНФО"
 
 #: ../src/plugin.py:1641 ../src/menu.xml
 msgid "IPTV"
-msgstr ""
+msgstr "IPTV"
 
 #: ../src/plugin.py:1518
 msgid "IPTV Settings"
@@ -263,7 +263,7 @@ msgstr "IPTV Настройки"
 
 #: ../src/plugin.py:1661
 msgid "IPTV manager Plugin"
-msgstr ""
+msgstr "Плъгин за менаджиране на IPTV"
 
 #: ../src/plugin.py:1396
 msgid "If enabled URL will be static and not aliases. That means if the URL of a service changes in the playlist bouquet entry will stop working."
@@ -307,15 +307,15 @@ msgstr "M3U IPTV информация провайдър"
 
 #: ../src/plugin.py:1348
 msgid "M3U/M3U8"
-msgstr ""
+msgstr "M3U/M3U8"
 
 #: ../src/plugin.py:1661 ../src/menu.xml
 msgid "M3UIPTV"
-msgstr ""
+msgstr "M3UIPTV"
 
 #: ../src/plugin.py:1377
 msgid "M3UIPTVManager"
-msgstr ""
+msgstr "M3UIPTVManager"
 
 #: ../src/plugin.py:1404
 msgid "MAC address"
@@ -335,7 +335,7 @@ msgstr "Маскимален брой връзки"
 
 #: ../src/plugin.py:1525
 msgid "Maximum number of threads during picon downloads. If the box returns errors or fails to download some picons, set a lower number."
-msgstr ""
+msgstr "Маскимален брой връзки за сваляне на логота. Ако има грешки при свалянето, задайте по-низка стойност."
 
 #: ../src/menu.xml
 msgid "Movies"
@@ -347,15 +347,15 @@ msgstr "Няма свободен тунер!"
 
 #: ../src/IPTVCatchupPlayer.py:147
 msgid "PLAY"
-msgstr ""
+msgstr "PLAY"
 
 #: ../src/plugin.py:1402
 msgid "Password"
 msgstr "Парола"
 
 #: ../src/plugin.py:1402
-msgid "Password used for authenticating in Xtreme codes server."
-msgstr "Парола използвана за оторизиране в Xtream Codes сървър."
+msgid "Password used for authenticating in the streaming server."
+msgstr "Парола използвана за оторизиране в сървъра."
 
 #: ../src/plugin.py:1381
 #, python-format
@@ -364,7 +364,7 @@ msgstr "Изтриване на провайдър \"%s\" от конфигур�
 
 #: ../src/plugin.py:1525
 msgid "Picon max threads"
-msgstr ""
+msgstr "Маскимален брой връзки"
 
 #: ../src/IPTVCatchupPlayer.py:135
 msgid "Play Archive"
@@ -384,7 +384,7 @@ msgstr "Система за възпроизвеждане на Catchup/Архи
 
 #: ../src/menu.xml
 msgid "Playlist manager"
-msgstr ""
+msgstr "Мениджър на плейлисти"
 
 #: ../src/plugin.py:831
 msgid "Press OK to access selected item"
@@ -451,7 +451,7 @@ msgstr "Възобнови възпроизвеждането от %s"
 #: ../src/IPTVProcessor.py:218
 #, python-format
 msgid "S%s"
-msgstr ""
+msgstr "S%s"
 
 #: ../src/plugin.py:1493
 msgid "Save"
@@ -528,7 +528,7 @@ msgstr "Настройки"
 
 #: ../src/plugin.py:1372
 msgid "Shift"
-msgstr ""
+msgstr "Shift"
 
 #: ../src/plugin.py:1526
 msgid "Show 'Video on Demand' menu entry"
@@ -576,7 +576,7 @@ msgstr ""
 
 #: ../src/plugin.py:1372
 msgid "Stalker"
-msgstr ""
+msgstr "Stalker"
 
 #: ../src/plugin.py:1348
 msgid "Stalker portal"
@@ -584,7 +584,7 @@ msgstr "Stalker портал"
 
 #: ../src/plugin.py:1372
 msgid "Standard"
-msgstr ""
+msgstr "Стандартно"
 
 #: ../src/plugin.py:1547
 msgid "Stop time shift while recording"
@@ -611,8 +611,8 @@ msgid "TV Shows"
 msgstr "Сериали"
 
 #: ../src/plugin.py:1348
-msgid "TVHeadend streaming server"
-msgstr ""
+msgid "TVHeadend server"
+msgstr "TVHeadend сървър"
 
 #: ../src/plugin.py:1411
 msgid "The URL where EPG data for this provider can be downloaded."
@@ -624,10 +624,10 @@ msgstr "Използвано Сatchup/Архив API."
 
 #: ../src/plugin.py:323
 msgid "The pin code you entered is wrong."
-msgstr ""
+msgstr "ПИН кода, който въведохте е грешен."
 
 #: ../src/plugin.py:1415
-msgid "The player used for playing Catchup/Archive. Can be DVB, GStreamer, HiSilicon, Extplayer3"
+msgid "The player used for playing Catchup/Archive. Can be GStreamer/HiSilicon, Extplayer3"
 msgstr "Плейър използван за възпроизвеждане на Catchup/Архив. Може да бъде GStreamer/HiSilicon, Extplayer3"
 
 #: ../src/plugin.py:1414
@@ -635,12 +635,11 @@ msgid "The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3"
 msgstr "Плейър използван за възпроизвеждане. Може да бъде DVB, GStreamer/HiSilicon, Extplayer3"
 
 #: ../src/plugin.py:1394
-#, fuzzy
-msgid "The playlist URL (*.m3u; *.m3u8) or the Xtreme codes server URL. Including the port if differs from 80."
-msgstr "Адрес на плейлиста (*.m3u; *.m3u8) или адрес на Xtreаm codes сървера."
+msgid "The playlist URL (*.m3u; *.m3u8) or streaming server URL. Including the port if differs from 80."
+msgstr "Адрес на плейлиста (*.m3u; *.m3u8) или адрес на стрийминг сървера."
 
 #: ../src/plugin.py:1399
-msgid "The search criter by which the service will be searched in the playlist file."
+msgid "The search criteria by which the service will be searched in the playlist file."
 msgstr "Критерият за търсене на канал в плейлиста."
 
 #: ../src/plugin.py:1524
@@ -685,8 +684,8 @@ msgid "Use your own XMLTV url for EPG importing."
 msgstr "Изполване на Ваш собствен адрес за ЕПГ импортиране."
 
 #: ../src/plugin.py:1401
-msgid "User name used for authenticating in Xtreme codes server."
-msgstr "Потребителско име за оторизиране в Xtreаm codes сървър."
+msgid "User name used for authenticating in the streaming server."
+msgstr "Потребителско име за оторизиране в стрийминг сървъра."
 
 #: ../src/plugin.py:1401
 msgid "Username"
@@ -694,7 +693,7 @@ msgstr "Потребителско име"
 
 #: ../src/menu.xml
 msgid "Video On Demand"
-msgstr ""
+msgstr "Video On Demand"
 
 #: ../src/menu.xml
 msgid "Video On Demand Movies listing."
@@ -706,7 +705,7 @@ msgstr "Video On Demand списък сериали."
 
 #: ../src/plugin.py:1647
 msgid "Video on Demand"
-msgstr ""
+msgstr "Video on Demand"
 
 #: ../src/plugin.py:1109
 msgid "VoD Movie Categories"
