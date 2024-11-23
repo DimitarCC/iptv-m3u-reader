@@ -7,14 +7,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-23 12:22+0200\n"
-"PO-Revision-Date: 2024-11-13 19:29+0200\n"
+"POT-Creation-Date: 2024-11-22 21:56+0100\n"
+"PO-Revision-Date: 2024-11-23 08:44+0200\n"
 "Last-Translator: Orlandox <huoltovalikko.com>\n"
 "Language-Team: Orlandox\n"
+"Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fi\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.5\n"
 
@@ -230,7 +230,7 @@ msgstr "Suodatin"
 
 #: ../src/plugin.py:1372
 msgid "Flussonic"
-msgstr ""
+msgstr "Flussonic"
 
 #: ../src/menu.xml
 msgid "General settings for IPTV subsystem."
@@ -355,7 +355,7 @@ msgstr "Salasana"
 #: ../src/plugin.py:1402
 #, fuzzy
 msgid "Password used for authenticating in the streaming server."
-msgstr "Salasana, jota käytetään todentamiseen Xtreme-koodipalvelimessa."
+msgstr "Salasana, jota käytetään todentamiseen striimaus-palvelimessa."
 
 #: ../src/plugin.py:1381
 #, python-format
@@ -612,7 +612,7 @@ msgstr "TV-sarjat"
 
 #: ../src/plugin.py:1348
 msgid "TVHeadend server"
-msgstr ""
+msgstr "TVHeadend-palvelin"
 
 #: ../src/plugin.py:1411
 msgid "The URL where EPG data for this provider can be downloaded."
@@ -624,12 +624,12 @@ msgstr "Käytetty alusta aloittamisen API."
 
 #: ../src/plugin.py:323
 msgid "The pin code you entered is wrong."
-msgstr ""
+msgstr "Syöttämäsi PIN-koodi on väärä."
 
 #: ../src/plugin.py:1415
 #, fuzzy
 msgid "The player used for playing Catchup/Archive. Can be GStreamer/HiSilicon, Extplayer3"
-msgstr "Alusta aloittamisen/arkiston toistamiseen käytetty soitin. Voi olla DVB, GStreamer, HiSilicon, Extplayer3"
+msgstr "Alusta aloittamisen/arkiston toistamiseen käytetty soitin. Voi olla GStreamer/HiSilicon, Extplayer3"
 
 #: ../src/plugin.py:1414
 msgid "The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3"
@@ -638,12 +638,12 @@ msgstr "Käytetty soitin. Voi olla DVB, GStreamer, HiSilicon, Extplayer3"
 #: ../src/plugin.py:1394
 #, fuzzy
 msgid "The playlist URL (*.m3u; *.m3u8) or streaming server URL. Including the port if differs from 80."
-msgstr "Soittolistan URL-osoite (*.m3u; *.m3u8) tai Xtreme Codes -palvelimen URL-osoite."
+msgstr "Soittolistan URL-osoite (*.m3u; *.m3u8) tai striimaus-palvelimen URL-osoite. Sisältäen portin, jos se eroaa 80:stä."
 
 #: ../src/plugin.py:1399
 #, fuzzy
 msgid "The search criteria by which the service will be searched in the playlist file."
-msgstr "Hakukriteeri, jolla palvelua haetaan soittolistatiedostosta."
+msgstr "Hakukriteeri, jolla kanavaa haetaan soittolistatiedostosta."
 
 #: ../src/plugin.py:1524
 msgid "Timeout in seconds for the requests of getting playlist."
@@ -689,7 +689,7 @@ msgstr "Käytä omaa XMLTV-URL-osoitettasi EPG-tuontiin."
 #: ../src/plugin.py:1401
 #, fuzzy
 msgid "User name used for authenticating in the streaming server."
-msgstr "Käyttäjätunnus, jota käytetään todentamiseen Xtreme codes -palvelimessa."
+msgstr "Käyttäjätunnus, jota käytetään todentamiseen striimaus-palvelimessa."
 
 #: ../src/plugin.py:1401
 msgid "Username"
@@ -768,7 +768,7 @@ msgstr "Kun tämä on käytössä, ajansiirto alkaa automaattisesti taustalla, m
 
 #: ../src/plugin.py:1348 ../src/plugin.py:1372
 msgid "Xtreme Codes"
-msgstr "Xtreme-koodit"
+msgstr "Xtreme Codes"
 
 #: ../src/plugin.py:1377
 msgid "add new provider"
