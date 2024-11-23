@@ -1,7 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: M3UIPTV\n"
-"POT-Creation-Date: 2024-11-18 17:24+0100\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-11-22 21:56+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Lululla\n"
@@ -24,218 +25,31 @@ msgstr ""
 "X-Poedit-SearchPath-9: VoDItem.py\n"
 "X-Poedit-SearchPath-10: XtreemProvider.py\n"
 
-#: IPTVCatchupPlayer.py:95 IPTVCatchupPlayer.py:110
-msgid "Play archive"
-msgstr "Riproduzione Archivio"
-
-#: IPTVCatchupPlayer.py:96 IPTVCatchupPlayer.py:111
-msgid "Catchup player commands"
-msgstr "Comandi  riproduzione Catchup"
-
-#: IPTVCatchupPlayer.py:135
-msgid "Play Archive"
-msgstr "Riproduzione Archivio"
-
-#: IPTVCatchupPlayer.py:147
-msgid "PLAY"
-msgstr ""
-
-#: IPTVCatchupPlayer.py:417
-msgid "Do you want to resume playback?"
-msgstr "Vuoi riprendere la riproduzione?"
-
-#: IPTVCatchupPlayer.py:417
+#: ../src/plugin.py:1282
 #, python-format
-msgid "Resume position at %s"
-msgstr "Riprendi posizione a %s"
+msgid "\"%s\" bouquets have been generated successfully"
+msgstr "I bouquet \"%s\" sono stati generati con successo"
 
-#: IPTVCatchupPlayer.py:532
-msgid "Seek forwards"
-msgstr "Cercare avanti"
-
-#: IPTVCatchupPlayer.py:536
-msgid "Seek back"
-msgstr "Cercare indietro"
-
-#: IPTVProcessor.py:207
+#: ../src/IPTVProcessor.py:354
 #, python-format
-msgid "S%s"
-msgstr "S%s"
+msgid "# only leave the groups you want to remove in blacklist below and then rename the file to %s and regenerate the bouquets"
+msgstr "# lascia solo i gruppi che vuoi rimuovere nella blacklist sottostante e poi rinomina il file in %s e rigenera i bouquet"
 
-#: IPTVProcessor.py:210
+#: ../src/plugin.py:1351
 #, python-format
-msgid "Ep%s"
-msgstr "Ep%s"
+msgid "%d hour"
+msgid_plural "%d hours"
+msgstr[0] "%d ora"
+msgstr[1] "%d ore"
 
-#: IPTVProcessor.py:214
-#, python-format
-msgid "Duration: %s"
-msgstr "Duration: %s"
-
-#: IPTVProcessor.py:218
-#, python-format
-msgid "Released: %s"
-msgstr "Rilasciato: %s"
-
-#: IPTVProcessor.py:340
-#, python-format
-msgid ""
-"# only leave the groups you want to remove in blacklist below and then "
-"rename the file to %s and regenerate the bouquets"
-msgstr ""
-"# lascia solo i gruppi che vuoi rimuovere nella blacklist sottostante e poi "
-"rinomina il file in %s e rigenera i bouquet"
-
-#: epgimport_helper.py:137
-#, python-format
-msgid "EPG Import: Importing %s %s events"
-msgstr "Importazione EPG: importazione di %s %s eventi"
-
-#: epgimport_helper.py:150
-#, python-format
-msgid "EPG Import: Importing events for %s completed"
-msgstr "Importazione EPG: importazione eventi per %s completata"
-
-#: plugin.py:76 plugin.py:1295
-msgid "off"
-msgstr ""
-
-#: plugin.py:76
+#: ../src/plugin.py:79
 #, python-format
 msgid "%d second"
 msgid_plural "%d seconds"
 msgstr[0] "%d secondo"
 msgstr[1] "%d secondi"
 
-#: plugin.py:290 plugin.py:329
-msgid "No free tuner!"
-msgstr "Nessun sintonizzatore libero!"
-
-#: plugin.py:305
-msgid "Incorrect type service for PiP!"
-msgstr "Tipo di servizio non corretto per PiP!"
-
-#: plugin.py:323
-msgid "Connected transcoding, limit - no PiP!"
-msgstr "Transcodifica connessa, limite: nessun PiP!"
-
-#: plugin.py:345
-msgid "Incorrect service type for PiP!"
-msgstr "Tipo di servizio non corretto per PiP!"
-
-#: plugin.py:730 plugin.py:938
-msgid "All"
-msgstr "Tutto"
-
-#: plugin.py:753 plugin.py:950 plugin.py:1433
-msgid "Cancel"
-msgstr "Annulla"
-
-#: plugin.py:754 plugin.py:951
-msgid "Search"
-msgstr "Cerca"
-
-#: plugin.py:775
-msgid "Press OK to access selected item"
-msgstr "Premere OK per accedere all'elemento selezionato"
-
-#: plugin.py:821
-msgid "VoD Series: enter search terms"
-msgstr "Serie VoD: inserisci i termini di ricerca"
-
-#: plugin.py:850
-msgid "VoD Series Categories"
-msgstr "Categorie serie VoD"
-
-#: plugin.py:851 plugin.py:1054
-msgid "Press OK to select a category"
-msgstr "Premere OK per selezionare una categoria"
-
-#: plugin.py:854
-#, python-format
-msgid "VoD Series Category: %s"
-msgstr "Categoria VoD Serie :  %s"
-
-#: plugin.py:855
-msgid "Press OK to select a series"
-msgstr "Premere OK per selezionare una serie"
-
-#: plugin.py:858
-#, python-format
-msgid "VoD Series: %s"
-msgstr "Serie VoD: %s"
-
-#: plugin.py:859
-msgid "Press OK to play selected show"
-msgstr "Premere OK per riprodurre la selezione"
-
-#: plugin.py:862
-msgid "VoD Series Search"
-msgstr "Ricerca serie VoD"
-
-#: plugin.py:863
-msgid "Press OK to select the current item"
-msgstr "Premere OK per selezionare la voce corrente"
-
-#: plugin.py:885 plugin.py:994
-msgid "TMDb search"
-msgstr "Ricerca TMDb"
-
-#: plugin.py:887 plugin.py:996
-msgid "IMDb search"
-msgstr "Ricerca IMDb"
-
-#: plugin.py:972 plugin.py:1050 plugin.py:1059
-msgid "Press OK to play selected movie"
-msgstr "Premere OK per riprodurre il film selezionato"
-
-#: plugin.py:1024
-msgid "VoD Movie: enter search terms"
-msgstr "Film VoD: inserisci i termini di ricerca"
-
-#: plugin.py:1049
-msgid "VoD Movie Search"
-msgstr "Ricerca Film VoD"
-
-#: plugin.py:1053
-msgid "VoD Movie Categories"
-msgstr "Categorie di Film VoD"
-
-#: plugin.py:1058
-#, python-format
-msgid "VoD Movie Category: %s"
-msgstr "Categoria VoD Film: %s"
-
-#: plugin.py:1110
-msgid "M3U IPTV Manager - providers"
-msgstr "M3U IPTV Manager - provider"
-
-#: plugin.py:1120
-msgid "Close"
-msgstr "Chiudi"
-
-#: plugin.py:1121
-msgid "Add provider"
-msgstr "Aggiungi porvider"
-
-#: plugin.py:1122
-msgid "Generate bouquets"
-msgstr "Generare Bouquet"
-
-#: plugin.py:1123
-msgid "Clear bouquets"
-msgstr "Pulire bouquet"
-
-#: plugin.py:1125
-msgid "Press OK to edit the currently selected provider"
-msgstr "Premere OK per modificare il provider attualmente selezionato"
-
-#: plugin.py:1194
-#, python-format
-msgid "%s: starting bouquet creation"
-msgstr "%s: avvio creazione bouquet"
-
-#: plugin.py:1213 plugin.py:1214
+#: ../src/plugin.py:1269 ../src/plugin.py:1270
 #, python-format
 msgid ""
 "%s: an error occured during bouquet creation\n"
@@ -246,12 +60,609 @@ msgstr ""
 "\n"
 "Tipo di errore: %s"
 
-#: plugin.py:1222
+#: ../src/plugin.py:1281
+#, python-format
+msgid "%s: bouquets generated successfully"
+msgstr "%s: bouquet generati con successo"
+
+#: ../src/plugin.py:1296
+#, python-format
+msgid "%s: bouquets removed successfully"
+msgstr "%s: bouquet rimossi con successo"
+
+#: ../src/plugin.py:1250
+#, python-format
+msgid "%s: starting bouquet creation"
+msgstr "%s: avvio creazione bouquet"
+
+#: ../src/plugin.py:1278
 #, python-format
 msgid "%s: unable to create bouquet"
 msgstr "%s: impossibile creare il bouquet"
 
-#: plugin.py:1223
+#: ../src/plugin.py:1316
+msgid "Account created"
+msgstr "Account creato"
+
+#: ../src/plugin.py:1318
+msgid "Account expires"
+msgstr "Scadenza Account"
+
+#: ../src/plugin.py:1314
+msgid "Account status"
+msgstr "Stato Account"
+
+#: ../src/plugin.py:1177
+msgid "Add provider"
+msgstr "Aggiungi porvider"
+
+#: ../src/plugin.py:786 ../src/plugin.py:994
+msgid "All"
+msgstr "Tutto"
+
+#: ../src/plugin.py:1424
+msgid "All fields must be filled in."
+msgstr "Tutti i campi devono essere compilati."
+
+#: ../src/plugin.py:1526
+msgid "Allow showing of 'Video on Demand' menu entry in Main Menu."
+msgstr "Consenti la visualizzazione della voce di menu \"Video on Demand\" nel menu principale."
+
+#: ../src/plugin.py:1372
+msgid "Append"
+msgstr "Aggiungere"
+
+#: ../src/plugin.py:1468
+#, python-format
+msgid "Are you sure you want to permanently remove provider \"%s\" from your configuration?"
+msgstr "Vuoi davvero rimuovere definitivamente il provider \"%s\" dalla tua configurazione?"
+
+#: ../src/plugin.py:1536
+msgid "Automatically start time shift after"
+msgstr "Avvia automaticamente lo spostamento temporale dopo"
+
+#: ../src/plugin.py:1534
+msgid "Automatically start timeshift after"
+msgstr "Avvia automaticamente il timeshift dopo"
+
+#: ../src/plugin.py:1384
+msgid "Bouquet blacklist"
+msgstr ""
+
+#: ../src/plugin.py:809 ../src/plugin.py:1006 ../src/plugin.py:1492
+msgid "Cancel"
+msgstr "Annulla"
+
+#: ../src/plugin.py:1417
+msgid "Catchup Type"
+msgstr "Tipo Catchup"
+
+#: ../src/IPTVCatchupPlayer.py:96 ../src/IPTVCatchupPlayer.py:111
+msgid "Catchup player commands"
+msgstr "Comandi  riproduzione Catchup"
+
+#: ../src/plugin.py:1558
+msgid "Change the playback system to one of the players available in ServiceApp plugin."
+msgstr "Cambia il sistema di riproduzione con uno dei lettori disponibili nel plugin ServiceApp."
+
+#: ../src/plugin.py:1523
+msgid "Check for Network"
+msgstr "Controlla la rete"
+
+#: ../src/plugin.py:1179
+msgid "Clear bouquets"
+msgstr "Pulire bouquet"
+
+#: ../src/plugin.py:1176
+msgid "Close"
+msgstr "Chiudi"
+
+#: ../src/plugin.py:375
+msgid "Connected transcoding, limit - no PiP!"
+msgstr "Transcodifica connessa, limite: nessun PiP!"
+
+#: ../src/plugin.py:1407
+msgid "Creates files needed for importing EPG via EPGImport plugin"
+msgstr "Crea i file necessari per l'importazione dell'EPG tramite il plugin EPGImport"
+
+#: ../src/plugin.py:1411
+msgid "Custom XMLTV URL"
+msgstr "URL XMLTV personalizzato"
+
+#: ../src/plugin.py:1379
+#, python-format
+msgid "Delete \"%s\""
+msgstr "Cancella %s"
+
+#: ../src/plugin.py:1523
+msgid "Do a check is network available before try to retrieve the iptv playlist. If no network try backup services."
+msgstr "Controlla se la rete è disponibile prima di provare a recuperare la playlist iptv. Se non c'è rete, prova i servizi di backup."
+
+#: ../src/IPTVCatchupPlayer.py:417
+msgid "Do you want to resume playback?"
+msgstr "Vuoi riprendere la riproduzione?"
+
+#: ../src/plugin.py:1418
+msgid "Download picons"
+msgstr "Scarica picons"
+
+#: ../src/plugin.py:1418
+msgid "Download picons, if available from the provider, and install them. Picon download is done in the background after bouquet generation."
+msgstr "Scarica i picons, se disponibili dal provider, e installali. Il download dei picon avviene in background dopo la generazione del bouquet."
+
+#: ../src/IPTVProcessor.py:225
+#, python-format
+msgid "Duration: %s"
+msgstr "Duration: %s"
+
+#: ../src/epgimport_helper.py:143
+#, python-format
+msgid "EPG Import: Importing %s %s events"
+msgstr "Importazione EPG: importazione di %s %s eventi"
+
+#: ../src/epgimport_helper.py:156
+#, python-format
+msgid "EPG Import: Importing events for %s completed"
+msgstr "Importazione EPG: importazione eventi per %s completata"
+
+#: ../src/plugin.py:1386
+#, python-format
+msgid "Edit bouquet blacklist for provider \"%s\"."
+msgstr "Modifica la blacklist dei bouquet per il provider \"%s\"."
+
+#: ../src/plugin.py:1522
+msgid "Enable IPTV functionality and managment."
+msgstr "Abilita la funzionalità e la gestione IPTV."
+
+#: ../src/plugin.py:1522
+msgid "Enable IPTV manager"
+msgstr "Abilitare il gestore IPTV"
+
+#: ../src/plugin.py:1530
+msgid "Enable new GStreamer playback"
+msgstr "Abilita la nuova riproduzione GStreamer"
+
+#: ../src/plugin.py:1558
+msgid "Enigma2 playback system"
+msgstr "Sistema di riproduzione Enigma2"
+
+#: ../src/IPTVProcessor.py:221
+#, python-format
+msgid "Ep%s"
+msgstr "Ep%s"
+
+#: ../src/plugin.py:1399
+msgid "Filter"
+msgstr "Filtro"
+
+#: ../src/plugin.py:1372
+msgid "Flussonic"
+msgstr ""
+
+#: ../src/menu.xml
+msgid "General settings for IPTV subsystem."
+msgstr ""
+
+#: ../src/plugin.py:1407
+msgid "Generate EPG files for EPGImport plugin"
+msgstr "Genera file EPG per il plugin EPGImport"
+
+#: ../src/plugin.py:1178
+msgid "Generate bouquets"
+msgstr "Generare Bouquet"
+
+#: ../src/plugin.py:943 ../src/plugin.py:1052
+msgid "IMDb search"
+msgstr "Ricerca IMDb"
+
+#: ../src/plugin.py:1301
+msgid "INFO"
+msgstr "INFO"
+
+#: ../src/plugin.py:1641 ../src/menu.xml
+msgid "IPTV"
+msgstr ""
+
+#: ../src/plugin.py:1518
+msgid "IPTV Settings"
+msgstr "Impostazioni IPTV"
+
+#: ../src/plugin.py:1661
+msgid "IPTV manager Plugin"
+msgstr ""
+
+#: ../src/plugin.py:1396
+msgid "If enabled URL will be static and not aliases. That means if the URL of a service changes in the playlist bouquet entry will stop working."
+msgstr "Se abilitato, l'URL sarà statico e non alias. Ciò significa che se l'URL di un servizio cambia, la voce del bouquet della playlist smetterà di funzionare."
+
+#: ../src/plugin.py:1530
+msgid "If enabled, the new GStreamer playback engine will be used."
+msgstr "Se abilitato, verrà utilizzato il nuovo motore di riproduzione GStreamer."
+
+#: ../src/plugin.py:1549
+msgid "If set to 'yes', allows you to use the seekbar to jump to a point within the event."
+msgstr "Se impostato su \"sì\", consente di utilizzare la barra di ricerca per passare a un punto all'interno dell'evento."
+
+#: ../src/plugin.py:1553 ../src/plugin.py:1555
+msgid "If set to 'yes', allows you to use timeshift with alternative audio plugins."
+msgstr "Se impostato su \"sì\", consente di utilizzare il timeshift con plugin audio alternativi."
+
+#: ../src/plugin.py:397
+msgid "Incorrect service type for PiP!"
+msgstr "Tipo di servizio non corretto per PiP!"
+
+#: ../src/plugin.py:357
+msgid "Incorrect type service for PiP!"
+msgstr "Tipo di servizio non corretto per PiP!"
+
+#: ../src/plugin.py:1398
+msgid "Interval in which the playlist will be automatically updated"
+msgstr "Intervallo in cui la playlist verrà aggiornata automaticamente"
+
+#: ../src/plugin.py:1320
+msgid "Is trial"
+msgstr "È una prova"
+
+#: ../src/plugin.py:1166
+msgid "M3U IPTV Manager - providers"
+msgstr "M3U IPTV Manager - provider"
+
+#: ../src/plugin.py:1310
+msgid "M3U IPTV Provider Info"
+msgstr "M3U IPTV Info Provider"
+
+#: ../src/plugin.py:1348
+msgid "M3U/M3U8"
+msgstr "M3U/M3U8"
+
+#: ../src/plugin.py:1661 ../src/menu.xml
+msgid "M3UIPTV"
+msgstr ""
+
+#: ../src/plugin.py:1377
+msgid "M3UIPTVManager"
+msgstr ""
+
+#: ../src/plugin.py:1404
+msgid "MAC address"
+msgstr "Indirizzo MAC"
+
+#: ../src/plugin.py:1404
+msgid "MAC address used for authenticating in Stalker portal."
+msgstr "Indirizzo MAC utilizzato per l'autenticazione nel portale Stalker."
+
+#: ../src/menu.xml
+msgid "Manage M3U/Xtreme Codes playlist IPTV providers and adds support for playing IPTV services from autogenerated bouquets."
+msgstr ""
+
+#: ../src/plugin.py:1322
+msgid "Maximum connections"
+msgstr "Numero massimo di connessioni"
+
+#: ../src/plugin.py:1525
+msgid "Maximum number of threads during picon downloads. If the box returns errors or fails to download some picons, set a lower number."
+msgstr "Numero massimo di thread durante i download di picon. Se la casella restituisce errori o non riesce a scaricare alcuni picon, imposta un numero inferiore."
+
+#: ../src/menu.xml
+msgid "Movies"
+msgstr ""
+
+#: ../src/plugin.py:342 ../src/plugin.py:381
+msgid "No free tuner!"
+msgstr "Nessun sintonizzatore libero!"
+
+#: ../src/IPTVCatchupPlayer.py:147
+msgid "PLAY"
+msgstr ""
+
+#: ../src/plugin.py:1402
+msgid "Password"
+msgstr ""
+
+#: ../src/plugin.py:1402
+msgid "Password used for authenticating in Xtreme codes server."
+msgstr "Password utilizzata per l'autenticazione nel server Xtreme Codes."
+
+#: ../src/plugin.py:1381
+#, python-format
+msgid "Permanently remove provider \"%s\" from your configuration."
+msgstr "Rimuovi definitivamente il provider \"%s\" dalla tua configurazione."
+
+#: ../src/plugin.py:1525
+msgid "Picon max threads"
+msgstr ""
+
+#: ../src/IPTVCatchupPlayer.py:135
+msgid "Play Archive"
+msgstr "Riproduzione Archivio"
+
+#: ../src/IPTVCatchupPlayer.py:95 ../src/IPTVCatchupPlayer.py:110
+msgid "Play archive"
+msgstr "Riproduzione Archivio"
+
+#: ../src/plugin.py:1414
+msgid "Playback system"
+msgstr "Sistema di riproduzione"
+
+#: ../src/plugin.py:1415
+msgid "Playback system for Catchup/Archive"
+msgstr "Sistema di riproduzione per Catchup/Archiviazione"
+
+#: ../src/menu.xml
+msgid "Playlist manager"
+msgstr ""
+
+#: ../src/plugin.py:831
+msgid "Press OK to access selected item"
+msgstr "Premere OK per accedere all'elemento selezionato"
+
+#: ../src/plugin.py:1181
+msgid "Press OK to edit the currently selected provider"
+msgstr "Premere OK per modificare il provider attualmente selezionato"
+
+#: ../src/plugin.py:1028 ../src/plugin.py:1106 ../src/plugin.py:1115
+msgid "Press OK to play selected movie"
+msgstr "Premere OK per riprodurre il film selezionato"
+
+#: ../src/plugin.py:915
+msgid "Press OK to play selected show"
+msgstr "Premere OK per riprodurre la selezione"
+
+#: ../src/plugin.py:907 ../src/plugin.py:1110
+msgid "Press OK to select a category"
+msgstr "Premere OK per selezionare una categoria"
+
+#: ../src/plugin.py:911
+msgid "Press OK to select a series"
+msgstr "Premere OK per selezionare una serie"
+
+#: ../src/plugin.py:919
+msgid "Press OK to select the current item"
+msgstr "Premere OK per selezionare la voce corrente"
+
+#: ../src/plugin.py:1392
+msgid "Provider Type"
+msgstr "Tipo Provider"
+
+#: ../src/plugin.py:1393
+msgid "Provider name"
+msgstr "Nome Provider"
+
+#: ../src/plugin.py:1529
+msgid "Recording 4097, 5001 and 5002 streams not possible with external players, so convert recordings to servicetype 1."
+msgstr "La registrazione dei flussi 4097, 5001 e 5002 non è possibile con lettori esterni, quindi convertire le registrazioni in servicetype 1."
+
+#: ../src/plugin.py:1529
+msgid "Recordings - convert IPTV servicetypes to  1"
+msgstr "Registrazioni - converte i tipi di servizio IPTV in 1"
+
+#: ../src/plugin.py:1398
+msgid "Refresh interval"
+msgstr "Intervallo di aggiornamento"
+
+#: ../src/IPTVProcessor.py:229
+#, python-format
+msgid "Released: %s"
+msgstr "Rilasciato: %s"
+
+#: ../src/plugin.py:1524
+msgid "Request timeout"
+msgstr "Richiesta timeout"
+
+#: ../src/IPTVCatchupPlayer.py:417
+#, python-format
+msgid "Resume position at %s"
+msgstr "Riprendi posizione a %s"
+
+#: ../src/IPTVProcessor.py:218
+#, python-format
+msgid "S%s"
+msgstr "S%s"
+
+#: ../src/plugin.py:1493
+msgid "Save"
+msgstr "Salva"
+
+#: ../src/plugin.py:1413
+msgid "Scheme"
+msgstr "Schema"
+
+#: ../src/plugin.py:1424
+#, python-format
+msgid "Scheme must be unique. \"%s\" is already in use. Please update this field."
+msgstr "Lo schema deve essere univoco. \"%s\" è già in uso. Aggiorna questo campo."
+
+#: ../src/plugin.py:810 ../src/plugin.py:1007
+msgid "Search"
+msgstr "Cerca"
+
+#: ../src/IPTVCatchupPlayer.py:536
+msgid "Seek back"
+msgstr "Cercare indietro"
+
+#: ../src/IPTVCatchupPlayer.py:532
+msgid "Seek forwards"
+msgstr "Cercare avanti"
+
+#: ../src/plugin.py:1551
+msgid "Select 'Yes' to allow use of the seek bar to jump to a selected point within the event."
+msgstr "Selezionare \"Sì\" per consentire l'uso della barra di ricerca per passare a un punto selezionato all'interno dell'evento."
+
+#: ../src/plugin.py:1559
+msgid "Select a player to be in use."
+msgstr "Seleziona un lettore da utilizzare."
+
+#: ../src/plugin.py:1543
+msgid "Select if timeshift should continue when set to record."
+msgstr "Selezionare se il timeshift deve continuare quando è impostata la registrazione."
+
+#: ../src/plugin.py:1495
+msgid "Select the bouquets you want to blacklist and press ok. Blacklisted bouquets will be removed and not regenerated on rebuild. To reactive a bouquet, deselect it and regenerate bouquets."
+msgstr "Seleziona i bouquet che vuoi mettere nella blacklist e premi ok. I bouquet nella blacklist saranno rimossi e non rigenerati durante la ricostruzione. Per riattivare un bouquet, deselezionalo e rigenera i bouquet."
+
+#: ../src/plugin.py:1559
+msgid "Select the player which will be used for Enigma2 playback."
+msgstr "Selezionare il lettore che verrà utilizzato per la riproduzione di Enigma2."
+
+#: ../src/plugin.py:1329
+msgid "Server https port"
+msgstr "Porta https del Server"
+
+#: ../src/plugin.py:1327
+msgid "Server port"
+msgstr "Porta Server"
+
+#: ../src/plugin.py:1333
+msgid "Server protocol"
+msgstr "Protocollo Server"
+
+#: ../src/plugin.py:1331
+msgid "Server rtmp port"
+msgstr "Porta rtmp del server"
+
+#: ../src/plugin.py:1335
+msgid "Server timezone"
+msgstr "Fuso orario del Server"
+
+#: ../src/plugin.py:1325
+msgid "Server url"
+msgstr "Url del Server"
+
+#: ../src/menu.xml
+#, fuzzy
+msgid "Settings"
+msgstr "Impostazioni IPTV"
+
+#: ../src/plugin.py:1372
+msgid "Shift"
+msgstr "Spostare"
+
+#: ../src/plugin.py:1526
+msgid "Show 'Video on Demand' menu entry"
+msgstr "Mostra la voce di menu \"Video on Demand\""
+
+#: ../src/plugin.py:1538
+msgid "Show warning when time shift is stopped"
+msgstr "Mostra avviso quando il time shift viene interrotto"
+
+#: ../src/plugin.py:1540
+msgid "Show warning when timeshift is stopped"
+msgstr "Mostra avviso quando il timeshift viene interrotto"
+
+#: ../src/plugin.py:1406
+msgid "Skip VOD entries"
+msgstr "Salta le voci VOD"
+
+#: ../src/plugin.py:1406
+msgid "Skip VOD entries in the playlist"
+msgstr "Salta le voci VOD nella playlist"
+
+#: ../src/plugin.py:1555
+msgid "Skip jumping to live TV while timeshifting with plugins"
+msgstr "Salta il passaggio alla TV in diretta durante lo spostamento temporale con i plugin"
+
+#: ../src/plugin.py:1553
+msgid "Skip jumping to live while timeshifting with plugins"
+msgstr "Evita di saltare in diretta mentre cambi il timeshift con i plugin"
+
+#: ../src/plugin.py:1392
+msgid "Specify the provider type."
+msgstr "Specificare il tipo di provider."
+
+#: ../src/plugin.py:1393
+msgid "Specify the provider user friendly name that will be used for the bouquet name and for displaying in the infobar."
+msgstr "Specificare il nome intuitivo del provider che verrà utilizzato per il nome del bouquet e per la visualizzazione nella barra delle informazioni."
+
+#: ../src/plugin.py:1413
+msgid ""
+"Specifying the URL scheme that unicly identify the provider.\n"
+"Can be anything you like without spaces and special characters."
+msgstr ""
+"Specifica lo schema URL che identifica in modo univoco il provider.\n"
+"Può essere qualsiasi cosa tu voglia senza spazi e caratteri speciali."
+
+#: ../src/plugin.py:1372
+msgid "Stalker"
+msgstr ""
+
+#: ../src/plugin.py:1348
+msgid "Stalker portal"
+msgstr "Stalker portal"
+
+#: ../src/plugin.py:1372
+msgid "Standard"
+msgstr "Normale"
+
+#: ../src/plugin.py:1547
+msgid "Stop time shift while recording"
+msgstr "Interrompere lo spostamento temporale durante la registrazione"
+
+#: ../src/plugin.py:1545
+msgid "Stop timeshift while recording?"
+msgstr "Interrompere il timeshift durante la registrazione?"
+
+#: ../src/plugin.py:1547
+msgid "Stops time shift being used if a recording is in progress. (Advisable for USB sticks.)"
+msgstr "Interrompe l'utilizzo del time shift se è in corso una registrazione. (Consigliato per le chiavette USB.)"
+
+#: ../src/plugin.py:1545
+msgid "Stops timeshift being used if a recording is in progress. (Advisable for USB sticks)"
+msgstr "Interrompe l'utilizzo del timeshift se è in corso una registrazione. (Consigliato per le chiavette USB)"
+
+#: ../src/plugin.py:941 ../src/plugin.py:1050
+msgid "TMDb search"
+msgstr "Ricerca TMDb"
+
+#: ../src/menu.xml
+msgid "TV Shows"
+msgstr ""
+
+#: ../src/plugin.py:1348
+msgid "TVHeadend streaming server"
+msgstr ""
+
+#: ../src/plugin.py:1411
+msgid "The URL where EPG data for this provider can be downloaded."
+msgstr "L'URL da cui è possibile scaricare i dati EPG di questo provider."
+
+#: ../src/plugin.py:1417
+msgid "The catchup API used."
+msgstr "Viene utilizzata l'API catchup."
+
+#: ../src/plugin.py:323
+msgid "The pin code you entered is wrong."
+msgstr ""
+
+#: ../src/plugin.py:1415
+msgid "The player used for playing Catchup/Archive. Can be DVB, GStreamer, HiSilicon, Extplayer3"
+msgstr "Il player utilizzato per la riproduzione di Catchup/Archive. Può essere DVB, GStreamer, HiSilicon, Extplayer3"
+
+#: ../src/plugin.py:1414
+msgid "The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3"
+msgstr "Il player utilizzato. Può essere DVB, GStreamer, HiSilicon, Extplayer3"
+
+#: ../src/plugin.py:1394
+#, fuzzy
+msgid "The playlist URL (*.m3u; *.m3u8) or the Xtreme codes server URL. Including the port if differs from 80."
+msgstr "URL della playlist (*.m3u; *.m3u8) o URL del server Xtreme codes."
+
+#: ../src/plugin.py:1399
+msgid "The search criter by which the service will be searched in the playlist file."
+msgstr "Criterio di ricerca in base al quale il servizio verrà cercato nel file della playlist."
+
+#: ../src/plugin.py:1524
+msgid "Timeout in seconds for the requests of getting playlist."
+msgstr "Timeout in secondi per le richieste di acquisizione della playlist."
+
+#: ../src/plugin.py:1543
+msgid "Timeshift-save action on zap"
+msgstr "Azione di salvataggio del timeshift su zap"
+
+#: ../src/plugin.py:1494
+msgid "Toggle all"
+msgstr "Attiva/disattiva tutto"
+
+#: ../src/plugin.py:1279
 #, python-format
 msgid ""
 "Unable to create bouquet \"%s\"!\n"
@@ -260,584 +671,121 @@ msgstr ""
 "Impossibile creare il bouquet \"%s\"!\n"
 "La possibile causa potrebbe essere la mancanza di rete disponibile."
 
-#: plugin.py:1225
-#, python-format
-msgid "%s: bouquets generated successfully"
-msgstr "%s: bouquet generati con successo"
-
-#: plugin.py:1226
-#, python-format
-msgid "\"%s\" bouquets have been generated successfully"
-msgstr "I bouquet \"%s\" sono stati generati con successo"
-
-#: plugin.py:1240
-#, python-format
-msgid "%s: bouquets removed successfully"
-msgstr "%s: bouquet rimossi con successo"
-
-#: plugin.py:1245
-msgid "INFO"
-msgstr "INFO"
-
-#: plugin.py:1254
-msgid "M3U IPTV Provider Info"
-msgstr "M3U IPTV Info Provider"
-
-#: plugin.py:1258
-msgid "Account status"
-msgstr "Stato Account"
-
-#: plugin.py:1260
-msgid "Account created"
-msgstr "Account creato"
-
-#: plugin.py:1262
-msgid "Account expires"
-msgstr "Scadenza Account"
-
-#: plugin.py:1264
-msgid "Is trial"
-msgstr "È una prova"
-
-#: plugin.py:1266
-msgid "Maximum connections"
-msgstr "Numero massimo di connessioni"
-
-#: plugin.py:1269
-msgid "Server url"
-msgstr "Url del Server"
-
-#: plugin.py:1271
-msgid "Server port"
-msgstr "Porta Server"
-
-#: plugin.py:1273
-msgid "Server https port"
-msgstr "Porta https del Server"
-
-#: plugin.py:1275
-msgid "Server rtmp port"
-msgstr "Porta rtmp del server"
-
-#: plugin.py:1277
-msgid "Server protocol"
-msgstr "Protocollo Server"
-
-#: plugin.py:1279
-msgid "Server timezone"
-msgstr "Fuso orario del Server"
-
-#: plugin.py:1292
-msgid "M3U/M3U8"
-msgstr "M3U/M3U8"
-
-#: plugin.py:1292 plugin.py:1316
-msgid "Xtreme Codes"
-msgstr "Xtreme Codes"
-
-#: plugin.py:1292
-msgid "Stalker portal"
-msgstr "Stalker portal"
-
-#: plugin.py:1295
-msgid "on"
-msgstr "on"
-
-#: plugin.py:1295
-#, python-format
-msgid "%d hour"
-msgid_plural "%d hours"
-msgstr[0] "%d ora"
-msgstr[1] "%d ore"
-
-#: plugin.py:1316
-msgid "Standard"
-msgstr "Normale"
-
-#: plugin.py:1316
-msgid "Append"
-msgstr "Aggiungere"
-
-#: plugin.py:1316
-msgid "Shift"
-msgstr "Spostare"
-
-#: plugin.py:1316
-msgid "Stalker"
-msgstr ""
-
-#: plugin.py:1316
-msgid "Flussonic"
-msgstr ""
-
-#: plugin.py:1321
-msgid "M3UIPTVManager"
-msgstr ""
-
-#: plugin.py:1321
-msgid "edit provider"
-msgstr "modifica provider"
-
-#: plugin.py:1321
-msgid "add new provider"
-msgstr "aggiungi nuovo provider"
-
-#: plugin.py:1323
-#, python-format
-msgid "Delete \"%s\""
-msgstr "Cancella %s"
-
-#: plugin.py:1325
-#, python-format
-msgid "Permanently remove provider \"%s\" from your configuration."
-msgstr "Rimuovi definitivamente il provider \"%s\" dalla tua configurazione."
-
-#: plugin.py:1328
-msgid "Bouquet blacklist"
-msgstr ""
-
-#: plugin.py:1330
-#, python-format
-msgid "Edit bouquet blacklist for provider \"%s\"."
-msgstr "Modifica la blacklist dei bouquet per il provider \"%s\"."
-
-#: plugin.py:1336
-msgid "Provider Type"
-msgstr "Tipo Provider"
-
-#: plugin.py:1336
-msgid "Specify the provider type."
-msgstr "Specificare il tipo di provider."
-
-#: plugin.py:1337
-msgid "Provider name"
-msgstr "Nome Provider"
-
-#: plugin.py:1337
-msgid ""
-"Specify the provider user friendly name that will be used for the bouquet "
-"name and for displaying in the infobar."
-msgstr ""
-"Specificare il nome intuitivo del provider che verrà utilizzato per il nome "
-"del bouquet e per la visualizzazione nella barra delle informazioni."
-
-#: plugin.py:1338
-msgid "The playlist URL (*.m3u; *.m3u8) or the Xtreme codes server URL."
-msgstr "URL della playlist (*.m3u; *.m3u8) o URL del server Xtreme codes."
-
-#: plugin.py:1340
-msgid "Use static URLs"
-msgstr "Utilizzare URL statici"
-
-#: plugin.py:1340
-msgid ""
-"If enabled URL will be static and not aliases. That means if the URL of a "
-"service changes in the playlist bouquet entry will stop working."
-msgstr ""
-"Se abilitato, l'URL sarà statico e non alias. Ciò significa che se l'URL di "
-"un servizio cambia, la voce del bouquet della playlist smetterà di "
-"funzionare."
-
-#: plugin.py:1342
-msgid "Refresh interval"
-msgstr "Intervallo di aggiornamento"
-
-#: plugin.py:1342
-msgid "Interval in which the playlist will be automatically updated"
-msgstr "Intervallo in cui la playlist verrà aggiornata automaticamente"
-
-#: plugin.py:1343
-msgid "Filter"
-msgstr "Filtro"
-
-#: plugin.py:1343
-msgid ""
-"The search criter by which the service will be searched in the playlist file."
-msgstr ""
-"Criterio di ricerca in base al quale il servizio verrà cercato nel file "
-"della playlist."
-
-#: plugin.py:1345
-msgid "Username"
-msgstr ""
-
-#: plugin.py:1345
-msgid "User name used for authenticating in Xtreme codes server."
-msgstr "Nome utente utilizzato per l'autenticazione nel server Xtreme Codes."
-
-#: plugin.py:1346
-msgid "Password"
-msgstr ""
-
-#: plugin.py:1346
-msgid "Password used for authenticating in Xtreme codes server."
-msgstr "Password utilizzata per l'autenticazione nel server Xtreme Codes."
-
-#: plugin.py:1348
-msgid "MAC address"
-msgstr "Indirizzo MAC"
-
-#: plugin.py:1348
-msgid "MAC address used for authenticating in Stalker portal."
-msgstr "Indirizzo MAC utilizzato per l'autenticazione nel portale Stalker."
-
-#: plugin.py:1350
-msgid "Skip VOD entries"
-msgstr "Salta le voci VOD"
-
-#: plugin.py:1350
-msgid "Skip VOD entries in the playlist"
-msgstr "Salta le voci VOD nella playlist"
-
-#: plugin.py:1351
-msgid "Generate EPG files for EPGImport plugin"
-msgstr "Genera file EPG per il plugin EPGImport"
-
-#: plugin.py:1351
-msgid "Creates files needed for importing EPG via EPGImport plugin"
-msgstr ""
-"Crea i file necessari per l'importazione dell'EPG tramite il plugin EPGImport"
-
-#: plugin.py:1353
+#: ../src/plugin.py:1409
 msgid "Use custom XMLTV URL"
 msgstr "Utilizza URL XMLTV personalizzato"
 
-#: plugin.py:1353
-msgid "Use your own XMLTV url for EPG importing."
-msgstr "Utilizza il tuo URL XMLTV per l'importazione EPG."
+#: ../src/plugin.py:1396
+msgid "Use static URLs"
+msgstr "Utilizzare URL statici"
 
-#: plugin.py:1355
-msgid "Custom XMLTV URL"
-msgstr "URL XMLTV personalizzato"
+#: ../src/plugin.py:1551
+msgid "Use time shift SeekBar while time shifting"
+msgstr "Utilizzare la barra di ricerca dello spostamento temporale durante lil timeshift"
 
-#: plugin.py:1355
-msgid "The URL where EPG data for this provider can be downloaded."
-msgstr "L'URL da cui è possibile scaricare i dati EPG di questo provider."
-
-#: plugin.py:1357
-msgid "Scheme"
-msgstr "Schema"
-
-#: plugin.py:1357
-msgid ""
-"Specifying the URL scheme that unicly identify the provider.\n"
-"Can be anything you like without spaces and special characters."
-msgstr ""
-"Specifica lo schema URL che identifica in modo univoco il provider.\n"
-"Può essere qualsiasi cosa tu voglia senza spazi e caratteri speciali."
-
-#: plugin.py:1358
-msgid "Playback system"
-msgstr "Sistema di riproduzione"
-
-#: plugin.py:1358
-msgid "The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3"
-msgstr "Il player utilizzato. Può essere DVB, GStreamer, HiSilicon, Extplayer3"
-
-#: plugin.py:1359
-msgid "Playback system for Catchup/Archive"
-msgstr "Sistema di riproduzione per Catchup/Archiviazione"
-
-#: plugin.py:1359
-msgid ""
-"The player used for playing Catchup/Archive. Can be DVB, GStreamer, "
-"HiSilicon, Extplayer3"
-msgstr ""
-"Il player utilizzato per la riproduzione di Catchup/Archive. Può essere DVB, "
-"GStreamer, HiSilicon, Extplayer3"
-
-#: plugin.py:1361
-msgid "Catchup Type"
-msgstr "Tipo Catchup"
-
-#: plugin.py:1361
-msgid "The catchup API used."
-msgstr "Viene utilizzata l'API catchup."
-
-#: plugin.py:1362
-msgid "Download picons"
-msgstr "Scarica picons"
-
-#: plugin.py:1362
-msgid ""
-"Download picons, if available from the provider, and install them. Picon "
-"download is done in the background after bouquet generation."
-msgstr ""
-"Scarica i picons, se disponibili dal provider, e installali. Il download dei "
-"picon avviene in background dopo la generazione del bouquet."
-
-#: plugin.py:1368
-#, python-format
-msgid ""
-"Scheme must be unique. \"%s\" is already in use. Please update this field."
-msgstr ""
-"Lo schema deve essere univoco. \"%s\" è già in uso. Aggiorna questo campo."
-
-#: plugin.py:1368
-msgid "All fields must be filled in."
-msgstr "Tutti i campi devono essere compilati."
-
-#: plugin.py:1410
-#, python-format
-msgid ""
-"Are you sure you want to permanently remove provider \"%s\" from your "
-"configuration?"
-msgstr ""
-"Vuoi davvero rimuovere definitivamente il provider \"%s\" dalla tua "
-"configurazione?"
-
-#: plugin.py:1434
-msgid "Save"
-msgstr "Salva"
-
-#: plugin.py:1435
-msgid "Toggle all"
-msgstr "Attiva/disattiva tutto"
-
-#: plugin.py:1436
-msgid ""
-"Select the bouquets you want to blacklist and press ok. Blacklisted bouquets "
-"will be removed and not regenerated on rebuild. To reactive a bouquet, "
-"deselect it and regenerate bouquets."
-msgstr ""
-"Seleziona i bouquet che vuoi mettere nella blacklist e premi ok. I bouquet "
-"nella blacklist saranno rimossi e non rigenerati durante la ricostruzione. "
-"Per riattivare un bouquet, deselezionalo e rigenera i bouquet."
-
-#: plugin.py:1459
-msgid "IPTV Settings"
-msgstr "Impostazioni IPTV"
-
-#: plugin.py:1463
-msgid "Enable IPTV manager"
-msgstr "Abilitare il gestore IPTV"
-
-#: plugin.py:1463
-msgid "Enable IPTV functionality and managment."
-msgstr "Abilita la funzionalità e la gestione IPTV."
-
-#: plugin.py:1464
-msgid "Check for Network"
-msgstr "Controlla la rete"
-
-#: plugin.py:1464
-msgid ""
-"Do a check is network available before try to retrieve the iptv playlist. If "
-"no network try backup services."
-msgstr ""
-"Controlla se la rete è disponibile prima di provare a recuperare la playlist "
-"iptv. Se non c'è rete, prova i servizi di backup."
-
-#: plugin.py:1465
-msgid "Request timeout"
-msgstr "Richiesta timeout"
-
-#: plugin.py:1465
-msgid "Timeout in seconds for the requests of getting playlist."
-msgstr "Timeout in secondi per le richieste di acquisizione della playlist."
-
-#: plugin.py:1466
-msgid "Picon max threads"
-msgstr ""
-
-#: plugin.py:1466
-msgid ""
-"Maximum number of threads during picon downloads. If the box returns errors "
-"or fails to download some picons, set a lower number."
-msgstr ""
-"Numero massimo di thread durante i download di picon. Se la casella "
-"restituisce errori o non riesce a scaricare alcuni picon, imposta un numero "
-"inferiore."
-
-#: plugin.py:1467
-msgid "Show 'Video on Demand' menu entry"
-msgstr "Mostra la voce di menu \"Video on Demand\""
-
-#: plugin.py:1467
-msgid "Allow showing of 'Video on Demand' menu entry in Main Menu."
-msgstr ""
-"Consenti la visualizzazione della voce di menu \"Video on Demand\" nel menu "
-"principale."
-
-#: plugin.py:1470
-msgid "Recordings - convert IPTV servicetypes to  1"
-msgstr "Registrazioni - converte i tipi di servizio IPTV in 1"
-
-#: plugin.py:1470
-msgid ""
-"Recording 4097, 5001 and 5002 streams not possible with external players, so "
-"convert recordings to servicetype 1."
-msgstr ""
-"La registrazione dei flussi 4097, 5001 e 5002 non è possibile con lettori "
-"esterni, quindi convertire le registrazioni in servicetype 1."
-
-#: plugin.py:1471
-msgid "Enable new GStreamer playback"
-msgstr "Abilita la nuova riproduzione GStreamer"
-
-#: plugin.py:1471
-msgid "If enabled, the new GStreamer playback engine will be used."
-msgstr ""
-"Se abilitato, verrà utilizzato il nuovo motore di riproduzione GStreamer."
-
-#: plugin.py:1475
-msgid "Automatically start timeshift after"
-msgstr "Avvia automaticamente il timeshift dopo"
-
-#: plugin.py:1475
-msgid ""
-"When enabled, timeshift starts automatically in background after the "
-"specified time."
-msgstr ""
-"Se abilitato, il timeshift si avvia automaticamente in background dopo il "
-"tempo specificato."
-
-#: plugin.py:1477
-msgid "Automatically start time shift after"
-msgstr "Avvia automaticamente lo spostamento temporale dopo"
-
-#: plugin.py:1477
-msgid ""
-"When enabled, time shift starts automatically in background after specified "
-"time."
-msgstr ""
-"Se abilitato, il time shift si avvia automaticamente in background dopo un "
-"intervallo di tempo specificato."
-
-#: plugin.py:1479
-msgid "Show warning when time shift is stopped"
-msgstr "Mostra avviso quando il time shift viene interrotto"
-
-#: plugin.py:1479
-msgid ""
-"When enabled, a warning will be displayed and the user will get an option to "
-"stop or to continue the time shift."
-msgstr ""
-"Se abilitata, verrà visualizzato un avviso e l'utente avrà la possibilità di "
-"interrompere o continuare lo spostamento temporale."
-
-#: plugin.py:1481
-msgid "Show warning when timeshift is stopped"
-msgstr "Mostra avviso quando il timeshift viene interrotto"
-
-#: plugin.py:1481
-msgid ""
-"When enabled, a warning will be displayed and the user will get an option to "
-"stop or to continue the timeshift."
-msgstr ""
-"Se abilitata, verrà visualizzato un avviso e l'utente avrà la possibilità di "
-"interrompere o continuare il timeshift."
-
-#: plugin.py:1484
-msgid "Timeshift-save action on zap"
-msgstr "Azione di salvataggio del timeshift su zap"
-
-#: plugin.py:1484
-msgid "Select if timeshift should continue when set to record."
-msgstr ""
-"Selezionare se il timeshift deve continuare quando è impostata la "
-"registrazione."
-
-#: plugin.py:1486
-msgid "Stop timeshift while recording?"
-msgstr "Interrompere il timeshift durante la registrazione?"
-
-#: plugin.py:1486
-msgid ""
-"Stops timeshift being used if a recording is in progress. (Advisable for USB "
-"sticks)"
-msgstr ""
-"Interrompe l'utilizzo del timeshift se è in corso una registrazione. "
-"(Consigliato per le chiavette USB)"
-
-#: plugin.py:1488
-msgid "Stop time shift while recording"
-msgstr "Interrompere lo spostamento temporale durante la registrazione"
-
-#: plugin.py:1488
-msgid ""
-"Stops time shift being used if a recording is in progress. (Advisable for "
-"USB sticks.)"
-msgstr ""
-"Interrompe l'utilizzo del time shift se è in corso una registrazione. "
-"(Consigliato per le chiavette USB.)"
-
-#: plugin.py:1490
+#: ../src/plugin.py:1549
 msgid "Use timeshift seekbar while timeshifting?"
 msgstr "Utilizzare la barra di ricerca timeshift durante il timeshifting?"
 
-#: plugin.py:1490
-msgid ""
-"If set to 'yes', allows you to use the seekbar to jump to a point within the "
-"event."
-msgstr ""
-"Se impostato su \"sì\", consente di utilizzare la barra di ricerca per "
-"passare a un punto all'interno dell'evento."
+#: ../src/plugin.py:1409
+msgid "Use your own XMLTV url for EPG importing."
+msgstr "Utilizza il tuo URL XMLTV per l'importazione EPG."
 
-#: plugin.py:1492
-msgid "Use time shift SeekBar while time shifting"
-msgstr ""
-"Utilizzare la barra di ricerca dello spostamento temporale durante lil "
-"timeshift"
+#: ../src/plugin.py:1401
+msgid "User name used for authenticating in Xtreme codes server."
+msgstr "Nome utente utilizzato per l'autenticazione nel server Xtreme Codes."
 
-#: plugin.py:1492
-msgid ""
-"Select 'Yes' to allow use of the seek bar to jump to a selected point within "
-"the event."
-msgstr ""
-"Selezionare \"Sì\" per consentire l'uso della barra di ricerca per passare a "
-"un punto selezionato all'interno dell'evento."
-
-#: plugin.py:1494
-msgid "Skip jumping to live while timeshifting with plugins"
-msgstr "Evita di saltare in diretta mentre cambi il timeshift con i plugin"
-
-#: plugin.py:1494 plugin.py:1496
-msgid ""
-"If set to 'yes', allows you to use timeshift with alternative audio plugins."
-msgstr ""
-"Se impostato su \"sì\", consente di utilizzare il timeshift con plugin audio "
-"alternativi."
-
-#: plugin.py:1496
-msgid "Skip jumping to live TV while timeshifting with plugins"
-msgstr ""
-"Salta il passaggio alla TV in diretta durante lo spostamento temporale con i "
-"plugin"
-
-#: plugin.py:1499
-msgid "Enigma2 playback system"
-msgstr "Sistema di riproduzione Enigma2"
-
-#: plugin.py:1499
-msgid ""
-"Change the playback system to one of the players available in ServiceApp "
-"plugin."
-msgstr ""
-"Cambia il sistema di riproduzione con uno dei lettori disponibili nel plugin "
-"ServiceApp."
-
-#: plugin.py:1500
-msgid "Select the player which will be used for Enigma2 playback."
-msgstr ""
-"Selezionare il lettore che verrà utilizzato per la riproduzione di Enigma2."
-
-#: plugin.py:1500
-msgid "Select a player to be in use."
-msgstr "Seleziona un lettore da utilizzare."
-
-#: plugin.py:1582
-msgid "IPTV"
+#: ../src/plugin.py:1401
+msgid "Username"
 msgstr ""
 
-#: plugin.py:1588
+#: ../src/menu.xml
+msgid "Video On Demand"
+msgstr ""
+
+#: ../src/menu.xml
+msgid "Video On Demand Movies listing."
+msgstr ""
+
+#: ../src/menu.xml
+msgid "Video On Demand TV Shows listing."
+msgstr ""
+
+#: ../src/plugin.py:1647
 msgid "Video on Demand"
 msgstr ""
 
-#: plugin.py:1602
-msgid "M3UIPTV"
+#: ../src/plugin.py:1109
+msgid "VoD Movie Categories"
+msgstr "Categorie di Film VoD"
+
+#: ../src/plugin.py:1114
+#, python-format
+msgid "VoD Movie Category: %s"
+msgstr "Categoria VoD Film: %s"
+
+#: ../src/plugin.py:1105
+msgid "VoD Movie Search"
+msgstr "Ricerca Film VoD"
+
+#: ../src/plugin.py:1080
+msgid "VoD Movie: enter search terms"
+msgstr "Film VoD: inserisci i termini di ricerca"
+
+#: ../src/plugin.py:906
+msgid "VoD Series Categories"
+msgstr "Categorie serie VoD"
+
+#: ../src/plugin.py:910
+#, python-format
+msgid "VoD Series Category: %s"
+msgstr "Categoria VoD Serie :  %s"
+
+#: ../src/plugin.py:918
+msgid "VoD Series Search"
+msgstr "Ricerca serie VoD"
+
+#: ../src/plugin.py:914
+#, python-format
+msgid "VoD Series: %s"
+msgstr "Serie VoD: %s"
+
+#: ../src/plugin.py:877
+msgid "VoD Series: enter search terms"
+msgstr "Serie VoD: inserisci i termini di ricerca"
+
+#: ../src/plugin.py:1538
+msgid "When enabled, a warning will be displayed and the user will get an option to stop or to continue the time shift."
+msgstr "Se abilitata, verrà visualizzato un avviso e l'utente avrà la possibilità di interrompere o continuare lo spostamento temporale."
+
+#: ../src/plugin.py:1540
+msgid "When enabled, a warning will be displayed and the user will get an option to stop or to continue the timeshift."
+msgstr "Se abilitata, verrà visualizzato un avviso e l'utente avrà la possibilità di interrompere o continuare il timeshift."
+
+#: ../src/plugin.py:1536
+msgid "When enabled, time shift starts automatically in background after specified time."
+msgstr "Se abilitato, il time shift si avvia automaticamente in background dopo un intervallo di tempo specificato."
+
+#: ../src/plugin.py:1534
+msgid "When enabled, timeshift starts automatically in background after the specified time."
+msgstr "Se abilitato, il timeshift si avvia automaticamente in background dopo il tempo specificato."
+
+#: ../src/plugin.py:1348 ../src/plugin.py:1372
+msgid "Xtreme Codes"
+msgstr "Xtreme Codes"
+
+#: ../src/plugin.py:1377
+msgid "add new provider"
+msgstr "aggiungi nuovo provider"
+
+#: ../src/plugin.py:1377
+msgid "edit provider"
+msgstr "modifica provider"
+
+#: ../src/plugin.py:79 ../src/plugin.py:1351
+msgid "off"
 msgstr ""
 
-#: plugin.py:1602
-msgid "IPTV manager Plugin"
-msgstr ""
+#: ../src/plugin.py:1351
+msgid "on"
+msgstr "on"
