@@ -1486,7 +1486,7 @@ class BouquetBlacklist(Screen):
 	def __init__(self, session, providerObj):
 		self.providerObj = providerObj
 		Screen.__init__(self, session)
-		self.title = "%s: Blacklist Bouquets" % self.providerObj.iptv_service_provider
+		self.title = _("%s: Blacklist Bouquets") % self.providerObj.iptv_service_provider
 		self.skinName = ["Setup"]
 		self["config"] = SelectionList([], enableWrapAround=True)
 		self["key_red"] = StaticText(_("Cancel"))
