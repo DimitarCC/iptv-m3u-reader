@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-22 21:56+0100\n"
-"PO-Revision-Date: 2024-11-23 08:44+0200\n"
+"POT-Creation-Date: 2024-11-23 12:22+0200\n"
+"PO-Revision-Date: 2024-11-25 16:18+0200\n"
 "Last-Translator: Orlandox <huoltovalikko.com>\n"
 "Language-Team: Orlandox\n"
 "Language: fi\n"
@@ -353,7 +353,6 @@ msgid "Password"
 msgstr "Salasana"
 
 #: ../src/plugin.py:1402
-#, fuzzy
 msgid "Password used for authenticating in the streaming server."
 msgstr "Salasana, jota käytetään todentamiseen striimaus-palvelimessa."
 
@@ -627,7 +626,6 @@ msgid "The pin code you entered is wrong."
 msgstr "Syöttämäsi PIN-koodi on väärä."
 
 #: ../src/plugin.py:1415
-#, fuzzy
 msgid "The player used for playing Catchup/Archive. Can be GStreamer/HiSilicon, Extplayer3"
 msgstr "Alusta aloittamisen/arkiston toistamiseen käytetty soitin. Voi olla GStreamer/HiSilicon, Extplayer3"
 
@@ -636,12 +634,10 @@ msgid "The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3"
 msgstr "Käytetty soitin. Voi olla DVB, GStreamer, HiSilicon, Extplayer3"
 
 #: ../src/plugin.py:1394
-#, fuzzy
 msgid "The playlist URL (*.m3u; *.m3u8) or streaming server URL. Including the port if differs from 80."
 msgstr "Soittolistan URL-osoite (*.m3u; *.m3u8) tai striimaus-palvelimen URL-osoite. Sisältäen portin, jos se eroaa 80:stä."
 
 #: ../src/plugin.py:1399
-#, fuzzy
 msgid "The search criteria by which the service will be searched in the playlist file."
 msgstr "Hakukriteeri, jolla kanavaa haetaan soittolistatiedostosta."
 
@@ -687,7 +683,6 @@ msgid "Use your own XMLTV url for EPG importing."
 msgstr "Käytä omaa XMLTV-URL-osoitettasi EPG-tuontiin."
 
 #: ../src/plugin.py:1401
-#, fuzzy
 msgid "User name used for authenticating in the streaming server."
 msgstr "Käyttäjätunnus, jota käytetään todentamiseen striimaus-palvelimessa."
 
