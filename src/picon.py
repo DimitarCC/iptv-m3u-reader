@@ -88,9 +88,10 @@ class Fetcher():
 				symlink(filepath, softlinkpath)
 
 	def removeall(self):
-		for f in listdir(self.piconDir):
-			item = path.join(self.piconDir, f)
-			if path.islink(item) and self.pluginPiconDir in readlink(item):
-				remove(item)
+		if path.exists(self.piconDir):
+			for f in listdir(self.piconDir):
+				item = path.join(self.piconDir, f)
+				if path.islink(item) and self.pluginPiconDir in readlink(item):
+					remove(item)
 		if path.exists(self.pluginPiconDir):
 			rmtree(self.pluginPiconDir)
