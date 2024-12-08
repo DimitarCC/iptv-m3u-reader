@@ -198,12 +198,12 @@ class M3UProvider(IPTVProcessor):
 		except:
 			pass
 		if callback:
-			threads.deferToThread(self.processDownloadPlaylist, nref, channelForSearch, origRef, backup_ref, orig_name, event).addCallback(callback)
+			threads.deferToThread(self.processDownloadPlaylist, nref, channelForSearch, origRef, iptvinfodata, backup_ref, orig_name, event).addCallback(callback)
 		else:
-			return self.processDownloadPlaylist(nref, channelForSearch, origRef, backup_ref, orig_name, event), nref, False
+			return self.processDownloadPlaylist(nref, channelForSearch, origRef, iptvinfodata, backup_ref, orig_name, event), nref, False
 		return nref, nref, True
 
-	def processDownloadPlaylist(self, nref, channelForSearch, origRef, backup_ref, orig_name, event=None):
+	def processDownloadPlaylist(self, nref, channelForSearch, origRef, iptvinfodata, backup_ref, orig_name, event=None):
 		try:
 			self.checkForNetwrok()
 			channelForSearch = channelForSearch.replace("%3a", ":")
@@ -244,7 +244,12 @@ class M3UProvider(IPTVProcessor):
 						nref_new = origRef + ":" + catchup_source.replace(":", "%3a")
 						break
 				elif findurl and line.startswith(("http://", "https://")):
+					match = re.search(r"catchupdays=(\d.*?)", iptvinfodata)
+					catchup_days = ""
+					if match:
+						catchup_days = match.group(1)
 					iptv_url = line.replace(":", "%3a")
+					iptv_url = self.constructCatchupSufix(catchup_days, iptv_url, CATCHUP_TYPES[self.catchup_type])
 					nref_new = origRef + ":" + iptv_url + ":" + orig_name + "•" + prov.iptv_service_provider
 					break
 			self.nnref = eServiceReference(nref_new)

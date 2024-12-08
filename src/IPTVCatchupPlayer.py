@@ -179,7 +179,7 @@ def injectCatchupIcon(res, obj, service, serviceName, events, picon, channel):
 				pix_width = pix_size.width()
 				pix_height = pix_size.height()
 				match = re.search(r"catchupdays=(\d*)", service)
-				catchup_days = int(match.groups(1)[0])
+				catchup_days = int(match.group(1))
 				if now - stime <= datetime.timedelta(days=catchup_days).total_seconds():
 					res.append(MultiContentEntryPixmapAlphaBlend(
 									pos=(left + xpos + ewidth - pix_width - 10, top + 10),
