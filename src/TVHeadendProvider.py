@@ -63,7 +63,7 @@ class TVHeadendProvider(IPTVProcessor):
 				else:
 					curr_group = None
 				epg_id = "None"
-				epg_id_match = re.search(r"tvg-id=\"(.*?)\"", line)
+				epg_id_match = re.search(r"tvg-id=\"(.*?)\"", line, re.IGNORECASE)
 				if epg_id_match:
 					epg_id = epg_id_match.group(1)
 				condition = re.escape(self.search_criteria).replace("\\{SID\\}", "(.*?)") + r".*,(.*)"
@@ -81,11 +81,11 @@ class TVHeadendProvider(IPTVProcessor):
 					if not sid:
 						sid = ch_name.replace(":", "%3a")
 					url = ""
-					match = re.search(r"tvg-rec=\"(\d.*?)\"", line)
+					match = re.search(r"tvg-rec=\"(\d.*?)\"", line, re.IGNORECASE)
 					if not match:
-						match = re.search(r"catchup-days=\"(\d.*?)\"", line)
+						match = re.search(r"catchup-days=\"(\d.*?)\"", line, re.IGNORECASE)
 					if not match:
-						match = re.search(r"timeshift=\"(\d.*?)\"", line)
+						match = re.search(r"timeshift=\"(\d.*?)\"", line, re.IGNORECASE)
 					if match:
 						captchup_days = match.group(1)
 					if self.static_urls or self.isLocalPlaylist():
@@ -122,7 +122,7 @@ class TVHeadendProvider(IPTVProcessor):
 						groups[curr_group].append((sref, epg_id, ch_name))
 					else:
 						services.append((sref, epg_id, ch_name))
-					if "tvg-logo" in line and (stream_icon_match := re.search(r"tvg-logo=\"(.+?)\"", line)):
+					if "tvg-logo" in line and (stream_icon_match := re.search(r"tvg-logo=\"(.+?)\"", line, re.IGNORECASE)):
 						self.piconsAdd(stream_icon_match.group(1), ch_name)
 			line_nr += 1
 

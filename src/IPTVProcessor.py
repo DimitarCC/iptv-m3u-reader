@@ -126,6 +126,7 @@ class IPTVProcessor():
 		self.provider_info = {}
 		self.picons = False
 		self.picon_database = {}
+		self.create_bouquets_strategy = 0
 
 	def checkForNetwrok(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value

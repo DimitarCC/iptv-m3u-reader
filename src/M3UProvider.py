@@ -44,9 +44,9 @@ class M3UProvider(IPTVProcessor):
 		epg_match = None
 		if line.startswith("#EXTM3U") and not isCustomUrl:
 			if "tvg-url" in line:
-				epg_match = re.search(r"x-tvg-url=\"(.*?)\"", line) or re.search(r"tvg-url=\"(.*?)\"", line)
+				epg_match = re.search(r"x-tvg-url=\"(.*?)\"", line, re.IGNORECASE) or re.search(r"tvg-url=\"(.*?)\"", line, re.IGNORECASE)
 			elif "url-tvg" in line:
-				epg_match = re.search(r"url-tvg=\"(.*?)\"", line)
+				epg_match = re.search(r"url-tvg=\"(.*?)\"", line, re.IGNORECASE)
 		return epg_match
 
 	def storePlaylistAndGenBouquet(self):
@@ -89,7 +89,7 @@ class M3UProvider(IPTVProcessor):
 				else:
 					curr_group = None
 				epg_id = "None"
-				epg_id_match = re.search(r"tvg-id=\"(.*?)\"", line)
+				epg_id_match = re.search(r"tvg-id=\"(.*?)\"", line, re.IGNORECASE)
 				if epg_id_match:
 					epg_id = epg_id_match.group(1)
 				condition = re.escape(self.search_criteria).replace("\\{SID\\}", "(.*?)") + r".*,(.*)"
@@ -107,11 +107,11 @@ class M3UProvider(IPTVProcessor):
 					if not sid:
 						sid = ch_name.replace(":", "%3a")
 					url = ""
-					match = re.search(r"tvg-rec=\"(\d.*?)\"", line)
+					match = re.search(r"tvg-rec=\"(\d.*?)\"", line, re.IGNORECASE)
 					if not match:
-						match = re.search(r"catchup-days=\"(\d.*?)\"", line)
+						match = re.search(r"catchup-days=\"(\d.*?)\"", line, re.IGNORECASE)
 					if not match:
-						match = re.search(r"timeshift=\"(\d.*?)\"", line)
+						match = re.search(r"timeshift=\"(\d.*?)\"", line, re.IGNORECASE)
 					if match:
 						captchup_days = match.group(1)
 					if self.static_urls or self.isLocalPlaylist():
@@ -148,7 +148,7 @@ class M3UProvider(IPTVProcessor):
 						groups[curr_group].append((sref, epg_id, ch_name))
 					else:
 						services.append((sref, epg_id, ch_name))
-					if "tvg-logo" in line and (stream_icon_match := re.search(r"tvg-logo=\"(.+?)\"", line)):
+					if "tvg-logo" in line and (stream_icon_match := re.search(r"tvg-logo=\"(.+?)\"", line, re.IGNORECASE)):
 						self.piconsAdd(stream_icon_match.group(1), ch_name)
 			line_nr += 1
 
@@ -235,7 +235,7 @@ class M3UProvider(IPTVProcessor):
 				line = line.strip()  # just in case there is surrounding white space present
 				if line.startswith("#EXTINF"):
 					findurl = (channelSID in line) or (("," + channelForSearch) in line)
-					match = re.search(r"catchup-source=\"(.*?)\"", line)
+					match = re.search(r"catchup-source=\"(.*?)\"", line, re.IGNORECASE)
 					if match:
 						catchup_source = match.group(1)
 					else:
