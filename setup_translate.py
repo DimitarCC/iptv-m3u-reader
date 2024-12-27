@@ -14,6 +14,8 @@ class build_trans(cmd.Command):
 
 	def run(self):
 		tool = "/usr/bin/msgfmt"
+		if not os.path.isfile(tool):
+			return
 		repo_root = os.path.dirname(os.path.abspath(__file__))
 		src_folder = os.path.join(repo_root, "src")
 		po_folder = os.path.join(repo_root, "po")
