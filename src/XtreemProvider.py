@@ -38,7 +38,8 @@ class XtreemProvider(IPTVProcessor):
 		services_response = response.read()
 		services_json_obj = json.loads(services_response)
 		tsid = 1000
-		groups = {}
+
+		groups = {"ALL_CHANNELS": (_("All channels"), [])}  # add fake, user-optional, all-channels bouquet
 
 		url = "%s/player_api.php?username=%s&password=%s&action=get_live_categories" % (self.url, self.username, self.password)
 		req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT})
@@ -55,6 +56,8 @@ class XtreemProvider(IPTVProcessor):
 				groups[category_id] = (category_name, [])
 
 		groups["EMPTY"] = ("UNCATEGORIZED", [])  # put "EMPTY" in last place
+
+		blacklist = self.readBlacklist()
 
 		for service in services_json_obj:
 			stream_id = service.get("stream_id")
@@ -74,7 +77,14 @@ class XtreemProvider(IPTVProcessor):
 				stype = "19"
 			sref = self.generateChannelReference(stype, tsid, surl.replace(":", "%3a"), ch_name)
 			tsid += 1
-			groups[category_id if category_id and category_id in groups else "EMPTY"][1].append((sref, epg_id, ch_name))
+
+			if True:  # config option here: for user-optional, all-channels bouquet
+				if category_id not in groups or groups[category_id][0] not in blacklist:
+					groups["ALL_CHANNELS"][1].append((sref, epg_id, ch_name))
+
+			if True:  # config option here: for sections bouquets
+				groups[category_id if category_id and category_id in groups else "EMPTY"][1].append((sref, epg_id, ch_name))
+
 			if stream_icon := service.get("stream_icon"):
 				self.piconsAdd(stream_icon, ch_name)
 
@@ -84,7 +94,6 @@ class XtreemProvider(IPTVProcessor):
 			self.getVoDSeries()
 
 		examples = []
-		blacklist = self.readBlacklist()
 
 		for groupItem in groups.values():
 			examples.append(groupItem[0])
