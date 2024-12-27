@@ -45,7 +45,7 @@ class StalkerProvider(IPTVProcessor):
 				surl = service.cmd
 				catchup_days = service.catchup_days
 				if catchup_days:
-					surl = self.constructCatchupSufix(str(catchup_days), surl, CATCHUP_STALKER_TEXT)
+					surl = self.constructCatchupSuffix(str(catchup_days), surl, CATCHUP_STALKER_TEXT)
 				ch_name = service.name.replace(":", "|")
 				stype = "1"
 				if ("UHD" in ch_name or "4K" in ch_name) and " HD" not in ch_name:
