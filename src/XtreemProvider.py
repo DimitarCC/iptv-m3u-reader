@@ -78,11 +78,11 @@ class XtreemProvider(IPTVProcessor):
 			sref = self.generateChannelReference(stype, tsid, surl.replace(":", "%3a"), ch_name)
 			tsid += 1
 
-			if True:  # config option here: for user-optional, all-channels bouquet
+			if self.create_bouquets_strategy > 0:  # config option here: for user-optional, all-channels bouquet
 				if category_id not in groups or groups[category_id][0] not in blacklist:
 					groups["ALL_CHANNELS"][1].append((sref, epg_id, ch_name))
 
-			if True:  # config option here: for sections bouquets
+			if self.create_bouquets_strategy != 1:  # config option here: for sections bouquets
 				groups[category_id if category_id and category_id in groups else "EMPTY"][1].append((sref, epg_id, ch_name))
 
 			if stream_icon := service.get("stream_icon"):

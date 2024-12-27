@@ -69,10 +69,11 @@ class M3UProvider(IPTVProcessor):
 		playlist_splitted = playlist.splitlines()
 		tsid = 1000
 		services = []
-		groups = {}
+		groups = {"ALL": []}  # add fake, user-optional, all-channels bouquet
 		line_nr = 0
 		captchup_days = ""
 		curr_group = None
+		blacklist = self.readBlacklist()
 		for line in playlist_splitted:
 			if self.ignore_vod and "group-title=\"VOD" in line:
 				continue
@@ -84,7 +85,7 @@ class M3UProvider(IPTVProcessor):
 				gr_match = re.search(r"group-title=\"(.*?)\"", line)
 				if gr_match:
 					curr_group = gr_match.group(1)
-					if curr_group not in groups:
+					if curr_group not in groups and self.create_bouquets_strategy != 1:
 						groups[curr_group] = []
 				else:
 					curr_group = None
@@ -122,7 +123,7 @@ class M3UProvider(IPTVProcessor):
 								next_line = playlist_splitted[next_line_nr].strip()
 								if next_line.startswith("#EXTGRP:") and curr_group is None:  # only if no group was found in #EXTINF: group-title
 									curr_group = next_line[8:].strip()
-									if curr_group not in groups:
+									if curr_group not in groups and self.create_bouquets_strategy != 1:
 										groups[curr_group] = []
 								if next_line.startswith(("http://", "https://")):
 									url = next_line.replace(":", "%3a")
@@ -144,26 +145,33 @@ class M3UProvider(IPTVProcessor):
 						stype = "19"
 					sref = self.generateChannelReference(stype, tsid, url.replace(":", "%3a"), ch_name)
 					tsid += 1
-					if curr_group:
-						groups[curr_group].append((sref, epg_id, ch_name))
-					else:
-						services.append((sref, epg_id, ch_name))
+					if self.create_bouquets_strategy != 1:
+						if curr_group:
+							groups[curr_group].append((sref, epg_id, ch_name))
+						else:
+							services.append((sref, epg_id, ch_name))
+					if self.create_bouquets_strategy > 0:
+						if (curr_group and curr_group not in blacklist) or not curr_group:
+							groups["ALL"].append((sref, epg_id, ch_name))
 					if "tvg-logo" in line and (stream_icon_match := re.search(r"tvg-logo=\"(.+?)\"", line, re.IGNORECASE)):
 						self.piconsAdd(stream_icon_match.group(1), ch_name)
 			line_nr += 1
 
 		examples = []
-		blacklist = self.readBlacklist()
 
 		groups_for_epg = {}  # mimic format used in XtreemProvider.py
 		for groupName, srefs in groups.items():
-			examples.append(groupName)
+			if groupName != "ALL":
+				examples.append(groupName)
 			if len(srefs) > 0:
 				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.{groupName}.tv")
 				if groupName in blacklist:
 					self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
 					continue
-				db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + groupName, bfilename, [sref[0] for sref in srefs], False)
+				bouquet_name = self.iptv_service_provider.upper() + " - " + groupName
+				if self.create_bouquets_strategy == 1:
+					bouquet_name = self.iptv_service_provider.upper()
+				db.addOrUpdateBouquet(bouquet_name, bfilename, [sref[0] for sref in srefs], False)
 				groups_for_epg[groupName] = (groupName, srefs)
 
 		if len(services) > 0:
