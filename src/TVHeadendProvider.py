@@ -49,10 +49,11 @@ class TVHeadendProvider(IPTVProcessor):
 		playlist_splitted = playlist.splitlines()
 		tsid = 1000
 		services = []
-		groups = {}
+		groups = {"ALL": []}  # add fake, user-optional, all-channels bouquet
 		line_nr = 0
 		captchup_days = ""
 		curr_group = None
+		blacklist = self.readBlacklist()
 		for line in playlist_splitted:
 			if line.startswith("#EXTINF:"):
 				gr_match = re.search(r"group-title=\"(.*?)\"", line)
@@ -118,26 +119,33 @@ class TVHeadendProvider(IPTVProcessor):
 						stype = "19"
 					sref = self.generateChannelReference(stype, tsid, url.replace(":", "%3a"), ch_name)
 					tsid += 1
-					if curr_group:
-						groups[curr_group].append((sref, epg_id, ch_name))
-					else:
-						services.append((sref, epg_id, ch_name))
+					if self.create_bouquets_strategy != 1:
+						if curr_group:
+							groups[curr_group].append((sref, epg_id, ch_name))
+						else:
+							services.append((sref, epg_id, ch_name))
+					if self.create_bouquets_strategy > 0:
+						if (curr_group and curr_group not in blacklist) or not curr_group:
+							groups["ALL"].append((sref, epg_id, ch_name))
 					if "tvg-logo" in line and (stream_icon_match := re.search(r"tvg-logo=\"(.+?)\"", line, re.IGNORECASE)):
 						self.piconsAdd(stream_icon_match.group(1), ch_name)
 			line_nr += 1
 
 		examples = []
-		blacklist = self.readBlacklist()
 
 		groups_for_epg = {}  # mimic format used in XtreemProvider.py
 		for groupName, srefs in groups.items():
-			examples.append(groupName)
+			if groupName != "ALL":
+				examples.append(groupName)
 			if len(srefs) > 0:
 				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.{groupName}.tv")
 				if groupName in blacklist:
 					self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
 					continue
-				db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + groupName, bfilename, [sref[0] for sref in srefs], False)
+				bouquet_name = self.iptv_service_provider.upper() + " - " + groupName
+				if self.create_bouquets_strategy == 1:
+					bouquet_name = self.iptv_service_provider.upper()
+				db.addOrUpdateBouquet(bouquet_name, bfilename, [sref[0] for sref in srefs], False)
 				groups_for_epg[groupName] = (groupName, srefs)
 
 		if len(services) > 0:

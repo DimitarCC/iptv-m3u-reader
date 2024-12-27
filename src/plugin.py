@@ -133,6 +133,7 @@ def readProviders():
 				providerObj.is_custom_xmltv = provider.find("is_custom_xmltv") is not None and provider.find("is_custom_xmltv").text == "on"
 				providerObj.custom_xmltv_url = provider.find("custom_xmltv_url").text if provider.find("custom_xmltv_url") is not None and provider.find("custom_xmltv_url").text is not None else providerObj.custom_xmltv_url
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
+				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("xtreemprovider"):
 				providerObj = XtreemProvider()
@@ -157,6 +158,7 @@ def readProviders():
 					providerObj.loadVoDMoviesFromFile()
 					providerObj.loadVoDSeriesFromFile()
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
+				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("stalkerprovider"):
 				providerObj = StalkerProvider()
@@ -175,6 +177,7 @@ def readProviders():
 				if not providerObj.ignore_vod:
 					providerObj.loadVoDMoviesFromFile()
 					providerObj.loadVoDSeriesFromFile()
+				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("tvhprovider"):
 				providerObj = TVHeadendProvider()
@@ -193,6 +196,7 @@ def readProviders():
 				providerObj.is_custom_xmltv = provider.find("is_custom_xmltv") is not None and provider.find("is_custom_xmltv").text == "on"
 				providerObj.custom_xmltv_url = provider.find("custom_xmltv_url").text if provider.find("custom_xmltv_url") is not None and provider.find("custom_xmltv_url").text is not None else providerObj.custom_xmltv_url
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
+				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
 				providers[providerObj.scheme] = providerObj
 	fd.close()
 
@@ -219,6 +223,7 @@ def writeProviders():
 			xml.append(f"\t\t<is_custom_xmltv>{'on' if val.is_custom_xmltv else 'off'}</is_custom_xmltv>\n")
 			xml.append(f"\t\t<custom_xmltv_url><![CDATA[{val.custom_xmltv_url}]]></custom_xmltv_url>\n")
 			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
+			xml.append(f"\t\t<create_bouquets_strategy>{val.create_bouquets_strategy}</create_bouquets_strategy>\n")
 			xml.append("\t</provider>\n")
 		elif isinstance(val, XtreemProvider):
 			xml.append("\t<xtreemprovider>\n")
@@ -238,6 +243,7 @@ def writeProviders():
 			xml.append(f"\t\t<is_custom_xmltv>{'on' if val.is_custom_xmltv else 'off'}</is_custom_xmltv>\n")
 			xml.append(f"\t\t<custom_xmltv_url><![CDATA[{val.custom_xmltv_url}]]></custom_xmltv_url>\n")
 			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
+			xml.append(f"\t\t<create_bouquets_strategy>{val.create_bouquets_strategy}</create_bouquets_strategy>\n")
 			xml.append("\t</xtreemprovider>\n")
 		elif isinstance(val, TVHeadendProvider):
 			xml.append("\t<tvhprovider>\n")
@@ -257,6 +263,7 @@ def writeProviders():
 			xml.append(f"\t\t<is_custom_xmltv>{'on' if val.is_custom_xmltv else 'off'}</is_custom_xmltv>\n")
 			xml.append(f"\t\t<custom_xmltv_url><![CDATA[{val.custom_xmltv_url}]]></custom_xmltv_url>\n")
 			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
+			xml.append(f"\t\t<create_bouquets_strategy>{val.create_bouquets_strategy}</create_bouquets_strategy>\n")
 			xml.append("\t</tvhprovider>\n")
 		else:
 			xml.append("\t<stalkerprovider>\n")
@@ -272,6 +279,7 @@ def writeProviders():
 			xml.append(f"\t\t<epg>{'on' if val.create_epg else 'off'}</epg>\n")
 			xml.append(f"\t\t<onid>{val.onid}</onid>\n")
 			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
+			xml.append(f"\t\t<create_bouquets_strategy>{val.create_bouquets_strategy}</create_bouquets_strategy>\n")
 			xml.append("\t</stalkerprovider>\n")
 	xml.append("</providers>\n")
 	makedirs(path.dirname(USER_IPTV_PROVIDERS_FILE), exist_ok=True)  # create config folder recursive if not exists
@@ -1373,6 +1381,7 @@ class M3UIPTVProviderEdit(Setup):
 		self.catchup_type = ConfigSelection(default=providerObj.catchup_type, choices=catchup_type_choices)
 		self.epg_url = ConfigText(default=providerObj.epg_url, fixed_size=False)
 		self.picons = ConfigYesNo(default=providerObj.picons)
+		self.create_bouquets_strategy = ConfigSelection(default=providerObj.create_bouquets_strategy, choices=[(0, _("Only bouquets for groups")), (1, _("Only bouquet for 'All Channels'")), (2, _("Bouquets for 'All Channels' and groups"))])
 		Setup.__init__(self, session, None)
 		self.title = _("M3UIPTVManager") + " - " + (_("edit provider") if self.edit else _("add new provider"))
 		if self.edit:
@@ -1416,6 +1425,7 @@ class M3UIPTVProviderEdit(Setup):
 		if self.type.value == "M3U":
 			configlist.append((_("Catchup Type"), self.catchup_type, _("The catchup API used.")))
 		configlist.append((_("Download picons"), self.picons, _("Download picons, if available from the provider, and install them. Picon download is done in the background after bouquet generation.")))
+		configlist.append((_("Bouquet creation strategy"), self.create_bouquets_strategy, _("Configure what type of bouquets should be created.")))
 		self["config"].list = configlist
 
 	def keySave(self):
@@ -1442,6 +1452,7 @@ class M3UIPTVProviderEdit(Setup):
 		providerObj.play_system_catchup = self.play_system_catchup.value
 		providerObj.create_epg = self.create_epg.value
 		providerObj.picons = self.picons.value
+		providerObj.create_bouquets_strategy = self.create_bouquets_strategy.value
 		if self.type.value == "M3U":
 			providerObj.refresh_interval = self.refresh_interval.value
 			providerObj.static_urls = self.staticurl.value
