@@ -100,7 +100,7 @@ class TVHeadendProvider(IPTVProcessor):
 										groups[curr_group] = []
 								if next_line.startswith(("http://", "https://")):
 									url = next_line.replace(":", "%3a")
-									url = self.constructCatchupSufix(captchup_days, url, CATCHUP_TYPES[self.catchup_type])
+									url = self.constructCatchupSuffix(captchup_days, url, CATCHUP_TYPES[self.catchup_type])
 									captchup_days = ""
 									found_url = True
 								else:
@@ -109,7 +109,7 @@ class TVHeadendProvider(IPTVProcessor):
 								break
 					else:
 						url = self.scheme + "%3a//" + sid
-						url = self.constructCatchupSufix(captchup_days, url, CATCHUP_TYPES[self.catchup_type])
+						url = self.constructCatchupSuffix(captchup_days, url, CATCHUP_TYPES[self.catchup_type])
 						captchup_days = ""
 					stype = "1"
 					if "UHD" in ch_name or "4K" in ch_name:

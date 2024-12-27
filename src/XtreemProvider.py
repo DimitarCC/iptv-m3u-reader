@@ -66,7 +66,7 @@ class XtreemProvider(IPTVProcessor):
 			surl = "%s/live/%s/%s/%s.%s" % (self.url, self.username, self.password, stream_id, "ts")
 			catchup_days = service.get("tv_archive_duration")
 			if catchup_days:
-				surl = self.constructCatchupSufix(str(catchup_days), surl, CATCHUP_XTREME_TEXT)
+				surl = self.constructCatchupSuffix(str(catchup_days), surl, CATCHUP_XTREME_TEXT)
 			stype = "1"
 			if ("UHD" in ch_name or "4K" in ch_name) and " HD" not in ch_name:
 				stype = "1F"

@@ -126,7 +126,7 @@ class M3UProvider(IPTVProcessor):
 										groups[curr_group] = []
 								if next_line.startswith(("http://", "https://")):
 									url = next_line.replace(":", "%3a")
-									url = self.constructCatchupSufix(captchup_days, url, CATCHUP_TYPES[self.catchup_type])
+									url = self.constructCatchupSuffix(captchup_days, url, CATCHUP_TYPES[self.catchup_type])
 									captchup_days = ""
 									found_url = True
 								else:
@@ -135,7 +135,7 @@ class M3UProvider(IPTVProcessor):
 								break
 					else:
 						url = self.scheme + "%3a//" + sid
-						url = self.constructCatchupSufix(captchup_days, url, CATCHUP_TYPES[self.catchup_type])
+						url = self.constructCatchupSuffix(captchup_days, url, CATCHUP_TYPES[self.catchup_type])
 						captchup_days = ""
 					stype = "1"
 					if "UHD" in ch_name or "4K" in ch_name:
@@ -249,7 +249,7 @@ class M3UProvider(IPTVProcessor):
 					if match:
 						catchup_days = match.group(1)
 					iptv_url = line.replace(":", "%3a")
-					iptv_url = self.constructCatchupSufix(catchup_days, iptv_url, CATCHUP_TYPES[self.catchup_type])
+					iptv_url = self.constructCatchupSuffix(catchup_days, iptv_url, CATCHUP_TYPES[self.catchup_type])
 					nref_new = origRef + ":" + iptv_url + ":" + orig_name + "•" + prov.iptv_service_provider
 					break
 			self.nnref = eServiceReference(nref_new)
