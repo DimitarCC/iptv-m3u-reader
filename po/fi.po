@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-11-23 12:22+0200\n"
-"PO-Revision-Date: 2024-11-25 16:53+0200\n"
+"PO-Revision-Date: 2024-12-28 13:26+0200\n"
 "Last-Translator: Orlandox <huoltovalikko.com>\n"
 "Language-Team: Orlandox\n"
 "Language: fi\n"
@@ -783,3 +783,21 @@ msgstr "päällä"
 
 msgid "%s: Blacklist Bouquets"
 msgstr "%s: Mustat listat"
+
+msgid "All channels"
+msgstr "Kaikki kanavat"
+
+msgid "Only bouquets for groups"
+msgstr "Vain suosikkilistat ryhmille"
+
+msgid "Only bouquet for 'All Channels'"
+msgstr "Vain suosikkilista 'kaikille kanaville'"
+
+msgid "Bouquets for 'All Channels' and groups"
+msgstr "Suosikkilistat 'kaikille kanaville' ja ryhmille"
+
+msgid "Bouquet creation strategy"
+msgstr "Suosikkilistojen luomisstrategia"
+
+msgid "Configure what type of bouquets should be created."
+msgstr "Määritä, minkä tyyppisiä suosikkilistoja tulisi luoda."
