@@ -93,6 +93,11 @@ class M3UProvider(IPTVProcessor):
 				epg_id_match = re.search(r"tvg-id=\"(.*?)\"", line, re.IGNORECASE)
 				if epg_id_match:
 					epg_id = epg_id_match.group(1)
+				if self.use_provider_tsid:
+					condition_tsid = re.escape(self.provider_tsid_search_criteria).replace("\\{TSID\\}", "(\d*?)")
+					match_tsid = re.search(condition_tsid, line)
+					if match_tsid:
+						tsid = int(match_tsid.group(1))
 				condition = re.escape(self.search_criteria).replace("\\{SID\\}", "(.*?)") + r".*,(.*)"
 				match = re.search(condition, line)
 				isFallbackMatch = False
@@ -144,7 +149,8 @@ class M3UProvider(IPTVProcessor):
 					elif "HD" in ch_name:
 						stype = "19"
 					sref = self.generateChannelReference(stype, tsid, url.replace(":", "%3a"), ch_name)
-					tsid += 1
+					if not self.use_provider_tsid:
+						tsid += 1
 					if self.create_bouquets_strategy != 1:
 						if curr_group:
 							groups[curr_group].append((sref, epg_id, ch_name))

@@ -127,6 +127,8 @@ class IPTVProcessor():
 		self.picons = False
 		self.picon_database = {}
 		self.create_bouquets_strategy = 0
+		self.use_provider_tsid = False
+		self.provider_tsid_search_criteria = "tvg-chno=\"{TSID}\""
 
 	def checkForNetwrok(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
