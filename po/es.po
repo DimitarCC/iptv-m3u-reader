@@ -6,10 +6,10 @@ msgstr ""
 "PO-Revision-Date: \n"
 "Last-Translator: Huevos\n"
 "Language-Team: OpenViX\n"
+"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: es\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.5\n"
 
@@ -21,7 +21,7 @@ msgstr "Se han generado con éxito \"%s\" grupos"
 #: ../src/IPTVProcessor.py:357
 #, python-format
 msgid "# only leave the groups you want to remove in blacklist below and then rename the file to %s and regenerate the bouquets"
-msgstr "# En la lista que aparece a continuación, deje solo los grupos que desea eliminar. Después, cambie el nombre del archivo a %s y vuelva a generar los grupos."
+msgstr "# en la lista que aparece a continuación, deje solo los grupos que desea eliminar. Después, cambie el nombre del archivo a %s y vuelva a generar los grupos."
 
 #: ../src/plugin.py:1379
 #, python-format
@@ -358,7 +358,7 @@ msgstr "Películas"
 
 #: ../src/plugin.py:370 ../src/plugin.py:409
 msgid "No free tuner!"
-msgstr "Ningún sintonizador libre"
+msgstr "¡Ningún sintonizador libre!"
 
 #: ../src/plugin.py:1406
 msgid "Only bouquet for 'All Channels'"
@@ -439,7 +439,7 @@ msgstr "Pulse OK para seleccionar el elemento actual"
 
 #: ../src/plugin.py:1454
 msgid "Provider TSID retrival condition"
-msgstr ""
+msgstr "Tipo de TSID utilizado"
 
 #: ../src/plugin.py:1423
 msgid "Provider Type"
@@ -486,7 +486,7 @@ msgstr "Guardar"
 
 #: ../src/plugin.py:1444
 msgid "Scheme"
-msgstr "Esquema "
+msgstr "Esquema"
 
 #: ../src/plugin.py:1461
 #, python-format
@@ -502,6 +502,8 @@ msgid ""
 "Search condition to get TSID provided from IPTV provider.\n"
 "Useful when want to always have same service references for EPG."
 msgstr ""
+"Condición de búsqueda para obtener el TSID proporcionado por el proveedor de IPTV.\n"
+"Útil cuando se desea tener siempre las mismas referencias de servicio para EPG."
 
 #: ../src/IPTVCatchupPlayer.py:536
 msgid "Seek back"
@@ -625,7 +627,7 @@ msgstr "Detener el timeshift durante la grabación"
 
 #: ../src/plugin.py:1585
 msgid "Stop timeshift while recording?"
-msgstr "Detener el timeshift durante la grabación"
+msgstr "¿Se detiene el timeshift durante la grabación?"
 
 #: ../src/plugin.py:1587
 msgid "Stops time shift being used if a recording is in progress. (Advisable for USB sticks.)"
@@ -689,7 +691,7 @@ msgstr "Alternar todas"
 
 #: ../src/plugin.py:1425
 msgid "URL"
-msgstr ""
+msgstr "Dirección URL"
 
 #: ../src/plugin.py:1307
 #, python-format
@@ -705,9 +707,8 @@ msgid "Use custom XMLTV URL"
 msgstr "Utilice una URL XMLTV personalizada"
 
 #: ../src/plugin.py:1452
-#, fuzzy
 msgid "Use provider TSID"
-msgstr "editar proveedor"
+msgstr "Utilice el TSID del proveedor"
 
 #: ../src/plugin.py:1427
 msgid "Use static URLs"
@@ -718,6 +719,8 @@ msgid ""
 "Use the TSID provided from the IPTV provider (if available).\n"
 "Useful when want to always have same service references for EPG."
 msgstr ""
+"Utilice el TSID proporcionado por el proveedor de IPTV (si está disponible).\n"
+"Útil cuando se desea tener siempre las mismas referencias de servicio para la EPG."
 
 #: ../src/plugin.py:1591
 msgid "Use time shift SeekBar while time shifting"
