@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: m3uiptv\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-30 09:34+0200\n"
+"POT-Creation-Date: 2024-12-30 11:38+0200\n"
 "PO-Revision-Date: 2024-11-21 14:41+0100\n"
 "Last-Translator: \n"
 "Language-Team: spartak73 <spartak73@inbox.ru\n"
@@ -698,6 +698,10 @@ msgstr "Таймшифт — действие сохранения при пер
 #: ../src/plugin.py:1534
 msgid "Toggle all"
 msgstr "Переключить все"
+
+#: ../src/plugin.py:1425
+msgid "URL"
+msgstr ""
 
 #: ../src/plugin.py:1307
 #, python-format

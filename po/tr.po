@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-30 09:34+0200\n"
+"POT-Creation-Date: 2024-12-30 11:38+0200\n"
 "PO-Revision-Date: 2024-11-19 16:15+0300\n"
 "Last-Translator: \n"
 "Language-Team: dreamosat-biperva\n"
@@ -696,6 +696,10 @@ msgstr "Zap yaparken zaman kaydırma kaydetme eylemi"
 #: ../src/plugin.py:1534
 msgid "Toggle all"
 msgstr "Tümünü değiştir"
+
+#: ../src/plugin.py:1425
+msgid "URL"
+msgstr ""
 
 #: ../src/plugin.py:1307
 #, python-format

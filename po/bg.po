@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-30 09:34+0200\n"
-"PO-Revision-Date: 2024-12-30 09:56+0200\n"
+"POT-Creation-Date: 2024-12-30 11:38+0200\n"
+"PO-Revision-Date: 2024-12-30 11:46+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: bg\n"
@@ -677,7 +677,7 @@ msgstr "Плейър използван за възпроизвеждане. М�
 
 #: ../src/plugin.py:1425
 msgid "The playlist URL (*.m3u; *.m3u8) or streaming server URL. Including the port if differs from 80."
-msgstr "Адрес на плейлиста (*.m3u; *.m3u8) или адрес на стрийминг сървера."
+msgstr "Адрес на плейлиста (*.m3u; *.m3u8) или адрес на стрийминг сървера. Включително порта ако е различен от 80."
 
 #: ../src/plugin.py:1430
 msgid "The search criteria by which the service will be searched in the playlist file."
@@ -694,6 +694,10 @@ msgstr "Таймшифт-запис при превкл. на канала"
 #: ../src/plugin.py:1534
 msgid "Toggle all"
 msgstr "Инвертирай избора"
+
+#: ../src/plugin.py:1425
+msgid "URL"
+msgstr "Адрес (URL/път) до плейлиста"
 
 #: ../src/plugin.py:1307
 #, python-format

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-30 09:34+0200\n"
+"POT-Creation-Date: 2024-12-30 11:38+0200\n"
 "PO-Revision-Date: 2024-12-29 19:00+0200\n"
 "Last-Translator: Orlandox <huoltovalikko.com>\n"
 "Language-Team: Orlandox\n"
@@ -693,6 +693,10 @@ msgstr "Ajansiirto-tallennustoiminto kanavanvaihdossa"
 #: ../src/plugin.py:1534
 msgid "Toggle all"
 msgstr "Vaihda kaikki valinnat"
+
+#: ../src/plugin.py:1425
+msgid "URL"
+msgstr ""
 
 #: ../src/plugin.py:1307
 #, python-format

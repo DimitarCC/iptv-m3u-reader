@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-30 09:34+0200\n"
+"POT-Creation-Date: 2024-12-30 11:38+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -660,6 +660,10 @@ msgstr ""
 
 #: ../src/plugin.py:1534
 msgid "Toggle all"
+msgstr ""
+
+#: ../src/plugin.py:1425
+msgid "URL"
 msgstr ""
 
 #: ../src/plugin.py:1307

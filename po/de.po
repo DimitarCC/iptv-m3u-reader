@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: M3UIPTV\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-30 09:34+0200\n"
+"POT-Creation-Date: 2024-12-30 11:38+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Maggy\n"
@@ -703,6 +703,10 @@ msgstr "Timeshift-Speicheraktion beim Zappen"
 #: ../src/plugin.py:1534
 msgid "Toggle all"
 msgstr "Alle umschalten"
+
+#: ../src/plugin.py:1425
+msgid "URL"
+msgstr ""
 
 #: ../src/plugin.py:1307
 #, python-format
