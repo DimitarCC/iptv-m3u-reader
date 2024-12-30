@@ -346,7 +346,10 @@ def servicePinEntered(self, service, result=None):
 	if result:
 		self.setSessionPinCached()
 		self.hideBlacklist()
-		self.callback(ref=service, forceRestart=True)
+		try:
+			self.callback(ref=service, forceRestart=True)
+		except:
+			self.callback(service)
 	elif result is False:
 		messageText = _("The pin code you entered is wrong.")
 		if self.session:
