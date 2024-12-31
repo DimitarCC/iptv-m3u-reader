@@ -72,9 +72,14 @@ class M3UProvider(IPTVProcessor):
 		groups = {"ALL": []}  # add fake, user-optional, all-channels bouquet
 		line_nr = 0
 		captchup_days = ""
+		global_tvg_rec = ""
 		curr_group = None
 		blacklist = self.readBlacklist()
 		for line in playlist_splitted:
+			if line.startswith("#EXTM3U") and (m := re.search(r"catchup-time=\"(\d.*?)\"", line, re.IGNORECASE)):
+				tvg_rec = int(m.group(1))
+				if tvg_rec >= 24*60*60:
+					global_tvg_rec = str(tvg_rec//86400)
 			if self.ignore_vod and "group-title=\"VOD" in line:
 				continue
 			epg_match = self.searchForXMLTV(line, self.is_custom_xmltv)
@@ -132,7 +137,7 @@ class M3UProvider(IPTVProcessor):
 										groups[curr_group] = []
 								if next_line.startswith(("http://", "https://")):
 									url = next_line.replace(":", "%3a")
-									url = self.constructCatchupSuffix(captchup_days, url, CATCHUP_TYPES[self.catchup_type])
+									url = self.constructCatchupSuffix(captchup_days if captchup_days else global_tvg_rec, url, CATCHUP_TYPES[self.catchup_type])
 									captchup_days = ""
 									found_url = True
 								else:
@@ -141,7 +146,7 @@ class M3UProvider(IPTVProcessor):
 								break
 					else:
 						url = self.scheme + "%3a//" + sid
-						url = self.constructCatchupSuffix(captchup_days, url, CATCHUP_TYPES[self.catchup_type])
+						url = self.constructCatchupSuffix(captchup_days if captchup_days else global_tvg_rec, url, CATCHUP_TYPES[self.catchup_type])
 						captchup_days = ""
 					stype = "1"
 					if "UHD" in ch_name or "4K" in ch_name:
