@@ -76,7 +76,7 @@ class M3UProvider(IPTVProcessor):
 		curr_group = None
 		blacklist = self.readBlacklist()
 		for line in playlist_splitted:
-			if line.startswith("#EXTM3U") and (m := re.search(r"catchup-time=\"(\d.*?)\"", line, re.IGNORECASE)):
+			if line.startswith("#EXTM3U") and (m := re.search(r"catchup-time=\"(\d+)\"", line, re.IGNORECASE)):
 				tvg_rec = int(m.group(1))
 				if tvg_rec >= 24*60*60:
 					global_tvg_rec = str(tvg_rec//86400)
@@ -118,11 +118,11 @@ class M3UProvider(IPTVProcessor):
 					if not sid:
 						sid = ch_name.replace(":", "%3a")
 					url = ""
-					match = re.search(r"tvg-rec=\"(\d.*?)\"", line, re.IGNORECASE)
+					match = re.search(r"tvg-rec=\"(\d+)\"", line, re.IGNORECASE)
 					if not match:
-						match = re.search(r"catchup-days=\"(\d.*?)\"", line, re.IGNORECASE)
+						match = re.search(r"catchup-days=\"(\d+)\"", line, re.IGNORECASE)
 					if not match:
-						match = re.search(r"timeshift=\"(\d.*?)\"", line, re.IGNORECASE)
+						match = re.search(r"timeshift=\"(\d+)\"", line, re.IGNORECASE)
 					if match:
 						captchup_days = match.group(1)
 					if self.static_urls or self.isLocalPlaylist():
