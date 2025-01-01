@@ -1022,7 +1022,8 @@ class M3UIPTVVoDMovies(Screen):
 		self.allmovies = []
 		for provider in providers:
 			self.allmovies += [movie for movie in providers[provider].vod_movies if movie.name is not None]
-		self.category = _("All")
+		self.all = _("All")
+		self.category = self.all
 		self.categories = []
 		self.searchTexts = []
 		self.searchTerms = []
@@ -1144,7 +1145,7 @@ class M3UIPTVVoDMovies(Screen):
 		else:
 			self.title = _("VoD Movie Category: %s") % self.category
 			self["description"].text = _("Press OK to play selected movie")
-			self["list"].setList(sorted([(movie, movie.name) for movie in self.allmovies if self.category == "All" or self.category == movie.category], key=lambda x: x[1].lower()))
+			self["list"].setList(sorted([(movie, movie.name) for movie in self.allmovies if self.category == self.all or self.category == movie.category], key=lambda x: x[1].lower()))
 		self["key_yellow"].text = self.mdbText()
 
 	def playMovie(self):
