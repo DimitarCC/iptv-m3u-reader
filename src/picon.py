@@ -11,13 +11,17 @@ from .Variables import USER_AGENT
 
 def getPiconPath():
 	try:
-		from Components.Renderer.Picon import lastPiconPath
+		from Components.Renderer.Picon import lastPiconPath, searchPaths
 	except ImportError:
 		try:
 			from Components.Renderer.Picon import piconLocator
 			lastPiconPath = piconLocator.activePiconPath
+			searchPaths = piconLocator.searchPaths
 		except ImportError:
 			lastPiconPath = None
+			searchPaths = None
+	if searchPaths and len(searchPaths) == 1:
+		return searchPaths[0]
 	return lastPiconPath or "/picon"
 
 
