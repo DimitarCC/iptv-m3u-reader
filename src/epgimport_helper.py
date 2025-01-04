@@ -123,7 +123,7 @@ class epgimport_helper():
 		for group in groups:
 			channels_out.append(f' <!-- {groups[group][0]} -->')
 			for service in groups[group][1]:
-				sref, epg_id, ch_name, ch_num = service
+				sref, epg_id, ch_name = service[0:3]
 				channels_out.append(f' <channel id="{epg_id}">{self.provider.generateEPGChannelReference(sref)}</channel> <!-- {ch_name.replace("--", "")} -->')
 		channels_out.append('</channels>')
 		with open(os.path.join(self.getChannelsFilename()), "w") as f:
