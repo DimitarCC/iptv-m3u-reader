@@ -99,10 +99,12 @@ class M3UProvider(IPTVProcessor):
 				if epg_id_match:
 					epg_id = epg_id_match.group(1)
 				if self.use_provider_tsid:
-					condition_tsid = re.escape(self.provider_tsid_search_criteria).replace("\\{TSID\\}", "(\d*?)")
+					condition_tsid = re.escape(self.provider_tsid_search_criteria).replace("\\{TSID\\}", "(\d+)")
 					match_tsid = re.search(condition_tsid, line)
 					if match_tsid:
 						tsid = int(match_tsid.group(1))
+					else:
+						tsid = 0
 				condition = re.escape(self.search_criteria).replace("\\{SID\\}", "(.*?)") + r".*,(.*)"
 				match = re.search(condition, line)
 				isFallbackMatch = False
@@ -158,12 +160,12 @@ class M3UProvider(IPTVProcessor):
 						tsid += 1
 					if self.create_bouquets_strategy != 1:
 						if curr_group:
-							groups[curr_group].append((sref, epg_id, ch_name))
+							groups[curr_group].append((sref, epg_id, ch_name, tsid))
 						else:
-							services.append((sref, epg_id, ch_name))
+							services.append((sref, epg_id, ch_name, tsid))
 					if self.create_bouquets_strategy > 0:
 						if (curr_group and curr_group not in blacklist) or not curr_group:
-							groups["ALL"].append((sref, epg_id, ch_name))
+							groups["ALL"].append((sref, epg_id, ch_name, tsid))
 					if "tvg-logo" in line and (stream_icon_match := re.search(r"tvg-logo=\"(.+?)\"", line, re.IGNORECASE)):
 						self.piconsAdd(stream_icon_match.group(1), ch_name)
 			line_nr += 1
@@ -182,6 +184,8 @@ class M3UProvider(IPTVProcessor):
 				bouquet_name = self.iptv_service_provider.upper() + " - " + groupName
 				if self.create_bouquets_strategy == 1:
 					bouquet_name = self.iptv_service_provider.upper()
+				if self.user_provider_ch_num:
+					pass # TODO: add code here for handling provider ch num and add spacers
 				db.addOrUpdateBouquet(bouquet_name, bfilename, [sref[0] for sref in srefs], False)
 				groups_for_epg[groupName] = (groupName, srefs)
 

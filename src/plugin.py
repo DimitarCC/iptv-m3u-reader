@@ -135,6 +135,7 @@ def readProviders():
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
 				providerObj.use_provider_tsid = provider.find("use_provider_tsid") is not None and provider.find("use_provider_tsid").text == "on"
+				providerObj.user_provider_ch_num = provider.find("user_provider_ch_num") is not None and provider.find("user_provider_ch_num").text == "on"
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
 				providers[providerObj.scheme] = providerObj
@@ -156,6 +157,7 @@ def readProviders():
 				providerObj.is_custom_xmltv = provider.find("is_custom_xmltv") is not None and provider.find("is_custom_xmltv").text == "on"
 				providerObj.custom_xmltv_url = provider.find("custom_xmltv_url").text if provider.find("custom_xmltv_url") is not None and provider.find("custom_xmltv_url").text is not None else providerObj.custom_xmltv_url
 				providerObj.use_provider_tsid = provider.find("use_provider_tsid") is not None and provider.find("use_provider_tsid").text == "on"
+				providerObj.user_provider_ch_num = provider.find("user_provider_ch_num") is not None and provider.find("user_provider_ch_num").text == "on"
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
 				if not providerObj.ignore_vod:
@@ -181,6 +183,7 @@ def readProviders():
 				providerObj.onid = int(provider.find("onid").text)
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
 				providerObj.use_provider_tsid = provider.find("use_provider_tsid") is not None and provider.find("use_provider_tsid").text == "on"
+				providerObj.user_provider_ch_num = provider.find("user_provider_ch_num") is not None and provider.find("user_provider_ch_num").text == "on"
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
 				if not providerObj.ignore_vod:
@@ -207,6 +210,7 @@ def readProviders():
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
 				providerObj.use_provider_tsid = provider.find("use_provider_tsid") is not None and provider.find("use_provider_tsid").text == "on"
+				providerObj.user_provider_ch_num = provider.find("user_provider_ch_num") is not None and provider.find("user_provider_ch_num").text == "on"
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
 				providers[providerObj.scheme] = providerObj
@@ -237,6 +241,7 @@ def writeProviders():
 			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
 			xml.append(f"\t\t<create_bouquets_strategy>{val.create_bouquets_strategy}</create_bouquets_strategy>\n")
 			xml.append(f"\t\t<use_provider_tsid>{'on' if val.use_provider_tsid else 'off'}</use_provider_tsid>\n")
+			xml.append(f"\t\t<user_provider_ch_num>{'on' if val.user_provider_ch_num else 'off'}</user_provider_ch_num>\n")
 			xml.append(f"\t\t<provider_tsid_search_criteria>{val.provider_tsid_search_criteria}</provider_tsid_search_criteria>\n")
 			xml.append("\t</provider>\n")
 		elif isinstance(val, XtreemProvider):
@@ -259,6 +264,7 @@ def writeProviders():
 			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
 			xml.append(f"\t\t<create_bouquets_strategy>{val.create_bouquets_strategy}</create_bouquets_strategy>\n")
 			xml.append(f"\t\t<use_provider_tsid>{'on' if val.use_provider_tsid else 'off'}</use_provider_tsid>\n")
+			xml.append(f"\t\t<user_provider_ch_num>{'on' if val.user_provider_ch_num else 'off'}</user_provider_ch_num>\n")
 			xml.append(f"\t\t<provider_tsid_search_criteria>{val.provider_tsid_search_criteria}</provider_tsid_search_criteria>\n")
 			xml.append("\t</xtreemprovider>\n")
 		elif isinstance(val, TVHeadendProvider):
@@ -281,6 +287,7 @@ def writeProviders():
 			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
 			xml.append(f"\t\t<create_bouquets_strategy>{val.create_bouquets_strategy}</create_bouquets_strategy>\n")
 			xml.append(f"\t\t<use_provider_tsid>{'on' if val.use_provider_tsid else 'off'}</use_provider_tsid>\n")
+			xml.append(f"\t\t<user_provider_ch_num>{'on' if val.user_provider_ch_num else 'off'}</user_provider_ch_num>\n")
 			xml.append(f"\t\t<provider_tsid_search_criteria>{val.provider_tsid_search_criteria}</provider_tsid_search_criteria>\n")
 			xml.append("\t</tvhprovider>\n")
 		else:
@@ -299,6 +306,7 @@ def writeProviders():
 			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
 			xml.append(f"\t\t<create_bouquets_strategy>{val.create_bouquets_strategy}</create_bouquets_strategy>\n")
 			xml.append(f"\t\t<use_provider_tsid>{'on' if val.use_provider_tsid else 'off'}</use_provider_tsid>\n")
+			xml.append(f"\t\t<user_provider_ch_num>{'on' if val.user_provider_ch_num else 'off'}</user_provider_ch_num>\n")
 			xml.append(f"\t\t<provider_tsid_search_criteria>{val.provider_tsid_search_criteria}</provider_tsid_search_criteria>\n")
 			xml.append("\t</stalkerprovider>\n")
 	xml.append("</providers>\n")
@@ -1393,6 +1401,7 @@ class M3UIPTVProviderEdit(Setup):
 		self.is_custom_xmltv = ConfigYesNo(default=providerObj.is_custom_xmltv)
 		self.custom_xmltv_url = ConfigText(default=providerObj.custom_xmltv_url, fixed_size=False)
 		self.use_provider_tsid = ConfigYesNo(default=providerObj.use_provider_tsid)
+		self.user_provider_ch_num = ConfigYesNo(default=providerObj.user_provider_ch_num)
 		self.provider_tsid_search_criteria = ConfigText(default=providerObj.provider_tsid_search_criteria, fixed_size=False)
 		isServiceAppInstalled = isPluginInstalled("ServiceApp")
 		play_system_choices = [("1", "DVB"), ("4097", "HiSilicon" if BoxInfo.getItem("mediaservice") == "servicehisilicon" else "GStreamer")]
@@ -1455,6 +1464,7 @@ class M3UIPTVProviderEdit(Setup):
 		if self.type.value == "M3U":
 			configlist.append((_("Use provider TSID"), self.use_provider_tsid, _("Use the TSID provided from the IPTV provider (if available).\nUseful when want to always have same service references for EPG.")))
 			if self.use_provider_tsid.value:
+				configlist.append((_("Use channel numbers from provider"), self.user_provider_ch_num, _("Use channel numbers and ordering provided by the IPTV provider.\nIt will work only for 'ALL' bouquets.\nIf is configured global numbering the channel numbers may be offset depending on how many bouquets are before that one.")))
 				configlist.append((_("Provider TSID retrival condition"), self.provider_tsid_search_criteria, _("Search condition to get TSID provided from IPTV provider.\nUseful when want to always have same service references for EPG.")))
 
 		self["config"].list = configlist
@@ -1485,6 +1495,7 @@ class M3UIPTVProviderEdit(Setup):
 		providerObj.picons = self.picons.value
 		providerObj.create_bouquets_strategy = self.create_bouquets_strategy.value
 		providerObj.use_provider_tsid = self.use_provider_tsid.value
+		providerObj.user_provider_ch_num = self.user_provider_ch_num.value
 		providerObj.provider_tsid_search_criteria = self.provider_tsid_search_criteria.value
 		if self.type.value == "M3U":
 			providerObj.refresh_interval = self.refresh_interval.value
