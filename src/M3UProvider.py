@@ -170,6 +170,33 @@ class M3UProvider(IPTVProcessor):
 						self.piconsAdd(stream_icon_match.group(1), ch_name)
 			line_nr += 1
 
+		# if a sorted "ALL" bouquet is requested it will be created here
+		sort_all = self.use_provider_tsid and self.user_provider_ch_num
+		if groups["ALL"] and sort_all:
+			bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.ALL.tv")
+			if "ALL" in blacklist:
+				self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
+			else:
+				tsid_max = max([x[3] for x in groups["ALL"]])
+				ALL_dict = {}
+				for sref in groups["ALL"]:
+					if sref[3] != 0 and sref[3] not in ALL_dict:
+						ALL_dict[sref[3]] = sref
+					else:
+						tsid_max += 1
+						ALL_dict[tsid_max] = sref
+				lcnindex = list(ALL_dict.keys())
+				bouquet_list = []
+				for number in range(1, tsid_max +1):
+					if number in lcnindex:
+						bouquet_list.append(ALL_dict[number][0])
+					else:
+						bouquet_list.append("1:320:0:0:0:0:0:0:0:0:")  # bouquet spacer
+				bouquet_name = self.iptv_service_provider.upper() + " - " + _("All channels")
+				if self.create_bouquets_strategy == 1:
+					bouquet_name = self.iptv_service_provider.upper()
+				db.addOrUpdateBouquet(bouquet_name, bfilename, bouquet_list, False)
+
 		examples = []
 
 		groups_for_epg = {}  # mimic format used in XtreemProvider.py
@@ -181,16 +208,15 @@ class M3UProvider(IPTVProcessor):
 				if groupName in blacklist:
 					self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
 					continue
-				bouquet_name = self.iptv_service_provider.upper() + " - " + groupName
+				bouquet_name = self.iptv_service_provider.upper() + " - " + (_("All channels") if groupName == "ALL" else groupName)
 				if self.create_bouquets_strategy == 1:
 					bouquet_name = self.iptv_service_provider.upper()
-				if self.user_provider_ch_num:
-					pass # TODO: add code here for handling provider ch num and add spacers
-				db.addOrUpdateBouquet(bouquet_name, bfilename, [sref[0] for sref in srefs], False)
+				if groupName != "ALL" or not sort_all:  # "ALL" group is created here if NO sorting is requested
+					db.addOrUpdateBouquet(bouquet_name, bfilename, [sref[0] for sref in srefs], False)
 				groups_for_epg[groupName] = (groupName, srefs)
 
 		if len(services) > 0:
-			if len(groups) > 0:
+			if [1 for group in groups.values() if group]:  # Check if any groups are populated. "ALL" will always be present.
 				examples.append("UNCATEGORIZED")
 				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.UNCATEGORIZED.tv")
 				if "UNCATEGORIZED" in blacklist:
