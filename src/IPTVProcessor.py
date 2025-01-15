@@ -126,10 +126,13 @@ class IPTVProcessor():
 		self.provider_info = {}
 		self.picons = False
 		self.picon_database = {}
+		self.picon_sref_database = {}
+		self.picon_gen_strategy = 0
 		self.create_bouquets_strategy = 0
 		self.use_provider_tsid = False
 		self.provider_tsid_search_criteria = "tvg-chno=\"{TSID}\""
 		self.user_provider_ch_num = False
+		self.bouquets_refresh_interval = -1
 
 	def checkForNetwrok(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
@@ -279,7 +282,7 @@ class IPTVProcessor():
 				vod_item = VoDItem(url, name, id, self, self.movie_categories.get(movie.get("category_id")), movie.get("plot"))
 				self.vod_movies.append(vod_item)
 
-	def processService(self, nref, iptvinfodata, callback=None):
+	def processService(self, nref, iptvinfodata, callback=None, event=None):
 		return nref, nref, False
 
 	def bouquetCreated(self, error):
@@ -370,6 +373,16 @@ class IPTVProcessor():
 				self.picon_database[stream_icon] = []
 			if ch_name not in self.picon_database[stream_icon]:
 				self.picon_database[stream_icon].append(ch_name)
+
+	def piconsSrefAdd(self, stream_icon, ch_sref):
+		sref_split = ch_sref.split(":")
+		ch_sref_picon = "_".join(sref_split[:10])
+		if not stream_icon.startswith('http'):
+			stream_icon = 'http://' + stream_icon
+		if stream_icon not in self.picon_database:
+			self.picon_sref_database[stream_icon] = []
+		if ch_sref_picon not in self.picon_sref_database[stream_icon]:
+			self.picon_sref_database[stream_icon].append(ch_sref_picon)
 
 	def piconsDownload(self):
 		if self.picons:

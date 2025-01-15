@@ -12,7 +12,7 @@ def processService(nref, callback, event=None):
 		if len(url_data) < 2:
 			return nref, nref, False, nref.type
 		iptv_service = url_data[0]
-		iptvinfodata = url_data[1]
+		iptvinfodata = url_data[1] if len(url_data) == 2 else "%3a//".join(url_data[1:])
 		if iptv_service not in providers:
 			match_cplay_system = re.search(r"catchupstype\=(.*?)[&]", sRef)
 			cplay_system = nref.type

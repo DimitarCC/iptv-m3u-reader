@@ -77,7 +77,7 @@ class Fetcher():
 	def createSoftlinks(self):
 		for url, file in self.downloaded:
 			filepath = path.join(self.pluginPiconDir, file)
-			for ch_name in self.provider.picon_database[url]:
+			for ch_name in (self.provider.picon_database[url] if self.provider.picon_gen_strategy == 0 else self.provider.picon_sref_database[url]):
 				softlinkpath = path.join(self.piconDir, ch_name + ".png")
 				svgpath = path.join(self.piconDir, ch_name + ".svg")
 				islink = path.islink(softlinkpath)
@@ -90,6 +90,7 @@ class Fetcher():
 						continue
 					remove(softlinkpath)
 				symlink(filepath, softlinkpath)
+
 
 	def removeall(self):
 		if path.exists(self.piconDir):

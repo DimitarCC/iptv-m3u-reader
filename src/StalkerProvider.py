@@ -1,7 +1,7 @@
-from enigma import eDVBDB
-from twisted.internet import threads
+from enigma import eDVBDB, eServiceReference
+from ServiceReference import ServiceReference
 import requests
-import time
+import time, re
 from .IPTVProcessor import IPTVProcessor
 from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, CATCHUP_STALKER, CATCHUP_STALKER_TEXT
 
@@ -27,6 +27,8 @@ class StalkerProvider(IPTVProcessor):
 		self.catchup_type = CATCHUP_STALKER
 		self.play_system_vod = "4097"
 		self.play_system_catchup = "4097"
+		self.session = requests.Session()
+		self.token = None
 
 	def storePlaylistAndGenBouquet(self):
 		self.checkForNetwrok()
@@ -35,7 +37,9 @@ class StalkerProvider(IPTVProcessor):
 		if token:
 			genres = self.get_genres(session, token)
 			# print("GETTING CHANNELS FOR GENRE %s/%s" % (genres[0]["genre_id"], genres[0]["name"]))
-			threads.deferToThread(self.get_channels, session, token, genres).addCallback(self.channels_callback)
+			groups = self.get_all_channels(session, token, genres)
+			self.channels_callback(groups)
+			#threads.deferToThread(self.get_channels, session, token, genres).addCallback(self.channels_callback)
 
 	def channels_callback(self, groups):
 		tsid = 1000
@@ -152,6 +156,63 @@ class StalkerProvider(IPTVProcessor):
 			print("[M3UIPTV] [Stalker] Error getting channels: " + str(ex))
 			self.bouquetCreated(ex)
 			pass
+	
+	def get_all_channels(self, session, token, genres):
+		groups = {}
+		for group in genres:
+			groups[group["genre_id"]] = (group["name"], [])
+		cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
+		headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
+		url = f"{self.url}/portal.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml"
+		response = session.get(url, cookies=cookies, headers=headers)
+		channel_data = response.json()["js"]['data']
+		for channel in channel_data:
+			surl = f"{self.scheme}%3a//{channel['id']}?cmd={channel['cmd'].replace('ffmpeg ', '').replace('&','|amp|').replace(':', '%3a')}"
+			if self.play_system != "1":
+				surl = surl.replace("extension=ts", "extension=m3u8")
+			if genre_id := channel["tv_genre_id"]:
+				groups[genre_id][1].append(Channel(channel["id"], channel["name"], surl, channel["tv_archive_duration"]))
+		return groups
+	
+	def get_stream_play_url(self, cmd, session, token):
+		cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
+		headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
+		url = f"{self.url}/portal.php?type=itv&action=create_link&cmd={cmd}&series=&forced_storage=undefined&disable_ad=0&download=0&JsHttpRequest=1-xml"
+		response = session.get(url, cookies=cookies, headers=headers)
+		stream_data = response.json()["js"]
+		return stream_data["cmd"]
+	
+	def processService(self, nref, iptvinfodata, callback=None, event=None):
+		cmd = ""
+		splittedRef = nref.toString().split(":")
+		sRef = nref and ServiceReference(nref.toString())
+		orig_name = sRef and sRef.getServiceName()
+		origRef = ":".join(splittedRef[:10])
+		nnref = nref
+		match = re.search(r"(?:cmd=)([^&]+)", iptvinfodata)
+		if match:
+			cmd = match.group(1)
+		
+		if "localhost/ch" not in cmd:
+			nref_new = origRef + ":" + cmd.replace(":", "%3a").replace("|amp|", "&") + ":" + orig_name + "•" + self.iptv_service_provider
+			nnref = eServiceReference(nref_new)
+			self.isPlayBackup = False
+			if callback:
+				callback(nnref)
+			return nnref, nref, False
+		self.checkForNetwrok()
+		if not self.token:
+			self.token = self.get_token(self.session)
+		if self.token:
+			iptv_url = self.get_stream_play_url(cmd.replace("%3a", ":").replace("|amp|", "&"), self.session, self.token)
+			if self.play_system != "1":
+				iptv_url = iptv_url.replace("extension=ts", "extension=m3u8")
+			nref_new = origRef + ":" + iptv_url.replace(":", "%3a").replace("ffmpeg ", "") + ":" + orig_name + "•" + self.iptv_service_provider
+			nnref = eServiceReference(nref_new)
+			self.isPlayBackup = False
+		if callback:
+			callback(nnref)
+		return nnref, nref, False
 
 # 	def getVoDMovies(self):
 # 		self.vod_movies = []

@@ -86,7 +86,10 @@ class XtreemProvider(IPTVProcessor):
 				groups[category_id if category_id and category_id in groups else "EMPTY"][1].append((sref, epg_id, ch_name))
 
 			if stream_icon := service.get("stream_icon"):
-				self.piconsAdd(stream_icon, ch_name)
+				if self.picon_gen_strategy == 0:
+					self.piconsAdd(stream_icon, ch_name)
+				else:
+					self.piconsSrefAdd(stream_icon, sref)
 
 		if not self.ignore_vod:
 			self.getMovieCategories()

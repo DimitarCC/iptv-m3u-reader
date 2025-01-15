@@ -133,6 +133,7 @@ def readProviders():
 				providerObj.is_custom_xmltv = provider.find("is_custom_xmltv") is not None and provider.find("is_custom_xmltv").text == "on"
 				providerObj.custom_xmltv_url = provider.find("custom_xmltv_url").text if provider.find("custom_xmltv_url") is not None and provider.find("custom_xmltv_url").text is not None else providerObj.custom_xmltv_url
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
+				providerObj.picon_gen_strategy = int(provider.find("picon_gen_strategy").text) if provider.find("picon_gen_strategy") is not None else 0
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
 				providerObj.use_provider_tsid = provider.find("use_provider_tsid") is not None and provider.find("use_provider_tsid").text == "on"
 				providerObj.user_provider_ch_num = provider.find("user_provider_ch_num") is not None and provider.find("user_provider_ch_num").text == "on"
@@ -166,6 +167,7 @@ def readProviders():
 					providerObj.loadVoDMoviesFromFile()
 					providerObj.loadVoDSeriesFromFile()
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
+				providerObj.picon_gen_strategy = int(provider.find("picon_gen_strategy").text) if provider.find("picon_gen_strategy") is not None else 0
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("stalkerprovider"):
@@ -182,6 +184,7 @@ def readProviders():
 				providerObj.ignore_vod = provider.find("novod") is not None and provider.find("novod").text == "on"
 				providerObj.onid = int(provider.find("onid").text)
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
+				providerObj.picon_gen_strategy = int(provider.find("picon_gen_strategy").text) if provider.find("picon_gen_strategy") is not None else 0
 				providerObj.use_provider_tsid = provider.find("use_provider_tsid") is not None and provider.find("use_provider_tsid").text == "on"
 				providerObj.user_provider_ch_num = provider.find("user_provider_ch_num") is not None and provider.find("user_provider_ch_num").text == "on"
 				if provider.find("provider_tsid_search_criteria") is not None:
@@ -208,6 +211,7 @@ def readProviders():
 				providerObj.is_custom_xmltv = provider.find("is_custom_xmltv") is not None and provider.find("is_custom_xmltv").text == "on"
 				providerObj.custom_xmltv_url = provider.find("custom_xmltv_url").text if provider.find("custom_xmltv_url") is not None and provider.find("custom_xmltv_url").text is not None else providerObj.custom_xmltv_url
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
+				providerObj.picon_gen_strategy = int(provider.find("picon_gen_strategy").text) if provider.find("picon_gen_strategy") is not None else 0
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
 				providerObj.use_provider_tsid = provider.find("use_provider_tsid") is not None and provider.find("use_provider_tsid").text == "on"
 				providerObj.user_provider_ch_num = provider.find("user_provider_ch_num") is not None and provider.find("user_provider_ch_num").text == "on"
@@ -239,6 +243,7 @@ def writeProviders():
 			xml.append(f"\t\t<is_custom_xmltv>{'on' if val.is_custom_xmltv else 'off'}</is_custom_xmltv>\n")
 			xml.append(f"\t\t<custom_xmltv_url><![CDATA[{val.custom_xmltv_url}]]></custom_xmltv_url>\n")
 			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
+			xml.append(f"\t\t<picon_gen_strategy>{val.picon_gen_strategy}</picon_gen_strategy>\n")
 			xml.append(f"\t\t<create_bouquets_strategy>{val.create_bouquets_strategy}</create_bouquets_strategy>\n")
 			xml.append(f"\t\t<use_provider_tsid>{'on' if val.use_provider_tsid else 'off'}</use_provider_tsid>\n")
 			xml.append(f"\t\t<user_provider_ch_num>{'on' if val.user_provider_ch_num else 'off'}</user_provider_ch_num>\n")
@@ -262,6 +267,7 @@ def writeProviders():
 			xml.append(f"\t\t<is_custom_xmltv>{'on' if val.is_custom_xmltv else 'off'}</is_custom_xmltv>\n")
 			xml.append(f"\t\t<custom_xmltv_url><![CDATA[{val.custom_xmltv_url}]]></custom_xmltv_url>\n")
 			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
+			xml.append(f"\t\t<picon_gen_strategy>{val.picon_gen_strategy}</picon_gen_strategy>\n")
 			xml.append(f"\t\t<create_bouquets_strategy>{val.create_bouquets_strategy}</create_bouquets_strategy>\n")
 			xml.append(f"\t\t<use_provider_tsid>{'on' if val.use_provider_tsid else 'off'}</use_provider_tsid>\n")
 			xml.append(f"\t\t<user_provider_ch_num>{'on' if val.user_provider_ch_num else 'off'}</user_provider_ch_num>\n")
@@ -285,6 +291,7 @@ def writeProviders():
 			xml.append(f"\t\t<is_custom_xmltv>{'on' if val.is_custom_xmltv else 'off'}</is_custom_xmltv>\n")
 			xml.append(f"\t\t<custom_xmltv_url><![CDATA[{val.custom_xmltv_url}]]></custom_xmltv_url>\n")
 			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
+			xml.append(f"\t\t<picon_gen_strategy>{val.picon_gen_strategy}</picon_gen_strategy>\n")
 			xml.append(f"\t\t<create_bouquets_strategy>{val.create_bouquets_strategy}</create_bouquets_strategy>\n")
 			xml.append(f"\t\t<use_provider_tsid>{'on' if val.use_provider_tsid else 'off'}</use_provider_tsid>\n")
 			xml.append(f"\t\t<user_provider_ch_num>{'on' if val.user_provider_ch_num else 'off'}</user_provider_ch_num>\n")
@@ -304,6 +311,7 @@ def writeProviders():
 			xml.append(f"\t\t<epg>{'on' if val.create_epg else 'off'}</epg>\n")
 			xml.append(f"\t\t<onid>{val.onid}</onid>\n")
 			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
+			xml.append(f"\t\t<picon_gen_strategy>{val.picon_gen_strategy}</picon_gen_strategy>\n")
 			xml.append(f"\t\t<create_bouquets_strategy>{val.create_bouquets_strategy}</create_bouquets_strategy>\n")
 			xml.append(f"\t\t<use_provider_tsid>{'on' if val.use_provider_tsid else 'off'}</use_provider_tsid>\n")
 			xml.append(f"\t\t<user_provider_ch_num>{'on' if val.user_provider_ch_num else 'off'}</user_provider_ch_num>\n")
@@ -321,7 +329,7 @@ def writeProviders():
 
 
 # Function for overwrite some functions from Navigation.py so to inject own code
-def injectIntoNavigation():
+def injectIntoNavigation(session):
 	import NavigationInstance
 	Navigation.originalPlayingServiceReference = None
 	if distro == "openatv":
@@ -466,7 +474,12 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 	self.currentlyPlayingServiceOrGroup = ref
 	self.originalPlayingServiceReference = ref
 	if InfoBarInstance:
-		InfoBarInstance.session.screen["CurrentService"].newService(ref)
+		current_service_source = InfoBarInstance.session.screen["CurrentService"]
+		try:
+			current_service_source.serviceref = ref
+		except:
+			pass
+		current_service_source.newService(ref)
 		InfoBarInstance.session.screen["Event_Now"].updateSource(ref)
 		InfoBarInstance.session.screen["Event_Next"].updateSource(ref)
 		InfoBarInstance.serviceStarted()
@@ -1403,6 +1416,7 @@ class M3UIPTVProviderEdit(Setup):
 		self.use_provider_tsid = ConfigYesNo(default=providerObj.use_provider_tsid)
 		self.user_provider_ch_num = ConfigYesNo(default=providerObj.user_provider_ch_num)
 		self.provider_tsid_search_criteria = ConfigText(default=providerObj.provider_tsid_search_criteria, fixed_size=False)
+		self.picon_gen_strategy = ConfigSelection(default=providerObj.picon_gen_strategy, choices=[(0, _("Picons by name (SNP)")), (1, _("Picons by service reference (SRP)"))])
 		isServiceAppInstalled = isPluginInstalled("ServiceApp")
 		play_system_choices = [("1", "DVB"), ("4097", "HiSilicon" if BoxInfo.getItem("mediaservice") == "servicehisilicon" else "GStreamer")]
 		if isServiceAppInstalled:
@@ -1460,6 +1474,8 @@ class M3UIPTVProviderEdit(Setup):
 		if self.type.value == "M3U":
 			configlist.append((_("Catchup Type"), self.catchup_type, _("The catchup API used.")))
 		configlist.append((_("Download picons"), self.picons, _("Download picons, if available from the provider, and install them. Picon download is done in the background after bouquet generation.")))
+		if self.picons.value:
+			configlist.append((_("Picons type"), self.picon_gen_strategy, _("Determine how the picons will be named - SNP or SRP.")))
 		configlist.append((_("Bouquet creation strategy"), self.create_bouquets_strategy, _("Configure what type of bouquets should be created.")))
 		if self.type.value == "M3U":
 			configlist.append((_("Use provider TSID"), self.use_provider_tsid, _("Use the TSID provided from the IPTV provider (if available).\nUseful when want to always have same service references for EPG.")))
@@ -1493,6 +1509,7 @@ class M3UIPTVProviderEdit(Setup):
 		providerObj.play_system_catchup = self.play_system_catchup.value
 		providerObj.create_epg = self.create_epg.value
 		providerObj.picons = self.picons.value
+		providerObj.picon_gen_strategy = self.picon_gen_strategy.value
 		providerObj.create_bouquets_strategy = self.create_bouquets_strategy.value
 		providerObj.use_provider_tsid = self.use_provider_tsid.value
 		providerObj.user_provider_ch_num = self.user_provider_ch_num.value
@@ -1611,7 +1628,8 @@ class IPTVPluginConfig(Setup):
 		if isPluginInstalled("ServiceApp"):
 			configlist.append(("---",))
 			configlist.append((_("Enigma2 playback system"), config.plugins.serviceapp.servicemp3.replace, _("Change the playback system to one of the players available in ServiceApp plugin.")))
-			configlist.append((_("Select the player which will be used for Enigma2 playback."), config.plugins.serviceapp.servicemp3.player, _("Select a player to be in use.")))
+			if config.plugins.serviceapp.servicemp3.replace.value:
+				configlist.append((_("Select the player which will be used for Enigma2 playback."), config.plugins.serviceapp.servicemp3.player, _("Select a player to be in use.")))
 		self["config"].list = configlist
 
 
@@ -1702,11 +1720,10 @@ def startVoDSetup(menuid):
 	return [(_("Video on Demand"), M3UIPTVVoDMenu, "iptv_vod_menu", 100)]
 
 
-def sessionstart(reason, **kwargs):
+def sessionstart(reason, session, **kwargs):
 	if config.plugins.m3uiptv.enabled.value:
-		injectIntoNavigation()
+		injectIntoNavigation(session)
 		readProviders()
-
 
 def Plugins(path, **kwargs):
 	try:

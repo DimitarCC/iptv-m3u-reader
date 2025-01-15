@@ -167,7 +167,11 @@ class M3UProvider(IPTVProcessor):
 						if (curr_group and curr_group not in blacklist) or not curr_group:
 							groups["ALL"].append((sref, epg_id, ch_name, tsid))
 					if "tvg-logo" in line and (stream_icon_match := re.search(r"tvg-logo=\"(.+?)\"", line, re.IGNORECASE)):
-						self.piconsAdd(stream_icon_match.group(1), ch_name)
+						if self.picon_gen_strategy == 0:
+							self.piconsAdd(stream_icon_match.group(1), ch_name)
+						else:
+							self.piconsSrefAdd(stream_icon_match.group(1), sref)
+
 			line_nr += 1
 
 		# if a sorted "ALL" bouquet is requested it will be created here
