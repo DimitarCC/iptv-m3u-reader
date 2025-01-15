@@ -8,13 +8,13 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-01-15 09:24+0200\n"
-"PO-Revision-Date: 2024-12-29 19:00+0200\n"
+"PO-Revision-Date: 2025-01-15 12:28+0200\n"
 "Last-Translator: Orlandox <huoltovalikko.com>\n"
 "Language-Team: Orlandox\n"
+"Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fi\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.5\n"
 
@@ -191,7 +191,7 @@ msgstr "Poista \"%s\""
 
 #: ../src/plugin.py:1480
 msgid "Determine how the picons will be named - SNP or SRP."
-msgstr ""
+msgstr "Määritä, kuinka piconit nimetään - SNP tai SRP."
 
 #: ../src/plugin.py:1597
 msgid "Do a check is network available before try to retrieve the iptv playlist. If no network try backup services."
@@ -401,15 +401,15 @@ msgstr "Piconien maksimi säikeet"
 
 #: ../src/plugin.py:1421
 msgid "Picons by name (SNP)"
-msgstr ""
+msgstr "Piconit nimen mukaan (SNP)"
 
 #: ../src/plugin.py:1421
 msgid "Picons by service reference (SRP)"
-msgstr ""
+msgstr "Piconit kanavan referenssin mukaan (SRP)"
 
 #: ../src/plugin.py:1480
 msgid "Picons type"
-msgstr ""
+msgstr "Piconien tyyppi"
 
 #: ../src/IPTVCatchupPlayer.py:135
 msgid "Play Archive"
@@ -713,7 +713,7 @@ msgstr "Vaihda kaikki valinnat"
 
 #: ../src/plugin.py:1454
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: ../src/plugin.py:1334
 #, python-format
@@ -730,10 +730,13 @@ msgid ""
 "It will work only for 'ALL' bouquets.\n"
 "If is configured global numbering the channel numbers may be offset depending on how many bouquets are before that one."
 msgstr ""
+"Käytä IPTV-palveluntarjoajan antamia kanavanumeroita ja järjestystä.\n"
+"Se toimii vain 'KAIKKI'-suosikkilistojen kanssa.\n"
+"Jos globaali numerointi on määritetty, kanavanumerot voivat vaihdella riippuen siitä, kuinka monta suosikkilistaa on ennen sitä."
 
 #: ../src/plugin.py:1485
 msgid "Use channel numbers from provider"
-msgstr ""
+msgstr "Käytä palveluntarjoajan kanavanumeroita"
 
 #: ../src/plugin.py:1469
 msgid "Use custom XMLTV URL"
