@@ -335,7 +335,8 @@ def writeProviders():
 def injectIntoNavigation(session):
 	import NavigationInstance
 	Navigation.originalPlayingServiceReference = None
-	if distro == "openatv":
+	supported_distros = ["openatv", "egami"]
+	if distro in supported_distros:
 		NavigationInstance.instance.playService = playServiceWithIPTVATV.__get__(NavigationInstance.instance, Navigation)
 		PictureInPicture.playService = playServiceWithIPTVPiPATV
 		NavigationInstance.instance.recordService = recordServiceWithIPTVATV.__get__(NavigationInstance.instance, Navigation)
@@ -719,7 +720,7 @@ def playRealService(self, nnref):
 
 	from Components.ServiceEventTracker import InfoBarCount
 	InfoBarInstance = InfoBarCount == 1 and InfoBar.instance
-	if InfoBarInstance and distro != "openatv":
+	if InfoBarInstance and distro not in ["openatv", "egami"]:
 		current_service_source = InfoBarInstance.session.screen["CurrentService"]
 		if "%3a//" in nnref.toString():
 			current_service_source.newService(nnref)
@@ -1486,7 +1487,7 @@ class M3UIPTVProviderEdit(Setup):
 			configlist.append((_("Use custom XMLTV URL"), self.is_custom_xmltv, _("Use your own XMLTV url for EPG importing.")))
 			if self.is_custom_xmltv.value:
 				configlist.append((_("Custom XMLTV URL"), self.custom_xmltv_url, _("The URL where EPG data for this provider can be downloaded.")))
-		
+
 		configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
 		configlist.append((_("Playback system"), self.play_system, _("The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3")))
 		configlist.append((_("Playback system for Catchup/Archive"), self.play_system_catchup, _("The player used for playing Catchup/Archive. Can be GStreamer/HiSilicon, Extplayer3")))
