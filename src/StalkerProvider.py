@@ -1,5 +1,8 @@
+from . import _
+
 from enigma import eDVBDB, eServiceReference
 from ServiceReference import ServiceReference
+from Components.config import config
 import requests
 import time, re
 from .IPTVProcessor import IPTVProcessor
@@ -59,9 +62,15 @@ class StalkerProvider(IPTVProcessor):
 				sref = self.generateChannelReference(stype, tsid, surl.replace(":", "%3a"), ch_name)
 				tsid += 1
 				services.append(sref)
-
-			bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.{group[0]}.tv")
-			db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + group[0], bfilename, services, False)
+			if len(services) > 0:
+				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.{group[0]}.tv")
+				provider_name_for_titles = self.iptv_service_provider
+				name_case_config = config.plugins.m3uiptv.bouquet_names_case.value
+				if name_case_config == 1:
+					provider_name_for_titles = provider_name_for_titles.lower()
+				elif name_case_config == 2:
+					provider_name_for_titles = provider_name_for_titles.upper()
+				db.addOrUpdateBouquet(provider_name_for_titles + " - " + group[0], bfilename, services, False)
 
 		if not self.ignore_vod:
 			self.getVoDMovies()
@@ -120,10 +129,10 @@ class StalkerProvider(IPTVProcessor):
 					channels_data = response_json["js"]["data"]
 
 					for channel in channels_data:
-						surl = channel["cmd"].replace("ffmpeg ", "")
+						surl = f"{self.scheme}%3a//{channel['id']}?cmd={channel['cmd'].replace('ffmpeg ', '').replace('&','|amp|').replace(':', '%3a')}"
 						if self.play_system != "1":
 							surl = surl.replace("extension=ts", "extension=m3u8")
-						services.append(Channel(channel["id"], channel["name"], channel["cmd"].replace("ffmpeg ", ""), channel["tv_archive_duration"]))
+						services.append(Channel(channel["id"], channel["name"], surl, channel["tv_archive_duration"]))
 					total_items = response_json["js"]["total_items"]
 					if len(services) >= total_items:
 						break
@@ -132,35 +141,20 @@ class StalkerProvider(IPTVProcessor):
 					print("[M3UIPTV] [Stalker] Invalid JSON format in response")
 			else:
 				print(f"[M3UIPTV] [Stalker] IPTV Request failed for page {page_number}")
-
-	def get_channels(self, session, token, genres):
-		groups = {}
-		try:
-			for group in genres:
-				groups[group["genre_id"]] = (group["name"], [])
-
-			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
-			headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
-			i = 0
-			for group in genres:
-				genre_id = group["genre_id"]
-				if genre_id != "*":
-					self.get_channels_for_group(groups[genre_id][1], session, cookies, headers, genre_id)
-					# print("[M3UIPTV] [Stalker] GENERATE CHANNELS FOR GROUP %d/%d" % (i, len(genres)))
-					self.progress_percentage = int((i / len(genres)) * 100)
-				i += 1
-
-			self.progress_percentage = -1
-			return groups
-		except Exception as ex:
-			print("[M3UIPTV] [Stalker] Error getting channels: " + str(ex))
-			self.bouquetCreated(ex)
-			pass
 	
 	def get_all_channels(self, session, token, genres):
 		groups = {}
+		censored_groups = []
 		for group in genres:
 			groups[group["genre_id"]] = (group["name"], [])
+			censored = False
+			try:
+				censored = group["censored"] == "1"
+			except:
+				pass
+			if "adult" in group["name"].lower() or "sex" in group["name"].lower() or censored:
+				censored_groups.append(group["genre_id"])
+
 		cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
 		headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
 		url = f"{self.url}/portal.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml"
@@ -172,6 +166,10 @@ class StalkerProvider(IPTVProcessor):
 				surl = surl.replace("extension=ts", "extension=m3u8")
 			if genre_id := channel["tv_genre_id"]:
 				groups[genre_id][1].append(Channel(channel["id"], channel["name"], surl, channel["tv_archive_duration"]))
+		
+		for censored_group in censored_groups:
+			self.get_channels_for_group(groups[censored_group][1], session, cookies, headers, censored_group)
+
 		return groups
 	
 	def get_stream_play_url(self, cmd, session, token):

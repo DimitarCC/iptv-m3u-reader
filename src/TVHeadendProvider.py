@@ -1,3 +1,5 @@
+from . import _
+
 from enigma import eDVBDB
 from Components.config import config
 import urllib, re, base64
@@ -136,6 +138,13 @@ class TVHeadendProvider(IPTVProcessor):
 
 		examples = []
 
+		provider_name_for_titles = self.iptv_service_provider
+		name_case_config = config.plugins.m3uiptv.bouquet_names_case.value
+		if name_case_config == 1:
+			provider_name_for_titles = provider_name_for_titles.lower()
+		elif name_case_config == 2:
+			provider_name_for_titles = provider_name_for_titles.upper()
+
 		groups_for_epg = {}  # mimic format used in XtreemProvider.py
 		for groupName, srefs in groups.items():
 			if groupName != "ALL":
@@ -145,9 +154,9 @@ class TVHeadendProvider(IPTVProcessor):
 				if groupName in blacklist:
 					self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
 					continue
-				bouquet_name = self.iptv_service_provider.upper() + " - " + groupName
+				bouquet_name = provider_name_for_titles + " - " + groupName
 				if self.create_bouquets_strategy == 1:
-					bouquet_name = self.iptv_service_provider.upper()
+					bouquet_name = provider_name_for_titles
 				db.addOrUpdateBouquet(bouquet_name, bfilename, [sref[0] for sref in srefs], False)
 				groups_for_epg[groupName] = (groupName, srefs)
 
@@ -158,10 +167,10 @@ class TVHeadendProvider(IPTVProcessor):
 				if "UNCATEGORIZED" in blacklist:
 					self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
 				else:
-					db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - UNCATEGORIZED", bfilename, [sref[0] for sref in services], False)
+					db.addOrUpdateBouquet(provider_name_for_titles + " - UNCATEGORIZED", bfilename, [sref[0] for sref in services], False)
 			else:
 				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.tv")
-				db.addOrUpdateBouquet(self.iptv_service_provider.upper(), bfilename, [sref[0] for sref in services], False)
+				db.addOrUpdateBouquet(provider_name_for_titles, bfilename, [sref[0] for sref in services], False)
 			groups_for_epg["EMPTY"] = ("UNCATEGORIZED", services)
 		self.writeExampleBlacklist(examples)
 		self.piconsDownload()

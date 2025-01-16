@@ -81,6 +81,7 @@ config.plugins.m3uiptv.check_internet = ConfigSelection(default="2", choices=cho
 config.plugins.m3uiptv.req_timeout = ConfigSelection(default="2", choices=choicelist)
 config.plugins.m3uiptv.inmenu = ConfigYesNo(default=True)
 config.plugins.m3uiptv.picon_threads = ConfigSelectionNumber(min=50, max=1000, stepwidth=50, default=100, wraparound=True)
+config.plugins.m3uiptv.bouquet_names_case = ConfigSelection(default=2, choices=[(0, _("Original case")), (1, _("lower case")), (2, _("UPPER case"))])
 
 distro = BoxInfo.getItem("distro")
 
@@ -137,6 +138,7 @@ def readProviders():
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
 				providerObj.use_provider_tsid = provider.find("use_provider_tsid") is not None and provider.find("use_provider_tsid").text == "on"
 				providerObj.user_provider_ch_num = provider.find("user_provider_ch_num") is not None and provider.find("user_provider_ch_num").text == "on"
+				providerObj.epg_match_strategy = int(provider.find("epg_match_strategy").text) if provider.find("epg_match_strategy") is not None else 0
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
 				providers[providerObj.scheme] = providerObj
@@ -248,6 +250,7 @@ def writeProviders():
 			xml.append(f"\t\t<use_provider_tsid>{'on' if val.use_provider_tsid else 'off'}</use_provider_tsid>\n")
 			xml.append(f"\t\t<user_provider_ch_num>{'on' if val.user_provider_ch_num else 'off'}</user_provider_ch_num>\n")
 			xml.append(f"\t\t<provider_tsid_search_criteria>{val.provider_tsid_search_criteria}</provider_tsid_search_criteria>\n")
+			xml.append(f"\t\t<epg_match_strategy>{val.epg_match_strategy}</epg_match_strategy>\n")
 			xml.append("\t</provider>\n")
 		elif isinstance(val, XtreemProvider):
 			xml.append("\t<xtreemprovider>\n")
@@ -457,11 +460,14 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 
 	oldref = self.currentlyPlayingServiceOrGroup
 	oldref_orig = self.originalPlayingServiceReference
+	current_service_source = None
+	if InfoBarInstance:
+		current_service_source = InfoBarInstance.session.screen["CurrentService"]
 	if "%3a//" in ref.toString():
 		self.currentlyPlayingServiceReference = None
 		self.currentlyPlayingService = None
-		if InfoBarInstance:
-			InfoBarInstance.session.screen["CurrentService"].newService(False)
+		if current_service_source:
+			current_service_source.newService(False)
 	if ref and oldref and ref == oldref and not forceRestart:
 		print("[Navigation] ignore request to play already running service(1)")
 		return 1
@@ -473,8 +479,7 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 	self.currentlyPlayingServiceReference = ref
 	self.currentlyPlayingServiceOrGroup = ref
 	self.originalPlayingServiceReference = ref
-	if InfoBarInstance:
-		current_service_source = InfoBarInstance.session.screen["CurrentService"]
+	if InfoBarInstance and current_service_source:
 		try:
 			current_service_source.serviceref = ref
 		except:
@@ -572,6 +577,10 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 				self.retryServicePlayTimer.callback.append(boundFunction(self.playService, ref, checkParentalControl, forceRestart, adjust))
 				self.retryServicePlayTimer.start(config.misc.softcam_streamrelay_delay.value, True)
 			elif not is_dynamic and self.pnav.playService(playref):
+				try:
+					current_service_source.serviceref = None
+				except:
+					pass
 				self.currentlyPlayingServiceReference = None
 				self.originalPlayingServiceReference = None
 				self.currentlyPlayingServiceOrGroup = None
@@ -587,6 +596,10 @@ def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False
 			if self.currentlyPlayingServiceReference and self.currentlyPlayingServiceReference.toString() in streamrelay.data:
 				self.currentServiceIsStreamRelay = True
 			if InfoBarInstance and playref.toString().find("%3a//") > -1 and not is_dynamic:
+				try:
+					current_service_source.serviceref = None
+				except:
+					pass
 				InfoBarInstance.serviceStarted()
 			return 0
 	elif InfoBarInstance:
@@ -707,10 +720,13 @@ def playRealService(self, nnref):
 	from Components.ServiceEventTracker import InfoBarCount
 	InfoBarInstance = InfoBarCount == 1 and InfoBar.instance
 	if InfoBarInstance and distro != "openatv":
+		current_service_source = InfoBarInstance.session.screen["CurrentService"]
 		if "%3a//" in nnref.toString():
-			InfoBarInstance.session.screen["CurrentService"].newService(nnref)
+			current_service_source.newService(nnref)
 		else:
-			InfoBarInstance.session.screen["CurrentService"].newService(True)
+			current_service_source.newService(True)
+
+		current_service_source.serviceref = None
 		InfoBarInstance.serviceStarted()
 
 
@@ -1417,6 +1433,7 @@ class M3UIPTVProviderEdit(Setup):
 		self.user_provider_ch_num = ConfigYesNo(default=providerObj.user_provider_ch_num)
 		self.provider_tsid_search_criteria = ConfigText(default=providerObj.provider_tsid_search_criteria, fixed_size=False)
 		self.picon_gen_strategy = ConfigSelection(default=providerObj.picon_gen_strategy, choices=[(0, _("Picons by name (SNP)")), (1, _("Picons by service reference (SRP)"))])
+		self.epg_match_strategy = ConfigSelection(default=providerObj.epg_match_strategy, choices=[(0, _("By tvg-id")), (1, _("By channel name"))])
 		isServiceAppInstalled = isPluginInstalled("ServiceApp")
 		play_system_choices = [("1", "DVB"), ("4097", "HiSilicon" if BoxInfo.getItem("mediaservice") == "servicehisilicon" else "GStreamer")]
 		if isServiceAppInstalled:
@@ -1464,11 +1481,13 @@ class M3UIPTVProviderEdit(Setup):
 			configlist.append((_("Skip VOD entries"), self.novod, _("Skip VOD entries in the playlist")))
 		configlist.append((_("Generate EPG files for EPGImport plugin"), self.create_epg, _("Creates files needed for importing EPG via EPGImport plugin")))
 		if (self.type.value == "M3U" or self.type.value == "Xtreeme" or self.type.value == "TVH") and self.create_epg.value:
+			if self.type.value == "M3U":
+				configlist.append((_("EPG matching condition"), self.epg_match_strategy, _("Specify how xmltv entries will be matched to channels.")))
 			configlist.append((_("Use custom XMLTV URL"), self.is_custom_xmltv, _("Use your own XMLTV url for EPG importing.")))
 			if self.is_custom_xmltv.value:
 				configlist.append((_("Custom XMLTV URL"), self.custom_xmltv_url, _("The URL where EPG data for this provider can be downloaded.")))
-		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited.
-			configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
+		
+		configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
 		configlist.append((_("Playback system"), self.play_system, _("The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3")))
 		configlist.append((_("Playback system for Catchup/Archive"), self.play_system_catchup, _("The player used for playing Catchup/Archive. Can be GStreamer/HiSilicon, Extplayer3")))
 		if self.type.value == "M3U":
@@ -1503,7 +1522,8 @@ class M3UIPTVProviderEdit(Setup):
 		providerObj.iptv_service_provider = self.iptv_service_provider.value
 		providerObj.url = self.url.value
 		providerObj.iptv_service_provider = self.iptv_service_provider.value
-		providerObj.scheme = self.scheme.value
+		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited.
+			providerObj.scheme = self.scheme.value
 		providerObj.play_system = self.play_system.value
 		providerObj.ignore_vod = self.novod.value
 		providerObj.play_system_catchup = self.play_system_catchup.value
@@ -1522,6 +1542,7 @@ class M3UIPTVProviderEdit(Setup):
 			providerObj.epg_url = self.epg_url.value
 			providerObj.is_custom_xmltv = self.is_custom_xmltv.value
 			providerObj.custom_xmltv_url = self.custom_xmltv_url.value
+			providerObj.epg_match_strategy = self.epg_match_strategy.value
 		elif self.type.value == "Xtreeme" or self.type.value == "TVH":
 			providerObj.username = self.username.value
 			providerObj.password = self.password.value
@@ -1532,7 +1553,7 @@ class M3UIPTVProviderEdit(Setup):
 
 		if getattr(providerObj, "onid", None) is None:
 			providerObj.onid = min(set(range(1, len(L := [x.onid for x in providers.values() if hasattr(x, "onid")]) + 2)) - set(L))
-		providers[self.scheme.value] = providerObj
+		providers[self.scheme.value if not self.edit else providerObj.scheme] = providerObj
 		writeProviders()
 		self.close(True)
 
@@ -1596,6 +1617,7 @@ class IPTVPluginConfig(Setup):
 		configlist.append((_("Request timeout"), config.plugins.m3uiptv.req_timeout, _("Timeout in seconds for the requests of getting playlist.")))
 		configlist.append((_("Picon max threads"), config.plugins.m3uiptv.picon_threads, _("Maximum number of threads during picon downloads. If the box returns errors or fails to download some picons, set a lower number.")))
 		configlist.append((_("Show 'Video on Demand' menu entry") + " *", config.plugins.m3uiptv.inmenu, _("Allow showing of 'Video on Demand' menu entry in Main Menu.")))
+		configlist.append((_("Bouquet name character case"), config.plugins.m3uiptv.bouquet_names_case, _("Specify the character case used for bouquet names and titles.")))
 		configlist.append(("---",))
 		if hasattr(config, "recording") and hasattr(config.recording, "setstreamto1"):
 			configlist.append((_("Recordings - convert IPTV servicetypes to  1"), config.recording.setstreamto1, _("Recording 4097, 5001 and 5002 streams not possible with external players, so convert recordings to servicetype 1.")))

@@ -1,10 +1,12 @@
+from . import _
+
 from enigma import eServiceReference, eDVBDB
 from ServiceReference import ServiceReference
 from Components.config import config
 from Tools.Directories import fileExists
 from time import time
 from twisted.internet import threads
-import socket, urllib, re
+import urllib, re
 from .IPTVProcessor import IPTVProcessor
 from .Variables import CATCHUP_DEFAULT, CATCHUP_TYPES
 
@@ -105,75 +107,72 @@ class M3UProvider(IPTVProcessor):
 						tsid = int(match_tsid.group(1))
 					else:
 						tsid = 0
-				condition = re.escape(self.search_criteria).replace("\\{SID\\}", "(.*?)") + r".*,(.*)"
+				condition = re.escape(self.search_criteria).replace("\\{SID\\}", "(.*?)")
 				match = re.search(condition, line)
-				isFallbackMatch = False
+				# possible issue is if there are "," in the service name
+				ch_name = line.split(",")[-1].strip().replace("&", " ")
+				sid = match.group(1).replace(":", "%3a") if match else ch_name.replace(":", "%3a")
+				url = ""
+				match = re.search(r"tvg-rec=\"(\d+)\"", line, re.IGNORECASE)
 				if not match:
-					# Probably the format of the playlist is not m3u+ or for some reason it doesnt contain
-					# tvg-id, tvg-name and other similar tags. In this case try matching by the name of service
-					condition = r".*,(.*)"
-					match = re.search(condition, line)
-					isFallbackMatch = True
+					match = re.search(r"catchup-days=\"(\d+)\"", line, re.IGNORECASE)
+				if not match:
+					match = re.search(r"timeshift=\"(\d+)\"", line, re.IGNORECASE)
 				if match:
-					sid = match.group(1).replace(":", "%3a")
-					ch_name = match.group(2) if not isFallbackMatch else sid
-					if not sid:
-						sid = ch_name.replace(":", "%3a")
-					url = ""
-					match = re.search(r"tvg-rec=\"(\d+)\"", line, re.IGNORECASE)
-					if not match:
-						match = re.search(r"catchup-days=\"(\d+)\"", line, re.IGNORECASE)
-					if not match:
-						match = re.search(r"timeshift=\"(\d+)\"", line, re.IGNORECASE)
-					if match:
-						captchup_days = match.group(1)
-					if self.static_urls or self.isLocalPlaylist():
-						found_url = False
-						next_line_nr = line_nr + 1
-						while not found_url:
-							if len(playlist_splitted) > next_line_nr:
-								next_line = playlist_splitted[next_line_nr].strip()
-								if next_line.startswith("#EXTGRP:") and curr_group is None:  # only if no group was found in #EXTINF: group-title
-									curr_group = next_line[8:].strip()
-									if curr_group not in groups and self.create_bouquets_strategy != 1:
-										groups[curr_group] = []
-								if next_line.startswith(("http://", "https://")):
-									url = next_line.replace(":", "%3a")
-									url = self.constructCatchupSuffix(captchup_days if captchup_days else global_tvg_rec, url, CATCHUP_TYPES[self.catchup_type])
-									captchup_days = ""
-									found_url = True
-								else:
-									next_line_nr += 1
+					captchup_days = match.group(1)
+				if self.static_urls or self.isLocalPlaylist():
+					found_url = False
+					next_line_nr = line_nr + 1
+					while not found_url:
+						if len(playlist_splitted) > next_line_nr:
+							next_line = playlist_splitted[next_line_nr].strip()
+							if next_line.startswith("#EXTGRP:") and curr_group is None:  # only if no group was found in #EXTINF: group-title
+								curr_group = next_line[8:].strip()
+								if curr_group not in groups and self.create_bouquets_strategy != 1:
+									groups[curr_group] = []
+							if next_line.startswith(("http://", "https://")):
+								url = next_line.replace(":", "%3a")
+								url = self.constructCatchupSuffix(captchup_days if captchup_days else global_tvg_rec, url, CATCHUP_TYPES[self.catchup_type])
+								captchup_days = ""
+								found_url = True
 							else:
-								break
+								next_line_nr += 1
+						else:
+							break
+				else:
+					url = self.scheme + "%3a//" + sid
+					url = self.constructCatchupSuffix(captchup_days if captchup_days else global_tvg_rec, url, CATCHUP_TYPES[self.catchup_type])
+					captchup_days = ""
+				stype = "1"
+				if "UHD" in ch_name or "4K" in ch_name:
+					stype = "1F"
+				elif "HD" in ch_name:
+					stype = "19"
+				sref = self.generateChannelReference(stype, tsid, url.replace(":", "%3a"), ch_name)
+				if not self.use_provider_tsid:
+					tsid += 1
+				if self.create_bouquets_strategy != 1:
+					if curr_group:
+						groups[curr_group].append((sref, epg_id if self.epg_match_strategy == 0 else ch_name, ch_name, tsid))
 					else:
-						url = self.scheme + "%3a//" + sid
-						url = self.constructCatchupSuffix(captchup_days if captchup_days else global_tvg_rec, url, CATCHUP_TYPES[self.catchup_type])
-						captchup_days = ""
-					stype = "1"
-					if "UHD" in ch_name or "4K" in ch_name:
-						stype = "1F"
-					elif "HD" in ch_name:
-						stype = "19"
-					sref = self.generateChannelReference(stype, tsid, url.replace(":", "%3a"), ch_name)
-					if not self.use_provider_tsid:
-						tsid += 1
-					if self.create_bouquets_strategy != 1:
-						if curr_group:
-							groups[curr_group].append((sref, epg_id, ch_name, tsid))
-						else:
-							services.append((sref, epg_id, ch_name, tsid))
-					if self.create_bouquets_strategy > 0:
-						if (curr_group and curr_group not in blacklist) or not curr_group:
-							groups["ALL"].append((sref, epg_id, ch_name, tsid))
-					if "tvg-logo" in line and (stream_icon_match := re.search(r"tvg-logo=\"(.+?)\"", line, re.IGNORECASE)):
-						if self.picon_gen_strategy == 0:
-							self.piconsAdd(stream_icon_match.group(1), ch_name)
-						else:
-							self.piconsSrefAdd(stream_icon_match.group(1), sref)
+						services.append((sref, epg_id if self.epg_match_strategy == 0 else ch_name, ch_name, tsid))
+				if self.create_bouquets_strategy > 0:
+					if (curr_group and curr_group not in blacklist) or not curr_group:
+						groups["ALL"].append((sref, epg_id if self.epg_match_strategy == 0 else ch_name, ch_name, tsid))
+				if "tvg-logo" in line and (stream_icon_match := re.search(r"tvg-logo=\"(.+?)\"", line, re.IGNORECASE)):
+					if self.picon_gen_strategy == 0:
+						self.piconsAdd(stream_icon_match.group(1), ch_name)
+					else:
+						self.piconsSrefAdd(stream_icon_match.group(1), sref)
 
 			line_nr += 1
 
+		provider_name_for_titles = self.iptv_service_provider
+		name_case_config = config.plugins.m3uiptv.bouquet_names_case.value
+		if name_case_config == 1:
+			provider_name_for_titles = provider_name_for_titles.lower()
+		elif name_case_config == 2:
+			provider_name_for_titles = provider_name_for_titles.upper()
 		# if a sorted "ALL" bouquet is requested it will be created here
 		sort_all = self.use_provider_tsid and self.user_provider_ch_num
 		if groups["ALL"] and sort_all:
@@ -196,9 +195,9 @@ class M3UProvider(IPTVProcessor):
 						bouquet_list.append(ALL_dict[number][0])
 					else:
 						bouquet_list.append("1:320:0:0:0:0:0:0:0:0:")  # bouquet spacer
-				bouquet_name = self.iptv_service_provider.upper() + " - " + _("All channels")
+				bouquet_name = provider_name_for_titles + " - " + _("All channels")
 				if self.create_bouquets_strategy == 1:
-					bouquet_name = self.iptv_service_provider.upper()
+					bouquet_name = provider_name_for_titles
 				db.addOrUpdateBouquet(bouquet_name, bfilename, bouquet_list, False)
 
 		examples = []
@@ -212,9 +211,9 @@ class M3UProvider(IPTVProcessor):
 				if groupName in blacklist:
 					self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
 					continue
-				bouquet_name = self.iptv_service_provider.upper() + " - " + (_("All channels") if groupName == "ALL" else groupName)
+				bouquet_name = provider_name_for_titles + " - " + (_("All channels") if groupName == "ALL" else groupName)
 				if self.create_bouquets_strategy == 1:
-					bouquet_name = self.iptv_service_provider.upper()
+					bouquet_name = provider_name_for_titles
 				if groupName != "ALL" or not sort_all:  # "ALL" group is created here if NO sorting is requested
 					db.addOrUpdateBouquet(bouquet_name, bfilename, [sref[0] for sref in srefs], False)
 				groups_for_epg[groupName] = (groupName, srefs)
@@ -226,10 +225,10 @@ class M3UProvider(IPTVProcessor):
 				if "UNCATEGORIZED" in blacklist:
 					self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
 				else:
-					db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - UNCATEGORIZED", bfilename, [sref[0] for sref in services], False)
+					db.addOrUpdateBouquet(provider_name_for_titles + " - UNCATEGORIZED", bfilename, [sref[0] for sref in services], False)
 			else:
 				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.tv")
-				db.addOrUpdateBouquet(self.iptv_service_provider.upper(), bfilename, [sref[0] for sref in services], False)
+				db.addOrUpdateBouquet(provider_name_for_titles, bfilename, [sref[0] for sref in services], False)
 			groups_for_epg["EMPTY"] = ("UNCATEGORIZED", services)
 		self.writeExampleBlacklist(examples)
 		self.piconsDownload()

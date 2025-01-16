@@ -1,3 +1,5 @@
+from . import _
+
 from enigma import eDVBDB
 from Components.config import config
 import socket
@@ -108,7 +110,13 @@ class XtreemProvider(IPTVProcessor):
 				services = []
 				for x in groupItem[1]:
 					services.append(x[0])
-				db.addOrUpdateBouquet(self.iptv_service_provider.upper() + " - " + groupItem[0], bfilename, services, False)
+				provider_name_for_titles = self.iptv_service_provider
+				name_case_config = config.plugins.m3uiptv.bouquet_names_case.value
+				if name_case_config == 1:
+					provider_name_for_titles = provider_name_for_titles.lower()
+				elif name_case_config == 2:
+					provider_name_for_titles = provider_name_for_titles.upper()
+				db.addOrUpdateBouquet(provider_name_for_titles + " - " + groupItem[0], bfilename, services, False)
 		self.writeExampleBlacklist(examples)
 		self.piconsDownload()
 		self.generateEPGImportFiles(groups)

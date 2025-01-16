@@ -133,6 +133,7 @@ class IPTVProcessor():
 		self.provider_tsid_search_criteria = "tvg-chno=\"{TSID}\""
 		self.user_provider_ch_num = False
 		self.bouquets_refresh_interval = -1
+		self.epg_match_strategy = 0
 
 	def checkForNetwrok(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
@@ -337,7 +338,7 @@ class IPTVProcessor():
 		epghelper.removeSources()
 
 	def cleanFilename(self, name):
-		return sanitizeFilename(name.replace(" ", "").replace("(", "").replace(")", "").replace("&", "").replace("'", "").replace('"', "").replace(',', "").replace(":", "").replace(";", ""))
+		return sanitizeFilename(name.replace(" ", "").replace("(", "").replace(")", "").replace("&", "").replace("'", "").replace('"', "").replace(',', "").replace(":", "").replace(";", "").replace('ы','и'))
 
 	def readBlacklist(self):
 		file = USER_IPTV_PROVIDER_BLACKLIST_FILE % self.scheme
