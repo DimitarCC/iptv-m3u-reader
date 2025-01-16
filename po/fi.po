@@ -8,13 +8,14 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-01-16 11:37+0200\n"
-"PO-Revision-Date: 2024-12-29 19:00+0200\n"
+"PO-Revision-Date: 2025-01-16 15:52+0200\n"
 "Last-Translator: Orlandox <huoltovalikko.com>\n"
 "Language-Team: Orlandox\n"
+"Language: fi\n"
+"Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fi\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.5\n"
 
@@ -138,7 +139,7 @@ msgstr "Suosikkilistojen luomisstrategia"
 
 #: ../src/plugin.py:1620
 msgid "Bouquet name character case"
-msgstr ""
+msgstr "Suosikkilistan nimen merkkityyppi"
 
 #: ../src/plugin.py:1450
 msgid "Bouquets for 'All Channels' and groups"
@@ -146,11 +147,11 @@ msgstr "Suosikkilistat 'kaikille kanaville' ja ryhmille"
 
 #: ../src/plugin.py:1436
 msgid "By channel name"
-msgstr ""
+msgstr "Kanavan nimen mukaan"
 
 #: ../src/plugin.py:1436
 msgid "By tvg-id"
-msgstr ""
+msgstr "tvg-id:n mukaan "
 
 #: ../src/plugin.py:877 ../src/plugin.py:1075 ../src/plugin.py:1585
 msgid "Cancel"
@@ -203,7 +204,7 @@ msgstr "Poista \"%s\""
 
 #: ../src/plugin.py:1497
 msgid "Determine how the picons will be named - SNP or SRP."
-msgstr ""
+msgstr "Määritä, kuinka piconit nimetään - SNP tai SRP."
 
 #: ../src/plugin.py:1616
 msgid "Do a check is network available before try to retrieve the iptv playlist. If no network try backup services."
@@ -238,7 +239,7 @@ msgstr "EPG-tuonti: %s tapahtumien tuonti valmis"
 
 #: ../src/plugin.py:1485
 msgid "EPG matching condition"
-msgstr ""
+msgstr "EPG:n yhteensopivuus"
 
 #: ../src/plugin.py:1461
 #, python-format
@@ -396,7 +397,7 @@ msgstr "Vain suosikkilistat ryhmille"
 
 #: ../src/plugin.py:84
 msgid "Original case"
-msgstr ""
+msgstr "Alkuperäinen tyyppi"
 
 #: ../src/IPTVCatchupPlayer.py:147
 msgid "PLAY"
@@ -421,15 +422,15 @@ msgstr "Piconien maksimi säikeet"
 
 #: ../src/plugin.py:1435
 msgid "Picons by name (SNP)"
-msgstr ""
+msgstr "Piconit nimen mukaan (SNP)"
 
 #: ../src/plugin.py:1435
 msgid "Picons by service reference (SRP)"
-msgstr ""
+msgstr "Piconit kanavan referenssin mukaan (SRP)"
 
 #: ../src/plugin.py:1497
 msgid "Picons type"
-msgstr ""
+msgstr "Piconien tyyppi"
 
 #: ../src/IPTVCatchupPlayer.py:135
 msgid "Play Archive"
@@ -637,11 +638,11 @@ msgstr "Ohita suoraan lähetykseen hyppy ajansiirron ollessa päällä lisäosil
 
 #: ../src/plugin.py:1485
 msgid "Specify how xmltv entries will be matched to channels."
-msgstr ""
+msgstr "Määritä, kuinka xmltv-merkinnät yhdistetään kanaviin."
 
 #: ../src/plugin.py:1620
 msgid "Specify the character case used for bouquet names and titles."
-msgstr ""
+msgstr "Määritä suosikkilistojen nimissä ja otsikoissa käytettävä merkkityyppi."
 
 #: ../src/plugin.py:1467
 msgid "Specify the provider type."
@@ -741,11 +742,11 @@ msgstr "Vaihda kaikki valinnat"
 
 #: ../src/plugin.py:84
 msgid "UPPER case"
-msgstr ""
+msgstr "ISOT kirjaimet"
 
 #: ../src/plugin.py:1469
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: ../src/plugin.py:1348
 #, python-format
@@ -762,10 +763,13 @@ msgid ""
 "It will work only for 'ALL' bouquets.\n"
 "If is configured global numbering the channel numbers may be offset depending on how many bouquets are before that one."
 msgstr ""
+"Käytä IPTV-palveluntarjoajan antamia kanavanumeroita ja järjestystä.\n"
+"Se toimii vain 'KAIKKI'-suosikkilistojen kanssa.\n"
+"Jos globaali numerointi on määritetty, kanavanumerot voivat vaihdella riippuen siitä, kuinka monta suosikkilistaa on ennen sitä."
 
 #: ../src/plugin.py:1502
 msgid "Use channel numbers from provider"
-msgstr ""
+msgstr "Käytä palveluntarjoajan kanavanumeroita"
 
 #: ../src/plugin.py:1486
 msgid "Use custom XMLTV URL"
@@ -892,7 +896,7 @@ msgstr "muokkaa palveluntarjoajaa"
 
 #: ../src/plugin.py:84
 msgid "lower case"
-msgstr ""
+msgstr "pienet kirjaimet"
 
 #: ../src/plugin.py:79 ../src/plugin.py:1420
 msgid "off"
