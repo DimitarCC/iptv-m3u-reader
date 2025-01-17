@@ -85,8 +85,8 @@ config.plugins.m3uiptv.bouquet_names_case = ConfigSelection(default=2, choices=[
 
 distro = BoxInfo.getItem("distro")
 
-type1_distors = ["openvix", "openpli", "openbh"]
-type2_distors = ["openatv", "egami"]
+type1_distros = ["openvix", "openpli", "openbh"]
+type2_distros = ["openatv", "egami"]
 
 
 file = open("%s/menu.xml" % path.dirname(modules[__name__].__file__), 'r')
@@ -338,7 +338,7 @@ def writeProviders():
 def injectIntoNavigation(session):
 	import NavigationInstance
 	Navigation.originalPlayingServiceReference = None
-	if distro in type2_distors:
+	if distro in type2_distros:
 		NavigationInstance.instance.playService = playServiceWithIPTVATV.__get__(NavigationInstance.instance, Navigation)
 		PictureInPicture.playService = playServiceWithIPTVPiPATV
 		NavigationInstance.instance.recordService = recordServiceWithIPTVATV.__get__(NavigationInstance.instance, Navigation)
@@ -722,7 +722,7 @@ def playRealService(self, nnref):
 
 	from Components.ServiceEventTracker import InfoBarCount
 	InfoBarInstance = InfoBarCount == 1 and InfoBar.instance
-	if InfoBarInstance and distro not in type2_distors:
+	if InfoBarInstance and distro not in type2_distros:
 		current_service_source = InfoBarInstance.session.screen["CurrentService"]
 		if "%3a//" in nnref.toString():
 			current_service_source.newService(nnref)
