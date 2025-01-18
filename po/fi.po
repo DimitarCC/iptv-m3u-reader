@@ -724,8 +724,8 @@ msgstr "Käytetty soitin. Voi olla DVB, GStreamer, HiSilicon, Extplayer3"
 msgid "The playlist URL (*.m3u; *.m3u8) or streaming server URL. Including the port if differs from 80."
 msgstr "Soittolistan URL-osoite (*.m3u; *.m3u8) tai striimaus-palvelimen URL-osoite. Sisältäen portin, jos se eroaa 80:stä."
 
-msgid "If the playlist is already stored on a local device you can use the local file path in this field, e.g. /tmp/myplaylis.m3u"
-msgstr "Jos soittolista on jo tallennettu paikalliselle laitteelle, voit käyttää paikallista tiedostopolkua tässä kentässä, esim. /tmp/myplaylis.m3u"
+msgid "If the playlist is already stored on a local device you can use the local file path in this field, e.g. /tmp/myplaylist.m3u"
+msgstr "Jos soittolista on jo tallennettu paikalliselle laitteelle, voit käyttää paikallista tiedostopolkua tässä kentässä, esim. /tmp/myplaylist.m3u"
 
 #: ../src/plugin.py:1474
 msgid "The search criteria by which the service will be searched in the playlist file."

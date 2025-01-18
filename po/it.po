@@ -314,8 +314,8 @@ msgid "IPTV manager Plugin"
 msgstr "Gestore IPTV"
 
 #: ../src/plugin.py:1472
-msgid "If the playlist is already stored on a local device you can use the local file path in this field, e.g. /tmp/myplaylis.m3u"
-msgstr "Se la playlist è già memorizzata su un dispositivo locale, in questo campo puoi utilizzare il percorso del file locale, ad esempio /tmp/myplaylis.m3u"
+msgid "If the playlist is already stored on a local device you can use the local file path in this field, e.g. /tmp/myplaylist.m3u"
+msgstr "Se la playlist è già memorizzata su un dispositivo locale, in questo campo puoi utilizzare il percorso del file locale, ad esempio /tmp/myplaylist.m3u"
 
 #: ../src/plugin.py:1471
 msgid "If enabled URL will be static and not aliases. That means if the URL of a service changes in the playlist bouquet entry will stop working."
