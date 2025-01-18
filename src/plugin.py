@@ -1469,7 +1469,7 @@ class M3UIPTVProviderEdit(Setup):
 		if not self.edit:  # Only show when adding a provider so to select the output type.
 			configlist.append((_("Provider Type"), self.type, _("Specify the provider type.")))
 		configlist.append((_("Provider name"), self.iptv_service_provider, _("Specify the provider user friendly name that will be used for the bouquet name and for displaying in the infobar.")))
-		configlist.append((_("URL"), self.url, _("The playlist URL (*.m3u; *.m3u8) or streaming server URL. Including the port if differs from 80.")))
+		configlist.append((_("URL"), self.url, _("The playlist URL (*.m3u; *.m3u8) or streaming server URL. Including the port if differs from 80.") + " " + _("If the playlist is already stored on a local device you can use the local file path in this field, e.g. /tmp/myplaylis.m3u")))
 		if self.type.value == "M3U":
 			configlist.append((_("Use static URLs"), self.staticurl, _("If enabled URL will be static and not aliases. That means if the URL of a service changes in the playlist bouquet entry will stop working.")))
 			if not self.staticurl.value:
