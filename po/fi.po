@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-01-16 11:37+0200\n"
-"PO-Revision-Date: 2025-01-16 15:52+0200\n"
+"PO-Revision-Date: 2025-01-18 14:33+0200\n"
 "Last-Translator: Orlandox <huoltovalikko.com>\n"
 "Language-Team: Orlandox\n"
 "Language: fi\n"
@@ -151,7 +151,7 @@ msgstr "Kanavan nimen mukaan"
 
 #: ../src/plugin.py:1436
 msgid "By tvg-id"
-msgstr "tvg-id:n mukaan "
+msgstr "tvg-id:n mukaan"
 
 #: ../src/plugin.py:877 ../src/plugin.py:1075 ../src/plugin.py:1585
 msgid "Cancel"
@@ -723,6 +723,9 @@ msgstr "Käytetty soitin. Voi olla DVB, GStreamer, HiSilicon, Extplayer3"
 #: ../src/plugin.py:1469
 msgid "The playlist URL (*.m3u; *.m3u8) or streaming server URL. Including the port if differs from 80."
 msgstr "Soittolistan URL-osoite (*.m3u; *.m3u8) tai striimaus-palvelimen URL-osoite. Sisältäen portin, jos se eroaa 80:stä."
+
+msgid "If the playlist is already stored on a local device you can use the local file path in this field, e.g. /tmp/myplaylis.m3u"
+msgstr "Jos soittolista on jo tallennettu paikalliselle laitteelle, voit käyttää paikallista tiedostopolkua tässä kentässä, esim. /tmp/myplaylis.m3u"
 
 #: ../src/plugin.py:1474
 msgid "The search criteria by which the service will be searched in the playlist file."
