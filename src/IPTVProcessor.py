@@ -3,7 +3,7 @@ from . import _
 
 from twisted.internet import threads
 from .epgimport_helper import epgimport_helper
-from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, CATCHUP_FLUSSONIC_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_FOLDER
+from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, CATCHUP_FLUSSONIC_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_FOLDER, USER_AGENTS
 from .VoDItem import VoDItem
 from .picon import Fetcher
 from Components.config import config
@@ -134,6 +134,7 @@ class IPTVProcessor():
 		self.user_provider_ch_num = False
 		self.bouquets_refresh_interval = -1
 		self.epg_match_strategy = 0
+		self.custom_user_agent = "off"
 
 	def checkForNetwrok(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
@@ -291,7 +292,11 @@ class IPTVProcessor():
 			f(self, error)
 
 	def generateChannelReference(self, type, tsid, url, name):
-		return "%s:0:%s:%X:%X:1:CCCC0000:0:0:0:%s:%s•%s" % (self.play_system, type, tsid, self.onid, url.replace(":", "%3a"), name, self.iptv_service_provider)
+		if self.custom_user_agent == "off":
+			return "%s:0:%s:%X:%X:1:CCCC0000:0:0:0:%s:%s•%s" % (self.play_system, type, tsid, self.onid, url.replace(":", "%3a"), name, self.iptv_service_provider)
+		else:
+			user_agent = USER_AGENTS[self.custom_user_agent]
+			return "%s:0:%s:%X:%X:1:CCCC0000:0:0:0:%s#User-Agent=%s:%s•%s" % (self.play_system, type, tsid, self.onid, url.replace(":", "%3a"), user_agent, name, self.iptv_service_provider)
 
 	def getEpgUrl(self):  # if not overridden in the subclass
 		return self.custom_xmltv_url if self.is_custom_xmltv and self.custom_xmltv_url else self.epg_url
