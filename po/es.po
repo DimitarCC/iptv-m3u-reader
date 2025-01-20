@@ -6,10 +6,10 @@ msgstr ""
 "PO-Revision-Date: \n"
 "Last-Translator: Huevos\n"
 "Language-Team: OpenViX\n"
+"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: es\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.5\n"
 
@@ -133,7 +133,7 @@ msgstr "Grupos para crear"
 
 #: ../src/plugin.py:1634
 msgid "Bouquet name character case"
-msgstr ""
+msgstr "Mayúsculas o minúsculas en nombre del grupo"
 
 #: ../src/plugin.py:1462
 msgid "Bouquets for 'All Channels' and groups"
@@ -141,11 +141,11 @@ msgstr "'Todos canales' y 'secciones'"
 
 #: ../src/plugin.py:1447
 msgid "By channel name"
-msgstr ""
+msgstr "Por nombre del canal"
 
 #: ../src/plugin.py:1447
 msgid "By tvg-id"
-msgstr ""
+msgstr "Por tvg-id"
 
 #: ../src/plugin.py:888 ../src/plugin.py:1086 ../src/plugin.py:1599
 msgid "Cancel"
@@ -202,7 +202,7 @@ msgstr "Eliminar \"%s\""
 
 #: ../src/plugin.py:1509
 msgid "Determine how the picons will be named - SNP or SRP."
-msgstr ""
+msgstr "Sistema de picons - SNP o SRP"
 
 #: ../src/plugin.py:1630
 msgid "Do a check is network available before try to retrieve the iptv playlist. If no network try backup services."
@@ -237,7 +237,7 @@ msgstr "EPGImport: Se realizó la importación de eventos para %s"
 
 #: ../src/plugin.py:1497
 msgid "EPG matching condition"
-msgstr ""
+msgstr "Condición de coincidencia de EPG"
 
 #: ../src/plugin.py:1473
 #, python-format
@@ -395,7 +395,7 @@ msgstr "Solo 'secciones'"
 
 #: ../src/plugin.py:84
 msgid "Original case"
-msgstr ""
+msgstr "Original"
 
 #: ../src/IPTVCatchupPlayer.py:147
 msgid "PLAY"
@@ -420,15 +420,15 @@ msgstr "Picon, hilos máximos"
 
 #: ../src/plugin.py:1446
 msgid "Picons by name (SNP)"
-msgstr ""
+msgstr "Picons por nombre (SNP)"
 
 #: ../src/plugin.py:1446
 msgid "Picons by service reference (SRP)"
-msgstr ""
+msgstr "Picons por referencia de canal (SRP)"
 
 #: ../src/plugin.py:1509
 msgid "Picons type"
-msgstr ""
+msgstr "Tipo de picons"
 
 #: ../src/IPTVCatchupPlayer.py:135
 msgid "Play Archive"
@@ -640,11 +640,11 @@ msgstr "No saltes a la televisión en vivo mientras timeshift con complementos"
 
 #: ../src/plugin.py:1497
 msgid "Specify how xmltv entries will be matched to channels."
-msgstr ""
+msgstr "Especifique cómo se harán coincidir las entradas xmltv con los canales."
 
 #: ../src/plugin.py:1634
 msgid "Specify the character case used for bouquet names and titles."
-msgstr ""
+msgstr "Especifique si desea utilizar mayúsculas o minúsculas para los nombres y títulos de los grupos."
 
 #: ../src/plugin.py:1479
 msgid "Specify the provider type."
@@ -744,7 +744,7 @@ msgstr "Alternar todas"
 
 #: ../src/plugin.py:84
 msgid "UPPER case"
-msgstr ""
+msgstr "MAYUSCULAS"
 
 #: ../src/plugin.py:1481
 msgid "URL"
@@ -765,10 +765,13 @@ msgid ""
 "It will work only for 'ALL' bouquets.\n"
 "If is configured global numbering the channel numbers may be offset depending on how many bouquets are before that one."
 msgstr ""
+"Utilice los números de canal y el orden proporcionados por el proveedor de IPTV.\n"
+"Funcionará solo para el grupo 'TODO'.\n"
+"Si se configura la numeración global, los números de canal pueden variar según la cantidad de grupos que haya antes de ese."
 
 #: ../src/plugin.py:1514
 msgid "Use channel numbers from provider"
-msgstr ""
+msgstr "Utilice números de canal del proveedor"
 
 #: ../src/plugin.py:1498
 msgid "Use custom XMLTV URL"
@@ -792,7 +795,7 @@ msgstr ""
 
 #: ../src/plugin.py:1659
 msgid "Use time shift SeekBar while time shifting"
-msgstr "¿Cómo utilizar la barra de búsqueda de timeshift mientras en modo timeshift?"
+msgstr "Cómo utilizar la barra de búsqueda de timeshift mientras en modo timeshift"
 
 #: ../src/plugin.py:1657
 msgid "Use timeshift seekbar while timeshifting?"
@@ -895,7 +898,7 @@ msgstr "editar proveedor"
 
 #: ../src/plugin.py:84
 msgid "lower case"
-msgstr ""
+msgstr "minusculas"
 
 #: ../src/plugin.py:79 ../src/plugin.py:1431 ../src/plugin.py:1448
 msgid "off"

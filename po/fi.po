@@ -151,7 +151,7 @@ msgstr "Kanavan nimen mukaan"
 
 #: ../src/plugin.py:1447
 msgid "By tvg-id"
-msgstr "tvg-id:n mukaan "
+msgstr "tvg-id:n mukaan"
 
 #: ../src/plugin.py:888 ../src/plugin.py:1086 ../src/plugin.py:1599
 msgid "Cancel"

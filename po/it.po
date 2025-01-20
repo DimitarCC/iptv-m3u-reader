@@ -99,7 +99,7 @@ msgstr "Stato Account"
 
 #: ../src/plugin.py:1257
 msgid "Add provider"
-msgstr "Aggiungi porvider"
+msgstr "Aggiungi provider"
 
 #: ../src/plugin.py:865 ../src/plugin.py:1073
 msgid "All"
@@ -708,7 +708,7 @@ msgstr "Ricerca TMDb"
 
 #: ../src/menu.xml
 msgid "TV Shows"
-msgstr "Programmi televisivi"
+msgstr "Serie TV"
 
 #: ../src/plugin.py:1428
 msgid "TVHeadend server"
@@ -824,7 +824,7 @@ msgstr "Nome utente"
 
 #: ../src/menu.xml
 msgid "Video On Demand"
-msgstr "Video su Richiesta"
+msgstr "Video On Demand"
 
 #: ../src/menu.xml
 msgid "Video On Demand Movies listing."
@@ -836,7 +836,7 @@ msgstr "Elenco dei programmi TV di Video su Richiesta."
 
 #: ../src/plugin.py:1756
 msgid "Video on Demand"
-msgstr "Video su Richiesta"
+msgstr "Video on Demand"
 
 #: ../src/plugin.py:1189
 msgid "VoD Movie Categories"
