@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 23:09+0200\n"
+"POT-Creation-Date: 2025-01-24 16:43+0200\n"
 "PO-Revision-Date: 2024-11-19 16:15+0300\n"
 "Last-Translator: \n"
 "Language-Team: dreamosat-biperva\n"
@@ -326,6 +326,10 @@ msgstr "'Evet' olarak ayarlanırsa, etkinlik içindeki bir noktaya atlamak için
 #: ../src/plugin.py:1661 ../src/plugin.py:1663
 msgid "If set to 'yes', allows you to use timeshift with alternative audio plugins."
 msgstr "'Evet' olarak ayarlanırsa, alternatif ses eklentileriyle zaman kaydırmayı kullanmanıza olanak tanır."
+
+#: ../src/plugin.py:1481
+msgid "If the playlist is already stored on a local device you can use the local file path in this field, e.g. /tmp/myplaylist.m3u"
+msgstr ""
 
 #: ../src/plugin.py:458
 msgid "Incorrect service type for PiP!"

@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 23:09+0200\n"
-"PO-Revision-Date: 2025-01-20 23:12+0200\n"
+"POT-Creation-Date: 2025-01-24 16:43+0200\n"
+"PO-Revision-Date: 2025-01-24 16:46+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: bg\n"
@@ -326,6 +326,10 @@ msgstr "Ако е зададено \"Да\", позволява да се изп
 #: ../src/plugin.py:1661 ../src/plugin.py:1663
 msgid "If set to 'yes', allows you to use timeshift with alternative audio plugins."
 msgstr "Ако е зададено \"Да\", позволява да се използва таймшифт с алтернативни аудио плъгини."
+
+#: ../src/plugin.py:1481
+msgid "If the playlist is already stored on a local device you can use the local file path in this field, e.g. /tmp/myplaylist.m3u"
+msgstr "Ако плейлиста се намира локално на Вашето устройство, можете да използвате локален път в това поле. Например: /tmp/myplaylist.m3u"
 
 #: ../src/plugin.py:458
 msgid "Incorrect service type for PiP!"
