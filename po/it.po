@@ -145,7 +145,7 @@ msgstr "Bouquet da creare"
 
 #: ../src/plugin.py:1634
 msgid "Bouquet name character case"
-msgstr ""
+msgstr "Carattere del nome del bouquet"
 
 #: ../src/plugin.py:1462
 msgid "Bouquets for 'All Channels' and groups"
@@ -153,11 +153,11 @@ msgstr "'Tutti i canali' e 'sezioni'"
 
 #: ../src/plugin.py:1447
 msgid "By channel name"
-msgstr ""
+msgstr "Per nome del canale"
 
 #: ../src/plugin.py:1447
 msgid "By tvg-id"
-msgstr ""
+msgstr "Per tvg-id"
 
 #: ../src/plugin.py:888 ../src/plugin.py:1086 ../src/plugin.py:1599
 msgid "Cancel"
@@ -169,7 +169,7 @@ msgstr "Tipo Catchup"
 
 #: ../src/IPTVCatchupPlayer.py:96 ../src/IPTVCatchupPlayer.py:111
 msgid "Catchup player commands"
-msgstr "Comandi  riproduzione Catchup"
+msgstr "Comandi riproduzione Catchup"
 
 #: ../src/plugin.py:1666
 msgid "Change the playback system to one of the players available in ServiceApp plugin."
@@ -201,7 +201,7 @@ msgstr "Crea i file necessari per l'importazione dell'EPG tramite il plugin EPGI
 
 #: ../src/plugin.py:1516
 msgid "Custom User-Agent"
-msgstr ""
+msgstr "User-Agent personalizzato"
 
 #: ../src/plugin.py:1500
 msgid "Custom XMLTV URL"
@@ -214,7 +214,7 @@ msgstr "Cancella %s"
 
 #: ../src/plugin.py:1509
 msgid "Determine how the picons will be named - SNP or SRP."
-msgstr ""
+msgstr "Determina come verranno denominati i piconi: SNP o SRP."
 
 #: ../src/plugin.py:1630
 msgid "Do a check is network available before try to retrieve the iptv playlist. If no network try backup services."
@@ -235,7 +235,7 @@ msgstr "Scarica i picons, se disponibili dal provider, e installali. Il download
 #: ../src/IPTVProcessor.py:234
 #, python-format
 msgid "Duration: %s"
-msgstr "Duration: %s"
+msgstr "Durata: %s"
 
 #: ../src/epgimport_helper.py:143
 #, python-format
@@ -249,7 +249,7 @@ msgstr "Importazione EPG: importazione eventi per %s completata"
 
 #: ../src/plugin.py:1497
 msgid "EPG matching condition"
-msgstr ""
+msgstr "Condizioni di corrispondenza EPG"
 
 #: ../src/plugin.py:1473
 #, python-format
@@ -295,7 +295,7 @@ msgstr "Genera file EPG per il plugin EPGImport"
 
 #: ../src/plugin.py:1258
 msgid "Generate bouquets"
-msgstr "Generare Bouquet"
+msgstr "Genera Bouquet"
 
 #: ../src/plugin.py:1022 ../src/plugin.py:1132
 msgid "IMDb search"
@@ -411,7 +411,7 @@ msgstr ""
 
 #: ../src/IPTVCatchupPlayer.py:147
 msgid "PLAY"
-msgstr ""
+msgstr "PLAY"
 
 #: ../src/plugin.py:1489
 msgid "Password"
@@ -432,15 +432,15 @@ msgstr "Picon, thread massimi"
 
 #: ../src/plugin.py:1446
 msgid "Picons by name (SNP)"
-msgstr ""
+msgstr "Picons per nome (SNP)"
 
 #: ../src/plugin.py:1446
 msgid "Picons by service reference (SRP)"
-msgstr ""
+msgstr "Picons per service reference (SRP)"
 
 #: ../src/plugin.py:1509
 msgid "Picons type"
-msgstr ""
+msgstr "Tipo picons"
 
 #: ../src/IPTVCatchupPlayer.py:135
 msgid "Play Archive"
@@ -612,7 +612,7 @@ msgstr "Url del Server"
 
 #: ../src/plugin.py:1516
 msgid "Sets custom User-Agent for use with services that requires specific one."
-msgstr ""
+msgstr "Imposta un User-Agent personalizzato da utilizzare con i servizi che ne richiedono uno specifico."
 
 #: ../src/menu.xml
 msgid "Settings"
@@ -652,11 +652,11 @@ msgstr "Evita di saltare in diretta mentre cambi il timeshift con i plugin"
 
 #: ../src/plugin.py:1497
 msgid "Specify how xmltv entries will be matched to channels."
-msgstr ""
+msgstr "Specifica come le voci xmltv verranno abbinate ai canali."
 
 #: ../src/plugin.py:1634
 msgid "Specify the character case used for bouquet names and titles."
-msgstr ""
+msgstr "Specificare la distinzione tra maiuscole e minuscole da utilizzare per i nomi e i titoli dei bouquet."
 
 #: ../src/plugin.py:1479
 msgid "Specify the provider type."
@@ -756,7 +756,7 @@ msgstr "Attiva/disattiva tutto"
 
 #: ../src/plugin.py:84
 msgid "UPPER case"
-msgstr ""
+msgstr "MAIUSCOLO"
 
 #: ../src/plugin.py:1481
 msgid "URL"
@@ -780,7 +780,7 @@ msgstr ""
 
 #: ../src/plugin.py:1514
 msgid "Use channel numbers from provider"
-msgstr ""
+msgstr "Utilizzare i numeri dei canali del provider"
 
 #: ../src/plugin.py:1498
 msgid "Use custom XMLTV URL"
