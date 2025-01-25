@@ -8,14 +8,13 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-01-24 16:43+0200\n"
-"PO-Revision-Date: 2025-01-16 15:52+0200\n"
+"PO-Revision-Date: 2025-01-24 18:35+0200\n"
 "Last-Translator: Orlandox <huoltovalikko.com>\n"
 "Language-Team: Orlandox\n"
+"Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fi\n"
-"Language: fi\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.5\n"
 
@@ -195,7 +194,7 @@ msgstr "Luo tiedostoja, joita tarvitaan EPG:n tuomiseen EPGImport-lisäosan kaut
 
 #: ../src/plugin.py:1516
 msgid "Custom User-Agent"
-msgstr ""
+msgstr "Mukautettu käyttäjäagentti"
 
 #: ../src/plugin.py:1500
 msgid "Custom XMLTV URL"
@@ -329,7 +328,7 @@ msgstr "Jos asetus on 'kyllä', voit käyttää ajansiirtoa vaihtoehtoisten ää
 
 #: ../src/plugin.py:1481
 msgid "If the playlist is already stored on a local device you can use the local file path in this field, e.g. /tmp/myplaylist.m3u"
-msgstr ""
+msgstr "Jos soittolista on jo tallennettu paikalliseen laitteeseen, voit käyttää paikallista tiedostopolkua tässä kentässä, esim. /tmp/myplaylist.m3u"
 
 #: ../src/plugin.py:458
 msgid "Incorrect service type for PiP!"
@@ -405,7 +404,7 @@ msgstr "Vain suosikkilistat ryhmille"
 
 #: ../src/plugin.py:84
 msgid "Original case"
-msgstr "Alkuperäinen tyyppi"
+msgstr "Alkuperäinen kirjainkoko"
 
 #: ../src/IPTVCatchupPlayer.py:147
 msgid "PLAY"
@@ -610,7 +609,7 @@ msgstr "Palvelimen url"
 
 #: ../src/plugin.py:1516
 msgid "Sets custom User-Agent for use with services that requires specific one."
-msgstr ""
+msgstr "Asettaa mukautetun käyttäjäagentin käytettäväksi palveluiden kanssa, jotka vaativat tietyn sellaisen."
 
 #: ../src/menu.xml
 msgid "Settings"
