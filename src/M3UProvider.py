@@ -110,8 +110,8 @@ class M3UProvider(IPTVProcessor):
 				condition = re.escape(self.search_criteria).replace("\\{SID\\}", "(.*?)")
 				match = re.search(condition, line)
 				# possible issue is if there are "," in the service name
-				ch_name = line.split(",")[-1].strip().replace("&", " ")
-				sid = match.group(1).replace(":", "%3a") if match else ch_name.replace(":", "%3a")
+				ch_name = line.split(",")[-1].strip()
+				sid = match.group(1).replace(":", "%3a") if match else ch_name.replace(":", "%3a").replace("&", "and")
 				url = ""
 				match = re.search(r"tvg-rec=\"(\d+)\"", line, re.IGNORECASE)
 				if not match:
