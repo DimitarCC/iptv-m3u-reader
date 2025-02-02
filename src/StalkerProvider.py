@@ -144,6 +144,7 @@ class StalkerProvider(IPTVProcessor):
 	
 	def get_all_channels(self, session, token, genres):
 		groups = {}
+		groups["EMPTY"] = (_("UNCATEGORIZED"), [])
 		censored_groups = []
 		for group in genres:
 			groups[group["genre_id"]] = (group["name"], [])
@@ -165,7 +166,10 @@ class StalkerProvider(IPTVProcessor):
 			if self.play_system != "1":
 				surl = surl.replace("extension=ts", "extension=m3u8")
 			if genre_id := channel["tv_genre_id"]:
-				groups[genre_id][1].append(Channel(channel["id"], channel["name"], surl, channel["tv_archive_duration"]))
+				if genre_id in groups:
+					groups[genre_id][1].append(Channel(channel["id"], channel["name"], surl, channel["tv_archive_duration"]))
+				else:
+					groups["EMPTY"][1].append(Channel(channel["id"], channel["name"], surl, channel["tv_archive_duration"]))
 		
 		for censored_group in censored_groups:
 			self.get_channels_for_group(groups[censored_group][1], session, cookies, headers, censored_group)

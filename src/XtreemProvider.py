@@ -57,7 +57,7 @@ class XtreemProvider(IPTVProcessor):
 			if (category_id := group.get("category_id")) and (category_name := group.get("category_name")):
 				groups[category_id] = (category_name, [])
 
-		groups["EMPTY"] = ("UNCATEGORIZED", [])  # put "EMPTY" in last place
+		groups["EMPTY"] = (_("UNCATEGORIZED"), [])  # put "EMPTY" in last place
 
 		blacklist = self.readBlacklist()
 
