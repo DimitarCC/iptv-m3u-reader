@@ -143,6 +143,7 @@ class StalkerProvider(IPTVProcessor):
 				try:
 					response_json = response.json()
 					channels_data = response_json["js"]["data"]
+					total_services_count = 0
 
 					for channel in channels_data:
 						surl = f"{self.scheme}%3a//{channel['id']}?cmd={channel['cmd'].replace('ffmpeg ', '').replace('&','|amp|').replace(':', '%3a')}"
@@ -151,9 +152,10 @@ class StalkerProvider(IPTVProcessor):
 								groups["ALL_CHANNELS"][1].append(Channel(channel["id"], channel["name"], surl, channel["tv_archive_duration"], channel["logo"]))
 						if self.create_bouquets_strategy != 1:  # config option here: for sections bouquets
 							services.append(Channel(channel["id"], channel["name"], surl, channel["tv_archive_duration"], channel["logo"]))
+						total_services_count += 1
 
 					total_items = response_json["js"]["total_items"]
-					if len(services) >= total_items:
+					if total_services_count >= total_items:
 						break
 					page_number += 1
 				except ValueError:
