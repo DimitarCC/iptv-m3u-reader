@@ -126,6 +126,7 @@ class StalkerProvider(IPTVProcessor):
 	def get_channels_for_group(self, groups, services, session, cookies, headers, genre_id):
 		page_number = 1
 		blacklist = self.readBlacklist()
+		total_services_count = 0
 		while True:
 			time.sleep(0.05)
 			url = f"{self.url}/portal.php?type=itv&action=get_ordered_list&genre={genre_id}&fav=0&p={page_number}&JsHttpRequest=1-xml&from_ch_id=0"
@@ -143,8 +144,6 @@ class StalkerProvider(IPTVProcessor):
 				try:
 					response_json = response.json()
 					channels_data = response_json["js"]["data"]
-					total_services_count = 0
-
 					for channel in channels_data:
 						surl = f"{self.scheme}%3a//{channel['id']}?cmd={channel['cmd'].replace('ffmpeg ', '').replace('&','|amp|').replace(':', '%3a')}"
 						if self.create_bouquets_strategy > 0:  # config option here: for user-optional, all-channels bouquet
