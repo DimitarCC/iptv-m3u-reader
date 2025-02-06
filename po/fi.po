@@ -7,14 +7,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-24 16:43+0200\n"
+"POT-Creation-Date: 2025-02-06 18:11+0200\n"
 "PO-Revision-Date: 2025-01-24 18:35+0200\n"
 "Last-Translator: Orlandox <huoltovalikko.com>\n"
 "Language-Team: Orlandox\n"
-"Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: fi\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.5\n"
 
@@ -99,6 +99,7 @@ msgid "All"
 msgstr "Kaikki"
 
 #: ../src/M3UProvider.py:198 ../src/M3UProvider.py:214
+#: ../src/StalkerProvider.py:110 ../src/StalkerProvider.py:112
 #: ../src/XtreemProvider.py:44
 msgid "All channels"
 msgstr "Kaikki kanavat"
@@ -750,6 +751,11 @@ msgstr "Ajansiirto-tallennustoiminto kanavanvaihdossa"
 #: ../src/plugin.py:1601
 msgid "Toggle all"
 msgstr "Vaihda kaikki valinnat"
+
+#: ../src/StalkerProvider.py:111 ../src/StalkerProvider.py:113
+#: ../src/XtreemProvider.py:60
+msgid "UNCATEGORIZED"
+msgstr ""
 
 #: ../src/plugin.py:84
 msgid "UPPER case"

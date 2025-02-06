@@ -12,11 +12,12 @@ db = eDVBDB.getInstance()
 
 
 class Channel():
-	def __init__(self, id, name, cmd, catchup_days):
+	def __init__(self, id, name, cmd, catchup_days, picon):
 		self.id = id
 		self.name = name
 		self.cmd = cmd
 		self.catchup_days = catchup_days
+		self.picon = picon
 
 
 class StalkerProvider(IPTVProcessor):
@@ -42,6 +43,7 @@ class StalkerProvider(IPTVProcessor):
 			# print("GETTING CHANNELS FOR GENRE %s/%s" % (genres[0]["genre_id"], genres[0]["name"]))
 			groups = self.get_all_channels(session, token, genres)
 			self.channels_callback(groups)
+			self.piconsDownload()
 			#threads.deferToThread(self.get_channels, session, token, genres).addCallback(self.channels_callback)
 
 	def channels_callback(self, groups):
@@ -61,6 +63,11 @@ class StalkerProvider(IPTVProcessor):
 					stype = "19"
 				sref = self.generateChannelReference(stype, tsid, surl.replace(":", "%3a"), ch_name)
 				tsid += 1
+				if stream_icon := service.picon:
+					if self.picon_gen_strategy == 0:
+						self.piconsAdd(stream_icon, ch_name)
+					else:
+						self.piconsSrefAdd(stream_icon, sref)
 				services.append(sref)
 			if len(services) > 0:
 				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.{group[0]}.tv")
@@ -99,17 +106,26 @@ class StalkerProvider(IPTVProcessor):
 			genre_data = response.json()["js"]
 			if genre_data:
 				genres = []
+				examples = []
+				genres.append({'name': _("All channels"), 'category_type': 'IPTV', 'genre_id': "ALL_CHANNELS"})
+				genres.append({'name': _("UNCATEGORIZED"), 'category_type': 'IPTV', 'genre_id': "EMPTY"})
+				examples.append(_("All channels"))
+				examples.append(_("UNCATEGORIZED"))
 				for i in genre_data:
 					gid = i["id"]
 					name = i["title"]
 					genres.append({'name': name, 'category_type': 'IPTV', 'genre_id': gid})
+					if gid != "*":
+						examples.append(name)
+				self.writeExampleBlacklist(examples)
 				return genres
 		except Exception as ex:
 			print("[M3UIPTV] [Stalker] Error getting genres: " + str(ex))
 			pass
 
-	def get_channels_for_group(self, services, session, cookies, headers, genre_id):
+	def get_channels_for_group(self, groups, services, session, cookies, headers, genre_id):
 		page_number = 1
+		blacklist = self.readBlacklist()
 		while True:
 			time.sleep(0.05)
 			url = f"{self.url}/portal.php?type=itv&action=get_ordered_list&genre={genre_id}&fav=0&p={page_number}&JsHttpRequest=1-xml&from_ch_id=0"
@@ -130,9 +146,12 @@ class StalkerProvider(IPTVProcessor):
 
 					for channel in channels_data:
 						surl = f"{self.scheme}%3a//{channel['id']}?cmd={channel['cmd'].replace('ffmpeg ', '').replace('&','|amp|').replace(':', '%3a')}"
-						if self.play_system != "1":
-							surl = surl.replace("extension=ts", "extension=m3u8")
-						services.append(Channel(channel["id"], channel["name"], surl, channel["tv_archive_duration"]))
+						if self.create_bouquets_strategy > 0:  # config option here: for user-optional, all-channels bouquet
+							if genre_id not in groups or groups[genre_id][0] not in blacklist:
+								groups["ALL_CHANNELS"][1].append(Channel(channel["id"], channel["name"], surl, channel["tv_archive_duration"], channel["logo"]))
+						if self.create_bouquets_strategy != 1:  # config option here: for sections bouquets
+							services.append(Channel(channel["id"], channel["name"], surl, channel["tv_archive_duration"], channel["logo"]))
+
 					total_items = response_json["js"]["total_items"]
 					if len(services) >= total_items:
 						break
@@ -143,9 +162,9 @@ class StalkerProvider(IPTVProcessor):
 				print(f"[M3UIPTV] [Stalker] IPTV Request failed for page {page_number}")
 	
 	def get_all_channels(self, session, token, genres):
-		groups = {}
-		groups["EMPTY"] = (_("UNCATEGORIZED"), [])
+		groups = {} 
 		censored_groups = []
+		blacklist = self.readBlacklist()
 		for group in genres:
 			groups[group["genre_id"]] = (group["name"], [])
 			censored = False
@@ -153,7 +172,7 @@ class StalkerProvider(IPTVProcessor):
 				censored = group["censored"] == "1"
 			except:
 				pass
-			if "adult" in group["name"].lower() or "sex" in group["name"].lower() or censored:
+			if "adult" in group["name"].lower() or "sex" in group["name"].lower() or "xxx" in group["name"].lower() or censored:
 				censored_groups.append(group["genre_id"])
 
 		cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
@@ -163,16 +182,19 @@ class StalkerProvider(IPTVProcessor):
 		channel_data = response.json()["js"]['data']
 		for channel in channel_data:
 			surl = f"{self.scheme}%3a//{channel['id']}?cmd={channel['cmd'].replace('ffmpeg ', '').replace('&','|amp|').replace(':', '%3a')}"
-			if self.play_system != "1":
-				surl = surl.replace("extension=ts", "extension=m3u8")
+			
+
 			if genre_id := channel["tv_genre_id"]:
-				if genre_id in groups:
-					groups[genre_id][1].append(Channel(channel["id"], channel["name"], surl, channel["tv_archive_duration"]))
-				else:
-					groups["EMPTY"][1].append(Channel(channel["id"], channel["name"], surl, channel["tv_archive_duration"]))
+				category_id = genre_id
+				if self.create_bouquets_strategy > 0:  # config option here: for user-optional, all-channels bouquet
+					if category_id not in groups or groups[category_id][0] not in blacklist:
+						groups["ALL_CHANNELS"][1].append(Channel(channel["id"], channel["name"], surl, channel["tv_archive_duration"], channel["logo"]))
+
+				if self.create_bouquets_strategy != 1:  # config option here: for sections bouquets
+					groups[category_id if category_id and category_id in groups else "EMPTY"][1].append(Channel(channel["id"], channel["name"], surl, channel["tv_archive_duration"], channel["logo"]))
 		
 		for censored_group in censored_groups:
-			self.get_channels_for_group(groups[censored_group][1], session, cookies, headers, censored_group)
+			self.get_channels_for_group(groups, groups[censored_group][1], session, cookies, headers, censored_group)
 
 		return groups
 	
@@ -195,7 +217,7 @@ class StalkerProvider(IPTVProcessor):
 		if match:
 			cmd = match.group(1)
 		
-		if "localhost/ch" not in cmd:
+		if "localhost/ch" not in cmd and "//." not in cmd:
 			nref_new = origRef + ":" + cmd.replace(":", "%3a").replace("|amp|", "&") + ":" + orig_name + "•" + self.iptv_service_provider
 			nnref = eServiceReference(nref_new)
 			self.isPlayBackup = False

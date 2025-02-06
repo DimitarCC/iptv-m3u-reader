@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: M3UIPTV\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-24 16:43+0200\n"
+"POT-Creation-Date: 2025-02-06 18:11+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Lululla\n"
@@ -106,6 +106,7 @@ msgid "All"
 msgstr "Tutto"
 
 #: ../src/M3UProvider.py:198 ../src/M3UProvider.py:214
+#: ../src/StalkerProvider.py:110 ../src/StalkerProvider.py:112
 #: ../src/XtreemProvider.py:44
 msgid "All channels"
 msgstr "Tutti i canali"
@@ -757,6 +758,11 @@ msgstr "Azione di salvataggio del timeshift su zap"
 #: ../src/plugin.py:1601
 msgid "Toggle all"
 msgstr "Attiva/disattiva tutto"
+
+#: ../src/StalkerProvider.py:111 ../src/StalkerProvider.py:113
+#: ../src/XtreemProvider.py:60
+msgid "UNCATEGORIZED"
+msgstr ""
 
 #: ../src/plugin.py:84
 msgid "UPPER case"

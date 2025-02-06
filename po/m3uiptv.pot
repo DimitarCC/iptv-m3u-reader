@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-24 16:43+0200\n"
+"POT-Creation-Date: 2025-02-06 18:11+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -95,6 +95,7 @@ msgid "All"
 msgstr ""
 
 #: ../src/M3UProvider.py:198 ../src/M3UProvider.py:214
+#: ../src/StalkerProvider.py:110 ../src/StalkerProvider.py:112
 #: ../src/XtreemProvider.py:44
 msgid "All channels"
 msgstr ""
@@ -717,6 +718,11 @@ msgstr ""
 
 #: ../src/plugin.py:1601
 msgid "Toggle all"
+msgstr ""
+
+#: ../src/StalkerProvider.py:111 ../src/StalkerProvider.py:113
+#: ../src/XtreemProvider.py:60
+msgid "UNCATEGORIZED"
 msgstr ""
 
 #: ../src/plugin.py:84

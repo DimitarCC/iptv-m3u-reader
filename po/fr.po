@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-24 16:43+0200\n"
+"POT-Creation-Date: 2025-02-06 18:11+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -94,6 +94,7 @@ msgid "All"
 msgstr "Tout"
 
 #: ../src/M3UProvider.py:198 ../src/M3UProvider.py:214
+#: ../src/StalkerProvider.py:110 ../src/StalkerProvider.py:112
 #: ../src/XtreemProvider.py:44
 msgid "All channels"
 msgstr ""
@@ -743,6 +744,11 @@ msgstr "Action de sauvegarde de la pause du directe lors du zap"
 #: ../src/plugin.py:1601
 msgid "Toggle all"
 msgstr "Tout afficher"
+
+#: ../src/StalkerProvider.py:111 ../src/StalkerProvider.py:113
+#: ../src/XtreemProvider.py:60
+msgid "UNCATEGORIZED"
+msgstr ""
 
 #: ../src/plugin.py:84
 msgid "UPPER case"

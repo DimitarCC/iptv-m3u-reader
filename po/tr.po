@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-24 16:43+0200\n"
+"POT-Creation-Date: 2025-02-06 18:11+0200\n"
 "PO-Revision-Date: 2024-11-19 16:15+0300\n"
 "Last-Translator: \n"
 "Language-Team: dreamosat-biperva\n"
@@ -100,6 +100,7 @@ msgid "All"
 msgstr "Hepsi"
 
 #: ../src/M3UProvider.py:198 ../src/M3UProvider.py:214
+#: ../src/StalkerProvider.py:110 ../src/StalkerProvider.py:112
 #: ../src/XtreemProvider.py:44
 msgid "All channels"
 msgstr ""
@@ -753,6 +754,11 @@ msgstr "Zap yaparken zaman kaydırma kaydetme eylemi"
 #: ../src/plugin.py:1601
 msgid "Toggle all"
 msgstr "Tümünü değiştir"
+
+#: ../src/StalkerProvider.py:111 ../src/StalkerProvider.py:113
+#: ../src/XtreemProvider.py:60
+msgid "UNCATEGORIZED"
+msgstr ""
 
 #: ../src/plugin.py:84
 msgid "UPPER case"
