@@ -80,6 +80,7 @@ choicelist = [("off", _("off"))] + [(str(i), ngettext("%d second", "%d seconds",
 config.plugins.m3uiptv.check_internet = ConfigSelection(default="2", choices=choicelist)
 config.plugins.m3uiptv.req_timeout = ConfigSelection(default="2", choices=choicelist)
 config.plugins.m3uiptv.inmenu = ConfigYesNo(default=True)
+config.plugins.m3uiptv.inextensions = ConfigYesNo(default=False)
 config.plugins.m3uiptv.picon_threads = ConfigSelectionNumber(min=50, max=1000, stepwidth=50, default=100, wraparound=True)
 config.plugins.m3uiptv.bouquet_names_case = ConfigSelection(default=2, choices=[(0, _("Original case")), (1, _("lower case")), (2, _("UPPER case"))])
 
@@ -1631,6 +1632,7 @@ class IPTVPluginConfig(Setup):
 		configlist.append((_("Request timeout"), config.plugins.m3uiptv.req_timeout, _("Timeout in seconds for the requests of getting playlist.")))
 		configlist.append((_("Picon max threads"), config.plugins.m3uiptv.picon_threads, _("Maximum number of threads during picon downloads. If the box returns errors or fails to download some picons, set a lower number.")))
 		configlist.append((_("Show 'Video on Demand' menu entry") + " *", config.plugins.m3uiptv.inmenu, _("Allow showing of 'Video on Demand' menu entry in Main Menu.")))
+		configlist.append((_("Show 'Video on Demand' extensions entry") + " *", config.plugins.m3uiptv.inextensions, _("Allow showing of 'Video on Demand' entry in in the extensions (BLUE button) menu.") + " *"))
 		configlist.append((_("Bouquet name character case"), config.plugins.m3uiptv.bouquet_names_case, _("Specify the character case used for bouquet names and titles.")))
 		configlist.append(("---",))
 		if hasattr(config, "recording") and hasattr(config.recording, "setstreamto1"):
@@ -1725,6 +1727,14 @@ def M3UIPTVMenuCallback(close, answer=None):
 	if close and answer:
 		close(True)
 
+def M3UIPTVExtentions(session, **kwargs):
+	for node in mdom.getroot():
+		if node.tag == "menu" and node.get("key") == "vod_menu":
+			if "PluginLanguageDomain" in Menu.__init__.__code__.co_varnames:
+				session.open(Menu, node, PluginLanguageDomain=PluginLanguageDomain)
+			else:
+				session.open(Menu, node)
+
 
 def M3UIPTVVoDMenu(session, close=None, **kwargs):
 	for node in mdom.getroot():
@@ -1770,6 +1780,8 @@ def Plugins(path, **kwargs):
 		]
 		if config.plugins.m3uiptv.inmenu.value:
 			result += [PluginDescriptor(where=PluginDescriptor.WHERE_MENU, needsRestart=False, fnc=startVoDSetup)]
+		if config.plugins.m3uiptv.inextensions.value:
+			result += [PluginDescriptor(name=_("Video On Demand"), where=PluginDescriptor.WHERE_EXTENSIONSMENU, fnc=M3UIPTVExtentions, needsRestart=True)]
 
 		return result
 	except ImportError:
