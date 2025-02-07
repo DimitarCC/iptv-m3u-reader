@@ -6,12 +6,12 @@ msgstr ""
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Lululla\n"
+"Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: it\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.5\n"
+"X-Generator: Poedit 3.4.4\n"
 "X-Poedit-Basepath: ../../../..\n"
 "X-Poedit-SearchPath-0: epgimport_helper.py\n"
 "X-Poedit-SearchPath-1: IPTVCatchupPlayer.py\n"
@@ -182,7 +182,7 @@ msgstr "Controlla la rete"
 
 #: ../src/plugin.py:1259
 msgid "Clear bouquets"
-msgstr "Pulire bouquet"
+msgstr "Elimina bouquet"
 
 #: ../src/plugin.py:1256
 msgid "Close"
@@ -296,7 +296,7 @@ msgstr "Genera file EPG per il plugin EPGImport"
 
 #: ../src/plugin.py:1258
 msgid "Generate bouquets"
-msgstr "Genera Bouquet"
+msgstr "Genera bouquet"
 
 #: ../src/plugin.py:1022 ../src/plugin.py:1132
 msgid "IMDb search"
@@ -336,7 +336,7 @@ msgstr "Se impostato su \"sì\", consente di utilizzare il timeshift con plugin 
 
 #: ../src/plugin.py:1481
 msgid "If the playlist is already stored on a local device you can use the local file path in this field, e.g. /tmp/myplaylist.m3u"
-msgstr ""
+msgstr "Se la playlist è già memorizzata su un dispositivo locale, puoi utilizzare il percorso del file locale in questo campo, ad es. /tmp/myplaylist.m3u"
 
 #: ../src/plugin.py:458
 msgid "Incorrect service type for PiP!"
@@ -412,7 +412,7 @@ msgstr "Solo 'sezioni'"
 
 #: ../src/plugin.py:84
 msgid "Original case"
-msgstr ""
+msgstr "Originale"
 
 #: ../src/IPTVCatchupPlayer.py:147
 msgid "PLAY"
@@ -787,6 +787,9 @@ msgid ""
 "It will work only for 'ALL' bouquets.\n"
 "If is configured global numbering the channel numbers may be offset depending on how many bouquets are before that one."
 msgstr ""
+"Utilizza i numeri dei canali e l'ordinamento forniti dal provider IPTV.\n"
+"Funzionerà solo per i bouquet 'tutti'.\n"
+"Se è configurata la numerazione globale, i numeri dei canali potrebbero essere falsati a seconda di quanti bouquet ci sono prima di quello."
 
 #: ../src/plugin.py:1514
 msgid "Use channel numbers from provider"
@@ -917,7 +920,7 @@ msgstr "modifica provider"
 
 #: ../src/plugin.py:84
 msgid "lower case"
-msgstr ""
+msgstr "minuscolo"
 
 #: ../src/plugin.py:79 ../src/plugin.py:1431 ../src/plugin.py:1448
 msgid "off"
