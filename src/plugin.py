@@ -1718,34 +1718,20 @@ def M3UIPTVMenu(session, close=None, **kwargs):
 	for node in mdom.getroot():
 		if node.tag == "menu" and node.get("key") == "iptvmenu":
 			if "PluginLanguageDomain" in Menu.__init__.__code__.co_varnames:
-				session.openWithCallback(boundFunction(M3UIPTVMenuCallback, close), Menu, node, PluginLanguageDomain=PluginLanguageDomain)
+				session.openWithCallback(boundFunction(MenuCallback, close), Menu, node, PluginLanguageDomain=PluginLanguageDomain)
 			else:
-				session.openWithCallback(boundFunction(M3UIPTVMenuCallback, close), Menu, node)
-
-
-def M3UIPTVMenuCallback(close, answer=None):
-	if close and answer:
-		close(True)
-
-def M3UIPTVExtentions(session, **kwargs):
-	for node in mdom.getroot():
-		if node.tag == "menu" and node.get("key") == "vod_menu":
-			if "PluginLanguageDomain" in Menu.__init__.__code__.co_varnames:
-				session.open(Menu, node, PluginLanguageDomain=PluginLanguageDomain)
-			else:
-				session.open(Menu, node)
+				session.openWithCallback(boundFunction(MenuCallback, close), Menu, node)
 
 
 def M3UIPTVVoDMenu(session, close=None, **kwargs):
 	for node in mdom.getroot():
 		if node.tag == "menu" and node.get("key") == "vod_menu":
 			if "PluginLanguageDomain" in Menu.__init__.__code__.co_varnames:
-				session.openWithCallback(boundFunction(M3UIPTVVoDMenuCallback, close), Menu, node, PluginLanguageDomain=PluginLanguageDomain)
+				session.openWithCallback(boundFunction(MenuCallback, close), Menu, node, PluginLanguageDomain=PluginLanguageDomain)
 			else:
-				session.openWithCallback(boundFunction(M3UIPTVVoDMenuCallback, close), Menu, node)
+				session.openWithCallback(boundFunction(MenuCallback, close), Menu, node)
 
-
-def M3UIPTVVoDMenuCallback(close, answer=None):
+def MenuCallback(close, answer=None):
 	if close and answer:
 		close(True)
 
@@ -1781,7 +1767,7 @@ def Plugins(path, **kwargs):
 		if config.plugins.m3uiptv.inmenu.value:
 			result += [PluginDescriptor(where=PluginDescriptor.WHERE_MENU, needsRestart=False, fnc=startVoDSetup)]
 		if config.plugins.m3uiptv.inextensions.value:
-			result += [PluginDescriptor(name=_("Video On Demand"), where=PluginDescriptor.WHERE_EXTENSIONSMENU, fnc=M3UIPTVExtentions, needsRestart=True)]
+			result += [PluginDescriptor(name=_("Video On Demand"), where=PluginDescriptor.WHERE_EXTENSIONSMENU, fnc=M3UIPTVVoDMenu, needsRestart=True)]
 
 		return result
 	except ImportError:
