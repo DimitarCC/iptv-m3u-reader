@@ -69,6 +69,13 @@ class TVHeadendProvider(IPTVProcessor):
 				epg_id_match = re.search(r"tvg-id=\"(.*?)\"", line, re.IGNORECASE)
 				if epg_id_match:
 					epg_id = epg_id_match.group(1)
+				if self.use_provider_tsid:
+					condition_tsid = re.escape(self.provider_tsid_search_criteria).replace("\\{TSID\\}", "(\d+)")
+					match_tsid = re.search(condition_tsid, line)
+					if match_tsid:
+						tsid = int(match_tsid.group(1))
+					else:
+						tsid = 0
 				condition = re.escape(self.search_criteria).replace("\\{SID\\}", "(.*?)") + r".*,(.*)"
 				match = re.search(condition, line)
 				isFallbackMatch = False
@@ -120,20 +127,24 @@ class TVHeadendProvider(IPTVProcessor):
 					elif "HD" in ch_name:
 						stype = "19"
 					sref = self.generateChannelReference(stype, tsid, url.replace(":", "%3a"), ch_name)
-					tsid += 1
+					
 					if self.create_bouquets_strategy != 1:
 						if curr_group:
-							groups[curr_group].append((sref, epg_id, ch_name))
+							groups[curr_group].append((sref, epg_id, ch_name, tsid))
 						else:
-							services.append((sref, epg_id, ch_name))
+							services.append((sref, epg_id, ch_name, tsid))
 					if self.create_bouquets_strategy > 0:
 						if (curr_group and curr_group not in blacklist) or not curr_group:
-							groups["ALL"].append((sref, epg_id, ch_name))
+							groups["ALL"].append((sref, epg_id, ch_name, tsid))
 					if "tvg-logo" in line and (stream_icon_match := re.search(r"tvg-logo=\"(.+?)\"", line, re.IGNORECASE)):
 						if self.picon_gen_strategy == 0:
 							self.piconsAdd(stream_icon_match.group(1), ch_name)
 						else:
 							self.piconsSrefAdd(stream_icon_match.group(1), sref)
+
+					if not self.use_provider_tsid:
+						tsid += 1
+
 			line_nr += 1
 
 		examples = []
@@ -149,6 +160,8 @@ class TVHeadendProvider(IPTVProcessor):
 		for groupName, srefs in groups.items():
 			if groupName != "ALL":
 				examples.append(groupName)
+			if self.ch_order_strategy > 0:
+				srefs.sort(key=lambda x: (x[3] if self.ch_order_strategy == 1 else x[2]))
 			if len(srefs) > 0:
 				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.{groupName}.tv")
 				if groupName in blacklist:

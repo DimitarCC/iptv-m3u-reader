@@ -64,11 +64,14 @@ class XtreemProvider(IPTVProcessor):
 		for service in services_json_obj:
 			stream_id = service.get("stream_id")
 			ch_name = service.get("name") and service["name"].replace(":", "|")
+			ch_num = service.get("num")
 			epg_id = service.get("epg_channel_id")
 			category_id = service.get("category_id")
 			if not (stream_id and ch_name):
 				continue
-			surl = "%s/live/%s/%s/%s.%s" % (self.url, self.username, self.password, stream_id, "ts")
+			if self.use_provider_tsid and ch_num:
+				tsid = int(ch_num)
+			surl = "%s/live/%s/%s/%s.%s" % (self.url, self.username, self.password, stream_id, self.output_format)
 			catchup_days = service.get("tv_archive_duration")
 			if catchup_days:
 				surl = self.constructCatchupSuffix(str(catchup_days), surl, CATCHUP_XTREME_TEXT)
@@ -78,20 +81,21 @@ class XtreemProvider(IPTVProcessor):
 			elif "HD" in ch_name:
 				stype = "19"
 			sref = self.generateChannelReference(stype, tsid, surl.replace(":", "%3a"), ch_name)
-			tsid += 1
 
 			if self.create_bouquets_strategy > 0:  # config option here: for user-optional, all-channels bouquet
 				if category_id not in groups or groups[category_id][0] not in blacklist:
-					groups["ALL_CHANNELS"][1].append((sref, epg_id, ch_name))
+					groups["ALL_CHANNELS"][1].append((sref, epg_id, ch_name, tsid, ch_num))
 
 			if self.create_bouquets_strategy != 1:  # config option here: for sections bouquets
-				groups[category_id if category_id and category_id in groups else "EMPTY"][1].append((sref, epg_id, ch_name))
+				groups[category_id if category_id and category_id in groups else "EMPTY"][1].append((sref, epg_id, ch_name, tsid, ch_num))
 
 			if stream_icon := service.get("stream_icon"):
 				if self.picon_gen_strategy == 0:
 					self.piconsAdd(stream_icon, ch_name)
 				else:
 					self.piconsSrefAdd(stream_icon, sref)
+			if not self.use_provider_tsid:
+				tsid += 1
 
 		if not self.ignore_vod:
 			self.getMovieCategories()
@@ -108,7 +112,10 @@ class XtreemProvider(IPTVProcessor):
 					self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
 					continue
 				services = []
-				for x in groupItem[1]:
+				service_list = groupItem[1]
+				if self.ch_order_strategy > 0:
+					service_list.sort(key=lambda x: (x[4] if self.ch_order_strategy == 1 else x[2]))
+				for x in service_list:
 					services.append(x[0])
 				provider_name_for_titles = self.iptv_service_provider
 				name_case_config = config.plugins.m3uiptv.bouquet_names_case.value

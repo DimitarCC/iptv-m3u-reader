@@ -135,6 +135,8 @@ class IPTVProcessor():
 		self.bouquets_refresh_interval = -1
 		self.epg_match_strategy = 0
 		self.custom_user_agent = "off"
+		self.output_format = "ts"
+		self.ch_order_strategy = 0
 
 	def checkForNetwrok(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value

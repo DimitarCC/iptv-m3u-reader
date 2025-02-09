@@ -149,8 +149,6 @@ class M3UProvider(IPTVProcessor):
 				elif "HD" in ch_name:
 					stype = "19"
 				sref = self.generateChannelReference(stype, tsid, url.replace(":", "%3a"), ch_name)
-				if not self.use_provider_tsid:
-					tsid += 1
 				if self.create_bouquets_strategy != 1:
 					if curr_group:
 						groups[curr_group].append((sref, epg_id if self.epg_match_strategy == 0 else ch_name, ch_name, tsid))
@@ -164,6 +162,8 @@ class M3UProvider(IPTVProcessor):
 						self.piconsAdd(stream_icon_match.group(1), ch_name)
 					else:
 						self.piconsSrefAdd(stream_icon_match.group(1), sref)
+				if not self.use_provider_tsid:
+					tsid += 1
 
 			line_nr += 1
 
@@ -206,6 +206,8 @@ class M3UProvider(IPTVProcessor):
 		for groupName, srefs in groups.items():
 			if groupName != "ALL":
 				examples.append(groupName)
+			if self.ch_order_strategy > 0:
+				srefs.sort(key=lambda x: (x[3] if self.ch_order_strategy == 1 else x[2]))
 			if len(srefs) > 0:
 				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.{groupName}.tv")
 				if groupName in blacklist:

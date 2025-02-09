@@ -144,6 +144,7 @@ def readProviders():
 				providerObj.user_provider_ch_num = provider.find("user_provider_ch_num") is not None and provider.find("user_provider_ch_num").text == "on"
 				providerObj.epg_match_strategy = int(provider.find("epg_match_strategy").text) if provider.find("epg_match_strategy") is not None else 0
 				providerObj.custom_user_agent = provider.find("custom_user_agent").text if provider.find("custom_user_agent") is not None else "off"
+				providerObj.ch_order_strategy = int(provider.find("ch_order_strategy").text) if provider.find("ch_order_strategy") is not None else 0
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
 				providers[providerObj.scheme] = providerObj
@@ -167,6 +168,8 @@ def readProviders():
 				providerObj.use_provider_tsid = provider.find("use_provider_tsid") is not None and provider.find("use_provider_tsid").text == "on"
 				providerObj.user_provider_ch_num = provider.find("user_provider_ch_num") is not None and provider.find("user_provider_ch_num").text == "on"
 				providerObj.custom_user_agent = provider.find("custom_user_agent").text if provider.find("custom_user_agent") is not None else "off"
+				providerObj.output_format = provider.find("output_format").text if provider.find("output_format") is not None and provider.find("output_format").text is not None else providerObj.output_format
+				providerObj.ch_order_strategy = int(provider.find("ch_order_strategy").text) if provider.find("ch_order_strategy") is not None else 0
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
 				if not providerObj.ignore_vod:
@@ -196,6 +199,8 @@ def readProviders():
 				providerObj.use_provider_tsid = provider.find("use_provider_tsid") is not None and provider.find("use_provider_tsid").text == "on"
 				providerObj.user_provider_ch_num = provider.find("user_provider_ch_num") is not None and provider.find("user_provider_ch_num").text == "on"
 				providerObj.custom_user_agent = provider.find("custom_user_agent").text if provider.find("custom_user_agent") is not None else "off"
+				providerObj.output_format = provider.find("output_format").text if provider.find("output_format") is not None and provider.find("output_format").text is not None else providerObj.output_format
+				providerObj.ch_order_strategy = int(provider.find("ch_order_strategy").text) if provider.find("ch_order_strategy") is not None else 0
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
 				if not providerObj.ignore_vod:
@@ -225,6 +230,7 @@ def readProviders():
 				providerObj.use_provider_tsid = provider.find("use_provider_tsid") is not None and provider.find("use_provider_tsid").text == "on"
 				providerObj.user_provider_ch_num = provider.find("user_provider_ch_num") is not None and provider.find("user_provider_ch_num").text == "on"
 				providerObj.custom_user_agent = provider.find("custom_user_agent").text if provider.find("custom_user_agent") is not None else "off"
+				providerObj.ch_order_strategy = int(provider.find("ch_order_strategy").text) if provider.find("ch_order_strategy") is not None else 0
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
 				providers[providerObj.scheme] = providerObj
@@ -260,6 +266,7 @@ def writeProviders():
 			xml.append(f"\t\t<provider_tsid_search_criteria>{val.provider_tsid_search_criteria}</provider_tsid_search_criteria>\n")
 			xml.append(f"\t\t<epg_match_strategy>{val.epg_match_strategy}</epg_match_strategy>\n")
 			xml.append(f"\t\t<custom_user_agent>{val.custom_user_agent}</custom_user_agent>\n")
+			xml.append(f"\t\t<ch_order_strategy>{val.ch_order_strategy}</ch_order_strategy>\n")
 			xml.append("\t</provider>\n")
 		elif isinstance(val, XtreemProvider):
 			xml.append("\t<xtreemprovider>\n")
@@ -285,6 +292,8 @@ def writeProviders():
 			xml.append(f"\t\t<user_provider_ch_num>{'on' if val.user_provider_ch_num else 'off'}</user_provider_ch_num>\n")
 			xml.append(f"\t\t<provider_tsid_search_criteria>{val.provider_tsid_search_criteria}</provider_tsid_search_criteria>\n")
 			xml.append(f"\t\t<custom_user_agent>{val.custom_user_agent}</custom_user_agent>\n")
+			xml.append(f"\t\t<output_format>{val.output_format}</output_format>\n")
+			xml.append(f"\t\t<ch_order_strategy>{val.ch_order_strategy}</ch_order_strategy>\n")
 			xml.append("\t</xtreemprovider>\n")
 		elif isinstance(val, TVHeadendProvider):
 			xml.append("\t<tvhprovider>\n")
@@ -310,6 +319,7 @@ def writeProviders():
 			xml.append(f"\t\t<user_provider_ch_num>{'on' if val.user_provider_ch_num else 'off'}</user_provider_ch_num>\n")
 			xml.append(f"\t\t<provider_tsid_search_criteria>{val.provider_tsid_search_criteria}</provider_tsid_search_criteria>\n")
 			xml.append(f"\t\t<custom_user_agent>{val.custom_user_agent}</custom_user_agent>\n")
+			xml.append(f"\t\t<ch_order_strategy>{val.ch_order_strategy}</ch_order_strategy>\n")
 			xml.append("\t</tvhprovider>\n")
 		else:
 			xml.append("\t<stalkerprovider>\n")
@@ -331,6 +341,8 @@ def writeProviders():
 			xml.append(f"\t\t<user_provider_ch_num>{'on' if val.user_provider_ch_num else 'off'}</user_provider_ch_num>\n")
 			xml.append(f"\t\t<provider_tsid_search_criteria>{val.provider_tsid_search_criteria}</provider_tsid_search_criteria>\n")
 			xml.append(f"\t\t<custom_user_agent>{val.custom_user_agent}</custom_user_agent>\n")
+			xml.append(f"\t\t<output_format>{val.output_format}</output_format>\n")
+			xml.append(f"\t\t<ch_order_strategy>{val.ch_order_strategy}</ch_order_strategy>\n")
 			xml.append("\t</stalkerprovider>\n")
 	xml.append("</providers>\n")
 	makedirs(path.dirname(USER_IPTV_PROVIDERS_FILE), exist_ok=True)  # create config folder recursive if not exists
@@ -640,6 +652,10 @@ def playServiceWithIPTVATV(self, ref, checkParentalControl=True, forceRestart=Fa
 				playref = getBestPlayableServiceReference(ref, oldref)
 				if not ignoreStreamRelay:
 					playref, isStreamRelay = streamrelay.streamrelayChecker(playref)
+				if not isStreamRelay:
+					playref, wrappererror = self.serviceHook(playref)
+					if wrappererror:
+						return 1
 				print(f"[Navigation] Playref is '{str(playref)}'.")
 				if playref and oldref and playref == oldref and not forceRestart:
 					print("[Navigation] Ignore request to play already running service.  (2)")
@@ -676,6 +692,10 @@ def playServiceWithIPTVATV(self, ref, checkParentalControl=True, forceRestart=Fa
 				self.currentlyPlayingServiceReference = playref
 				if not ignoreStreamRelay:
 					playref, isStreamRelay = streamrelay.streamrelayChecker(playref)
+				if not isStreamRelay:
+					playref, wrappererror = self.serviceHook(playref)
+					if wrappererror:
+						return 1
 				is_dynamic = False
 				if callable(processIPTVService):
 					playref, old_ref, is_dynamic, ref_type = processIPTVService(playref, self.playRealService, event)
@@ -1447,6 +1467,7 @@ class M3UIPTVProviderEdit(Setup):
 		self.picon_gen_strategy = ConfigSelection(default=providerObj.picon_gen_strategy, choices=[(0, _("Picons by name (SNP)")), (1, _("Picons by service reference (SRP)"))])
 		self.epg_match_strategy = ConfigSelection(default=providerObj.epg_match_strategy, choices=[(0, _("By tvg-id")), (1, _("By channel name"))])
 		self.custom_user_agent = ConfigSelection(default=providerObj.custom_user_agent, choices=[("off", _("off")), ("android", "Android 15"), ("ios", "IOS 17"), ("windows", "Windows 11 (Edge)"), ("vlc", "VLC 3.0.18")])
+		self.output_format = ConfigSelection(default=providerObj.output_format, choices=[("ts", _("Transport stream (TS)")), ("m3u8", _("HLS (M3U8)"))])
 		isServiceAppInstalled = isPluginInstalled("ServiceApp")
 		play_system_choices = [("1", "DVB"), ("4097", "HiSilicon" if BoxInfo.getItem("mediaservice") == "servicehisilicon" else "GStreamer")]
 		if isServiceAppInstalled:
@@ -1461,6 +1482,7 @@ class M3UIPTVProviderEdit(Setup):
 		self.epg_url = ConfigText(default=providerObj.epg_url, fixed_size=False)
 		self.picons = ConfigYesNo(default=providerObj.picons)
 		self.create_bouquets_strategy = ConfigSelection(default=providerObj.create_bouquets_strategy, choices=[(0, _("Only bouquets for groups")), (1, _("Only bouquet for 'All Channels'")), (2, _("Bouquets for 'All Channels' and groups"))])
+		self.ch_order_strategy = ConfigSelection(default=providerObj.ch_order_strategy, choices=[(0, _("Use provider order")), (1, _("By channel number")), (2, _("Alphabetically"))])
 		Setup.__init__(self, session, None)
 		self.title = _("M3UIPTVManager") + " - " + (_("edit provider") if self.edit else _("add new provider"))
 		if self.edit:
@@ -1503,17 +1525,21 @@ class M3UIPTVProviderEdit(Setup):
 		configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
 		configlist.append((_("Playback system"), self.play_system, _("The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3")))
 		configlist.append((_("Playback system for Catchup/Archive"), self.play_system_catchup, _("The player used for playing Catchup/Archive. Can be GStreamer/HiSilicon, Extplayer3")))
+		if self.type.value in ("Xtreeme", "Stalker"):
+			configlist.append((_("Stream output format"), self.output_format, _("The format used to deliver the streams. Can be TS or HLS.\nNOTE: Setting playback system to DVB will make it impossible to use HLS as output format.")))
 		if self.type.value == "M3U":
 			configlist.append((_("Catchup Type"), self.catchup_type, _("The catchup API used.")))
 		configlist.append((_("Download picons"), self.picons, _("Download picons, if available from the provider, and install them. Picon download is done in the background after bouquet generation.")))
 		if self.picons.value:
 			configlist.append((_("Picons type"), self.picon_gen_strategy, _("Determine how the picons will be named - SNP or SRP.")))
 		configlist.append((_("Bouquet creation strategy"), self.create_bouquets_strategy, _("Configure what type of bouquets should be created.")))
-		if self.type.value == "M3U":
-			configlist.append((_("Use provider TSID"), self.use_provider_tsid, _("Use the TSID provided from the IPTV provider (if available).\nUseful when want to always have same service references for EPG.")))
-			if self.use_provider_tsid.value:
-				configlist.append((_("Use channel numbers from provider"), self.user_provider_ch_num, _("Use channel numbers and ordering provided by the IPTV provider.\nIt will work only for 'ALL' bouquets.\nIf is configured global numbering the channel numbers may be offset depending on how many bouquets are before that one.")))
+		configlist.append((_("Use provider TSID"), self.use_provider_tsid, _("Use the TSID provided from the IPTV provider (if available).\nUseful when want to always have same service references for EPG.")))
+		if self.use_provider_tsid.value:
+			configlist.append((_("Use channel numbers from provider"), self.user_provider_ch_num, _("Use channel numbers and ordering provided by the IPTV provider.\nIt will work only for 'ALL' bouquets.\nIf is configured global numbering the channel numbers may be offset depending on how many bouquets are before that one.")))
+			if self.type.value in ("M3U", "TVH"):
 				configlist.append((_("Provider TSID retrival condition"), self.provider_tsid_search_criteria, _("Search condition to get TSID provided from IPTV provider.\nUseful when want to always have same service references for EPG.")))
+		if not self.user_provider_ch_num.value or not self.use_provider_tsid.value:
+			configlist.append((_("Channel ordering criteria"), self.ch_order_strategy, _("Specify how channels will be ordered in bouquets.")))
 		configlist.append((_("Custom User-Agent"), self.custom_user_agent, _("Sets custom User-Agent for use with services that requires specific one.")))
 
 		self["config"].list = configlist
@@ -1549,6 +1575,7 @@ class M3UIPTVProviderEdit(Setup):
 		providerObj.user_provider_ch_num = self.user_provider_ch_num.value
 		providerObj.provider_tsid_search_criteria = self.provider_tsid_search_criteria.value
 		providerObj.custom_user_agent = self.custom_user_agent.value
+		providerObj.ch_order_strategy = self.ch_order_strategy.value
 		if self.type.value == "M3U":
 			providerObj.refresh_interval = self.refresh_interval.value
 			providerObj.static_urls = self.staticurl.value
@@ -1563,8 +1590,11 @@ class M3UIPTVProviderEdit(Setup):
 			providerObj.password = self.password.value
 			providerObj.is_custom_xmltv = self.is_custom_xmltv.value
 			providerObj.custom_xmltv_url = self.custom_xmltv_url.value
+			if self.type.value == "Xtreeme":
+				providerObj.output_format = self.output_format.value
 		else:
 			providerObj.mac = self.mac.value
+			providerObj.output_format = self.output_format.value
 
 		if getattr(providerObj, "onid", None) is None:
 			providerObj.onid = min(set(range(1, len(L := [x.onid for x in providers.values() if hasattr(x, "onid")]) + 2)) - set(L))
@@ -1632,7 +1662,7 @@ class IPTVPluginConfig(Setup):
 		configlist.append((_("Request timeout"), config.plugins.m3uiptv.req_timeout, _("Timeout in seconds for the requests of getting playlist.")))
 		configlist.append((_("Picon max threads"), config.plugins.m3uiptv.picon_threads, _("Maximum number of threads during picon downloads. If the box returns errors or fails to download some picons, set a lower number.")))
 		configlist.append((_("Show 'Video on Demand' menu entry") + " *", config.plugins.m3uiptv.inmenu, _("Allow showing of 'Video on Demand' menu entry in Main Menu.")))
-		configlist.append((_("Show 'Video on Demand' extensions entry") + " *", config.plugins.m3uiptv.inextensions, _("Allow showing of 'Video on Demand' entry in in the extensions (BLUE button) menu.") + " *"))
+		configlist.append((_("Show 'Video on Demand' extensions entry") + " *", config.plugins.m3uiptv.inextensions, _("Allow showing of 'Video on Demand' entry in the extensions (BLUE button) menu.") + " *"))
 		configlist.append((_("Bouquet name character case"), config.plugins.m3uiptv.bouquet_names_case, _("Specify the character case used for bouquet names and titles.")))
 		configlist.append(("---",))
 		if hasattr(config, "recording") and hasattr(config.recording, "setstreamto1"):
