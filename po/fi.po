@@ -8,13 +8,13 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-02-10 16:00+0200\n"
-"PO-Revision-Date: 2025-02-09 17:50+0200\n"
+"PO-Revision-Date: 2025-02-10 17:27+0200\n"
 "Last-Translator: Orlandox <huoltovalikko.com>\n"
 "Language-Team: Orlandox\n"
+"Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fi\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.5\n"
 
@@ -258,7 +258,7 @@ msgstr "EPG-tuonti: %s tapahtumien tuonti valmis"
 
 #: ../src/plugin.py:1529
 msgid "EPG entry GMT offset"
-msgstr ""
+msgstr "EPG:n GMT-offset"
 
 #: ../src/plugin.py:1524
 msgid "EPG matching condition"
@@ -633,7 +633,7 @@ msgstr "Palvelimen url"
 
 #: ../src/plugin.py:1529
 msgid "Set time offset in hours towards GMT."
-msgstr ""
+msgstr "Aseta aikasiirtymä tunteina kohti GMT:tä."
 
 #: ../src/plugin.py:1549
 msgid "Sets custom User-Agent for use with services that requires specific one."
