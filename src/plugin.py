@@ -201,6 +201,7 @@ def readProviders():
 				providerObj.custom_user_agent = provider.find("custom_user_agent").text if provider.find("custom_user_agent") is not None else "off"
 				providerObj.output_format = provider.find("output_format").text if provider.find("output_format") is not None and provider.find("output_format").text is not None else providerObj.output_format
 				providerObj.ch_order_strategy = int(provider.find("ch_order_strategy").text) if provider.find("ch_order_strategy") is not None else 0
+				providerObj.epg_time_offset = int(provider.find("epg_time_offset").text) if provider.find("epg_time_offset") is not None else providerObj.epg_time_offset
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
 				if not providerObj.ignore_vod:
@@ -333,6 +334,7 @@ def writeProviders():
 			xml.append(f"\t\t<system>{val.play_system}</system>\n")
 			xml.append(f"\t\t<system_catchup>{val.play_system_catchup}</system_catchup>\n")
 			xml.append(f"\t\t<epg>{'on' if val.create_epg else 'off'}</epg>\n")
+			xml.append(f"\t\t<epg_time_offset>{val.epg_time_offset}</epg_time_offset>\n")
 			xml.append(f"\t\t<onid>{val.onid}</onid>\n")
 			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
 			xml.append(f"\t\t<picon_gen_strategy>{val.picon_gen_strategy}</picon_gen_strategy>\n")
@@ -1468,6 +1470,8 @@ class M3UIPTVProviderEdit(Setup):
 		self.epg_match_strategy = ConfigSelection(default=providerObj.epg_match_strategy, choices=[(0, _("By tvg-id")), (1, _("By channel name"))])
 		self.custom_user_agent = ConfigSelection(default=providerObj.custom_user_agent, choices=[("off", _("off")), ("android", "Android 15"), ("ios", "IOS 17"), ("windows", "Windows 11 (Edge)"), ("vlc", "VLC 3.0.18")])
 		self.output_format = ConfigSelection(default=providerObj.output_format, choices=[("ts", _("Transport stream (TS)")), ("m3u8", _("HLS (M3U8)"))])
+		epg_offset_choices = [(i, ngettext("%d hour", "%d hours", i) % i) for i in list(range(-12,12))]  # noqa: F821
+		self.epg_time_offset = ConfigSelection(default=providerObj.epg_time_offset, choices=epg_offset_choices)
 		isServiceAppInstalled = isPluginInstalled("ServiceApp")
 		play_system_choices = [("1", "DVB"), ("4097", "HiSilicon" if BoxInfo.getItem("mediaservice") == "servicehisilicon" else "GStreamer")]
 		if isServiceAppInstalled:
@@ -1515,12 +1519,14 @@ class M3UIPTVProviderEdit(Setup):
 		if self.type.value == "Xtreeme":
 			configlist.append((_("Skip VOD entries"), self.novod, _("Skip VOD entries in the playlist")))
 		configlist.append((_("Generate EPG files for EPGImport plugin"), self.create_epg, _("Creates files needed for importing EPG via EPGImport plugin")))
-		if (self.type.value == "M3U" or self.type.value == "Xtreeme" or self.type.value == "TVH") and self.create_epg.value:
+		if self.create_epg.value:
 			if self.type.value == "M3U":
 				configlist.append((_("EPG matching condition"), self.epg_match_strategy, _("Specify how xmltv entries will be matched to channels.")))
 			configlist.append((_("Use custom XMLTV URL"), self.is_custom_xmltv, _("Use your own XMLTV url for EPG importing.")))
 			if self.is_custom_xmltv.value:
 				configlist.append((_("Custom XMLTV URL"), self.custom_xmltv_url, _("The URL where EPG data for this provider can be downloaded.")))
+			if self.type.value == "Stalker" and self.create_epg.value and not self.is_custom_xmltv.value:
+				configlist.append((_("EPG entry GMT offset"), self.epg_time_offset, _("Set time offset in hours towards GMT.")))
 
 		configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
 		configlist.append((_("Playback system"), self.play_system, _("The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3")))
@@ -1595,6 +1601,7 @@ class M3UIPTVProviderEdit(Setup):
 		else:
 			providerObj.mac = self.mac.value
 			providerObj.output_format = self.output_format.value
+			providerObj.epg_time_offset = self.epg_time_offset.value
 
 		if getattr(providerObj, "onid", None) is None:
 			providerObj.onid = min(set(range(1, len(L := [x.onid for x in providers.values() if hasattr(x, "onid")]) + 2)) - set(L))

@@ -3,7 +3,7 @@ from . import _
 
 from twisted.internet import threads
 from .epgimport_helper import epgimport_helper
-from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, CATCHUP_FLUSSONIC_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_FOLDER, USER_AGENTS
+from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, CATCHUP_FLUSSONIC_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_FOLDER, USER_AGENTS, USER_IPTV_PROVIDER_EPG_XML_FILE
 from .VoDItem import VoDItem
 from .picon import Fetcher
 from Components.config import config
@@ -137,6 +137,7 @@ class IPTVProcessor():
 		self.custom_user_agent = "off"
 		self.output_format = "ts"
 		self.ch_order_strategy = 0
+		self.epg_time_offset = 0 # Only for Stalker providers
 
 	def checkForNetwrok(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
@@ -305,13 +306,16 @@ class IPTVProcessor():
 
 	def getEpgUrlForSources(self):  # for use when dynamic xmltv url is needed for sources file
 		return self.custom_xmltv_url if self.is_custom_xmltv and self.custom_xmltv_url else self.epg_url
+	
+	def createChannelsFile(self, epghelper, groups):
+		epghelper.createChannelsFile(groups)
 
 	def generateEPGImportFiles(self, groups):
 		if not self.create_epg or not self.getEpgUrl():
 			return
 		epghelper = epgimport_helper(self)
 		epghelper.createSourcesFile()
-		epghelper.createChannelsFile(groups)
+		self.createChannelsFile(epghelper, groups)
 
 		epghelper.importepg()   # auto epg update after bouquet generation
 
@@ -343,6 +347,9 @@ class IPTVProcessor():
 	def removeEpgSources(self):
 		epghelper = epgimport_helper(self)
 		epghelper.removeSources()
+		local_epg_filename = USER_IPTV_PROVIDER_EPG_XML_FILE % self.scheme
+		if path.isfile(local_epg_filename):
+			remove_file(local_epg_filename)
 
 	def cleanFilename(self, name):
 		return sanitizeFilename(name.replace(" ", "").replace("(", "").replace(")", "").replace("&", "").replace("'", "").replace('"', "").replace(',', "").replace(":", "").replace(";", "").replace('ы','и'))

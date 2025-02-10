@@ -3,22 +3,26 @@ from . import _
 from enigma import eDVBDB, eServiceReference
 from ServiceReference import ServiceReference
 from Components.config import config
+from xml.dom import minidom
 import requests
-import time, re
+import time, re, os
+from datetime import datetime
 from .IPTVProcessor import IPTVProcessor
-from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, CATCHUP_STALKER, CATCHUP_STALKER_TEXT
+from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, CATCHUP_STALKER, CATCHUP_STALKER_TEXT, USER_IPTV_PROVIDER_EPG_XML_FILE
 
 db = eDVBDB.getInstance()
 
 
 class Channel():
-	def __init__(self, id, number, name, cmd, catchup_days, picon):
+	def __init__(self, id, number, name, cmd, catchup_days, picon, xmltv_id):
 		self.id = id
 		self.number = number
 		self.name = name.replace(":", "|").replace("  ", " ").strip()
 		self.cmd = cmd
 		self.catchup_days = catchup_days
 		self.picon = picon
+		self.xmltv_id = xmltv_id
+		self.sref = ""
 
 
 class StalkerProvider(IPTVProcessor):
@@ -35,17 +39,116 @@ class StalkerProvider(IPTVProcessor):
 		self.session = requests.Session()
 		self.token = None
 
+	def generate_xmltv_file(self):
+		self.checkForNetwrok()
+		session = requests.Session()
+		token = self.get_token(session)
+		if token:
+			genres = self.get_genres(session, token)
+			groups = self.get_all_channels(session, token, genres)
+			channels = [
+				x
+				for xs in groups.values()
+				for x in xs[1]
+			]
+			channel_dict = {}
+			for x in channels:
+				channel_dict[x.id] = x
+
+			try:
+				url = f"{self.url}/portal.php?type=itv&action=get_epg_info&period=7&JsHttpRequest=1-xml"
+				cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
+				headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
+				response = session.get(url, cookies=cookies, headers=headers)
+				epg_data = response.json()["js"]["data"]
+				if epg_data:
+					doc = minidom.Document()
+					base = doc.createElement('tv')
+					base.setAttribute("generator-info-name", "M3UIPTV Plugin")
+					base.setAttribute("generator-info-url", "http://www.xmltv.org/")
+					doc.appendChild(base)
+					for c in epg_data:
+						if not str(c) in channel_dict.keys():
+							continue
+					
+						channel = channel_dict[str(c)]
+						name = channel.name
+						
+						c_entry = doc.createElement('channel')
+						c_entry.setAttribute("id", str(c))
+						base.appendChild(c_entry)
+						
+						
+						dn_entry = doc.createElement('display-name')
+						dn_entry_content = doc.createTextNode(name)
+						dn_entry.appendChild(dn_entry_content)
+						c_entry.appendChild(dn_entry)
+
+					for k,v in epg_data.items():
+						channel = None
+						
+						if str(k) in channel_dict.keys():
+							channel = channel_dict[str(k)]
+						
+						for epg in v:
+							start_time 	= datetime.fromtimestamp(float(epg['start_timestamp']))
+							stop_time	= datetime.fromtimestamp(float(epg['stop_timestamp']))
+							
+							pg_entry = doc.createElement('programme')
+							format_string = f"%Y%m%d%H%M%S {'+' if self.epg_time_offset >= 0 else ''}{self.epg_time_offset :02d}00"
+							pg_entry.setAttribute("start", start_time.strftime(format_string))
+							pg_entry.setAttribute("stop", stop_time.strftime(format_string))
+							pg_entry.setAttribute("channel", str(k))
+							base.appendChild(pg_entry)
+							
+							t_entry = doc.createElement('title')
+							t_entry.setAttribute("lang", "en")
+							t_entry_content = doc.createTextNode(epg['name'])
+							t_entry.appendChild(t_entry_content)
+							pg_entry.appendChild(t_entry)
+							
+							d_entry = doc.createElement('desc')
+							d_entry.setAttribute("lang", "en")
+							d_entry_content = doc.createTextNode(epg['descr'])
+							d_entry.appendChild(d_entry_content)
+							pg_entry.appendChild(d_entry)
+						
+							if epg_category := epg['category']:
+								c_entry = doc.createElement('category')
+								c_entry.setAttribute("lang", "en")
+								c_entry_content = doc.createTextNode(epg_category)
+								c_entry.appendChild(c_entry_content)
+								pg_entry.appendChild(c_entry)
+							
+					with open(USER_IPTV_PROVIDER_EPG_XML_FILE % self.scheme, 'wb') as f: f.write(doc.toxml(encoding='utf-8'))
+			except Exception as ex:
+				print("[M3UIPTV] [Stalker] Error getting epg info: " + str(ex))
+				pass
+
+	def getEpgUrl(self):
+		return self.custom_xmltv_url if self.is_custom_xmltv and self.custom_xmltv_url else USER_IPTV_PROVIDER_EPG_XML_FILE % self.scheme
+
+	def createChannelsFile(self, epghelper, groups):
+		epghelper.createStalkerChannelsFile(groups)
+
+	def generateXMLTVFile(self): # Use this for the timer for regenerate of EPG xml
+		if self.create_epg and not self.custom_xmltv_url:
+			self.generate_xmltv_file()
+
+	def generateXMLTVAndEPGImportFiles(self, groups):
+		self.generateXMLTVFile()
+		self.generateEPGImportFiles(groups)
+
 	def storePlaylistAndGenBouquet(self):
 		self.checkForNetwrok()
 		session = requests.Session()
 		token = self.get_token(session)
 		if token:
 			genres = self.get_genres(session, token)
-			# print("GETTING CHANNELS FOR GENRE %s/%s" % (genres[0]["genre_id"], genres[0]["name"]))
 			groups = self.get_all_channels(session, token, genres)
 			self.channels_callback(groups)
 			self.piconsDownload()
-			#threads.deferToThread(self.get_channels, session, token, genres).addCallback(self.channels_callback)
+			self.generateXMLTVAndEPGImportFiles(groups)
 
 	def channels_callback(self, groups):
 		tsid = 1000
@@ -80,6 +183,7 @@ class StalkerProvider(IPTVProcessor):
 					else:
 						self.piconsSrefAdd(stream_icon, sref)
 				services.append(sref)
+				service.sref = sref
 
 			if len(services) > 0:
 				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.{group[0]}.tv")
@@ -162,9 +266,9 @@ class StalkerProvider(IPTVProcessor):
 						surl = f"{self.scheme}%3a//{channel['id']}?cmd={channel['cmd'].replace('ffmpeg ', '').replace('&','|amp|').replace(':', '%3a')}"
 						if self.create_bouquets_strategy > 0:  # config option here: for user-optional, all-channels bouquet
 							if genre_id not in groups or groups[genre_id][0] not in blacklist:
-								groups["ALL_CHANNELS"][1].append(Channel(channel["id"], channel["number"], channel["name"], surl, channel["tv_archive_duration"], channel["logo"]))
+								groups["ALL_CHANNELS"][1].append(Channel(channel["id"], channel["number"], channel["name"], surl, channel["tv_archive_duration"], channel["logo"], channel["xmltv_id"]))
 						if self.create_bouquets_strategy != 1:  # config option here: for sections bouquets
-							services.append(Channel(channel["id"], channel["number"], channel["name"], surl, channel["tv_archive_duration"], channel["logo"]))
+							services.append(Channel(channel["id"], channel["number"], channel["name"], surl, channel["tv_archive_duration"], channel["logo"], channel["xmltv_id"]))
 						total_services_count += 1
 
 					total_items = response_json["js"]["total_items"]
@@ -205,10 +309,10 @@ class StalkerProvider(IPTVProcessor):
 				category_id = genre_id
 				if self.create_bouquets_strategy > 0:  # config option here: for user-optional, all-channels bouquet
 					if category_id not in groups or groups[category_id][0] not in blacklist:
-						groups["ALL_CHANNELS"][1].append(Channel(channel["id"], channel["number"], channel["name"], surl, channel["tv_archive_duration"], channel["logo"]))
+						groups["ALL_CHANNELS"][1].append(Channel(channel["id"], channel["number"], channel["name"], surl, channel["tv_archive_duration"], channel["logo"], channel["xmltv_id"]))
 
 				if self.create_bouquets_strategy != 1:  # config option here: for sections bouquets
-					groups[category_id if category_id and category_id in groups else "EMPTY"][1].append(Channel(channel["id"], channel["number"], channel["name"], surl, channel["tv_archive_duration"], channel["logo"]))
+					groups[category_id if category_id and category_id in groups else "EMPTY"][1].append(Channel(channel["id"], channel["number"], channel["name"], surl, channel["tv_archive_duration"], channel["logo"], channel["xmltv_id"]))
 		
 		for censored_group in censored_groups:
 			self.get_channels_for_group(groups, groups[censored_group][1], session, cookies, headers, censored_group)

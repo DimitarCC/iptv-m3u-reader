@@ -10,6 +10,7 @@ USER_IPTV_MOVIE_CATEGORIES_FILE = USER_FOLDER + "/%s-movie-categories.json"
 USER_IPTV_VOD_SERIES_FILE = USER_FOLDER + "/%s-vod-series.json"
 USER_IPTV_PROVIDER_INFO_FILE = USER_FOLDER + "/%s-provider-info.json"
 USER_IPTV_PROVIDER_BLACKLIST_FILE = USER_FOLDER + "/%s-blacklist"
+USER_IPTV_PROVIDER_EPG_XML_FILE = USER_FOLDER + "/epg.%s.xml"
 
 # CatchUp types
 CATCHUP_DEFAULT = 1

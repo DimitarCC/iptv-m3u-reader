@@ -129,6 +129,22 @@ class epgimport_helper():
 		with open(os.path.join(self.getChannelsFilename()), "w") as f:
 			f.write("\n".join(channels_out))
 
+	def createStalkerChannelsFile(self, groups):
+		if not EPGImport:
+			return
+
+		channels_out = ['<?xml version="1.0" encoding="utf-8"?>', '<channels>']
+		for group in groups:
+			channels_out.append(f' <!-- {groups[group][0]} -->')
+			for service in groups[group][1]:
+				sref = service.sref
+				epg_id = service.id
+				ch_name = service.name
+				channels_out.append(f' <channel id="{epg_id}">{self.provider.generateEPGChannelReference(sref)}</channel> <!-- {ch_name.replace("--", "")} -->')
+		channels_out.append('</channels>')
+		with open(os.path.join(self.getChannelsFilename()), "w") as f:
+			f.write("\n".join(channels_out))
+
 	def importepg(self):
 		if EPGImport and EPGConfig and os.path.exists(f := self.getSourcesFilename()):
 			self.update_status_timer.start(1000)
