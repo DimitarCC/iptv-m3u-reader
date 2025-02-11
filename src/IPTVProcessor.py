@@ -289,6 +289,9 @@ class IPTVProcessor():
 
 	def processService(self, nref, iptvinfodata, callback=None, event=None):
 		return nref, nref, False
+	
+	def generateXMLTVFile(self):
+		return None
 
 	def bouquetCreated(self, error):
 		for f in self.onBouquetCreated:

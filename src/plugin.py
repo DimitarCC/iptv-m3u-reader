@@ -7,6 +7,8 @@ from glob import glob
 import json
 import base64
 from urllib.error import HTTPError, URLError
+from twisted.web import server, resource
+from twisted.internet import threads, reactor
 from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner
 try:
 	from enigma import pNavigation
@@ -33,7 +35,7 @@ from Screens.MessageBox import MessageBox
 from Screens.TextBox import TextBox
 from Screens.VirtualKeyBoard import VirtualKeyBoard
 from Components.ActionMap import ActionMap, HelpableActionMap
-from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigText, ConfigPassword, ConfigSelectionNumber
+from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigText, ConfigPassword, ConfigSelectionNumber, ConfigNumber
 from Components.ParentalControl import parentalControl
 from Components.SelectionList import SelectionList, SelectionEntryComponent
 from Components.Sources.StaticText import StaticText
@@ -79,6 +81,7 @@ config.plugins.m3uiptv.enabled = ConfigYesNo(default=True)
 choicelist = [("off", _("off"))] + [(str(i), ngettext("%d second", "%d seconds", i) % i) for i in [1, 2, 3, 5, 7, 10]]  # noqa: F821
 config.plugins.m3uiptv.check_internet = ConfigSelection(default="2", choices=choicelist)
 config.plugins.m3uiptv.req_timeout = ConfigSelection(default="2", choices=choicelist)
+config.plugins.m3uiptv.epg_loc_port = ConfigNumber(default=9010)
 config.plugins.m3uiptv.inmenu = ConfigYesNo(default=True)
 config.plugins.m3uiptv.inextensions = ConfigYesNo(default=False)
 config.plugins.m3uiptv.picon_threads = ConfigSelectionNumber(min=50, max=1000, stepwidth=50, default=100, wraparound=True)
@@ -94,6 +97,16 @@ file = open("%s/menu.xml" % path.dirname(modules[__name__].__file__), 'r')
 mdom = xml.etree.cElementTree.parse(file)
 file.close()
 
+
+class StalkerEPG(resource.Resource):
+	isLeaf = True
+	def render_GET(self, request):
+		request.responseHeaders.setRawHeaders('Content-Disposition', ['attachment; filename="epg.xml"'])
+		provider = request.args[b"p"][0].decode("utf-8")
+		try:
+			return providers[provider].generateXMLTVFile()
+		except:
+			return None
 
 def tmdbScreenMovieHelper(VoDObj):
 	url = "%s/player_api.php?username=%s&password=%s&action=get_vod_info&vod_id=%s" % (VoDObj.providerObj.url, VoDObj.providerObj.username, VoDObj.providerObj.password, VoDObj.id)
@@ -1672,6 +1685,9 @@ class IPTVPluginConfig(Setup):
 		configlist.append((_("Show 'Video on Demand' extensions entry") + " *", config.plugins.m3uiptv.inextensions, _("Allow showing of 'Video on Demand' entry in the extensions (BLUE button) menu.") + " *"))
 		configlist.append((_("Bouquet name character case"), config.plugins.m3uiptv.bouquet_names_case, _("Specify the character case used for bouquet names and titles.")))
 		configlist.append(("---",))
+		configlist.append((_("Enable catchup/archive entries in EPG screens for period"), config.epg.histminutes, _("Enables possibility to return back in epg screens so to use old entries for invoke catchup/archive/timeshift.")))
+		configlist.append((_("Local EPG server listening port") + " *", config.plugins.m3uiptv.epg_loc_port, _("Enables possibility to return back in epg screens so to use old entries for invoke catchup/archive/timeshift.")))
+		configlist.append(("---",))
 		if hasattr(config, "recording") and hasattr(config.recording, "setstreamto1"):
 			configlist.append((_("Recordings - convert IPTV servicetypes to  1"), config.recording.setstreamto1, _("Recording 4097, 5001 and 5002 streams not possible with external players, so convert recordings to servicetype 1.")))
 			configlist.append((_("Enable new GStreamer playback"), config.misc.usegstplaybin3, _("If enabled, the new GStreamer playback engine will be used.")))
@@ -1793,6 +1809,20 @@ def sessionstart(reason, session, **kwargs):
 	if config.plugins.m3uiptv.enabled.value:
 		injectIntoNavigation(session)
 		readProviders()
+		threads.deferToThread(startingCustomEPGExternal).addCallback(lambda ignore: finishedCustomEPGExternal())
+		
+
+def startingCustomEPGExternal():
+	port = config.plugins.m3uiptv.epg_loc_port.value
+	site = server.Site(StalkerEPG())
+	reactor.listenTCP(port, site)
+	try:
+		reactor.run()
+	except:
+		pass
+
+def finishedCustomEPGExternal():
+	pass
 
 def Plugins(path, **kwargs):
 	try:
