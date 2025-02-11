@@ -8,13 +8,13 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-02-11 16:02+0200\n"
-"PO-Revision-Date: 2025-02-09 17:50+0200\n"
+"PO-Revision-Date: 2025-02-11 16:30+0200\n"
 "Last-Translator: Orlandox <huoltovalikko.com>\n"
 "Language-Team: Orlandox\n"
+"Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fi\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.5\n"
 
@@ -258,7 +258,7 @@ msgstr "EPG-tuonti: %s tapahtumien tuonti valmis"
 
 #: ../src/plugin.py:1542
 msgid "EPG entry GMT offset"
-msgstr ""
+msgstr "EPG:n GMT-offset"
 
 #: ../src/plugin.py:1537
 msgid "EPG matching condition"
@@ -279,7 +279,7 @@ msgstr "Ota IPTV-hallinta käyttöön"
 
 #: ../src/plugin.py:1688
 msgid "Enable catchup/archive entries in EPG screens for period"
-msgstr ""
+msgstr "Ota alusta aloittamisen-/arkistomerkinnät käyttöön EPG-näytöissä ajanjaksolle"
 
 #: ../src/plugin.py:1693
 msgid "Enable new GStreamer playback"
@@ -287,7 +287,7 @@ msgstr "Ota uusi GStreamer-toisto käyttöön"
 
 #: ../src/plugin.py:1688 ../src/plugin.py:1689
 msgid "Enables possibility to return back in epg screens so to use old entries for invoke catchup/archive/timeshift."
-msgstr ""
+msgstr "Sallii mahdollisuuden palata takaisin epg-näytöille, jotta vanhoja merkintöjä voidaan käyttää alusta aloittamiseen/arkistointiin/ajansiirtoon."
 
 #: ../src/plugin.py:1721
 msgid "Enigma2 playback system"
@@ -380,7 +380,7 @@ msgstr "On kokeilu"
 
 #: ../src/plugin.py:1689
 msgid "Local EPG server listening port"
-msgstr ""
+msgstr "Paikallisen EPG-palvelimen kuunteluportti"
 
 #: ../src/plugin.py:1282
 msgid "M3U IPTV Manager - providers"
@@ -645,7 +645,7 @@ msgstr "Palvelimen url"
 
 #: ../src/plugin.py:1542
 msgid "Set time offset in hours towards GMT."
-msgstr ""
+msgstr "Aseta aikasiirtymä tunteina kohti GMT:tä."
 
 #: ../src/plugin.py:1562
 msgid "Sets custom User-Agent for use with services that requires specific one."
