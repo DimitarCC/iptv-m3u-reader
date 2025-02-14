@@ -251,16 +251,21 @@ class IPTVProcessor():
 		if is_check_network_val != "off":
 			socket.setdefaulttimeout(int(is_check_network_val))
 			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
-		req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT})
-		req_timeout_val = config.plugins.m3uiptv.req_timeout.value
-		if req_timeout_val != "off":
-			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
-		else:
-			response = urllib.request.urlopen(req, timeout=10)  # set a timeout to prevent blocking
-		return response.read()
+		try:
+			req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT})
+			req_timeout_val = config.plugins.m3uiptv.req_timeout.value
+			if req_timeout_val != "off":
+				response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
+			else:
+				response = urllib.request.urlopen(req, timeout=10)  # set a timeout to prevent blocking
+			return response.read()
+		except:
+			return None
 
 	def getUrlToFile(self, url, dest_file):
 		vod_response = self.getUrl(url)
+		if not vod_response:
+			return None
 		makedirs(path.realpath(path.dirname(dest_file)), exist_ok=True)  # make folders and sub folders if not exists
 		with write_lock:
 			f = open(dest_file + ".writing", 'wb')
