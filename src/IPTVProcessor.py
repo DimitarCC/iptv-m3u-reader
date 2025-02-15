@@ -138,6 +138,7 @@ class IPTVProcessor():
 		self.output_format = "ts"
 		self.ch_order_strategy = 0
 		self.epg_time_offset = 0 # Only for Stalker providers
+		self.server_time_offset = "" # Only for Stalker providers
 
 	def checkForNetwrok(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value

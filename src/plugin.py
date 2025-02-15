@@ -215,6 +215,7 @@ def readProviders():
 				providerObj.output_format = provider.find("output_format").text if provider.find("output_format") is not None and provider.find("output_format").text is not None else providerObj.output_format
 				providerObj.ch_order_strategy = int(provider.find("ch_order_strategy").text) if provider.find("ch_order_strategy") is not None else 0
 				providerObj.epg_time_offset = int(provider.find("epg_time_offset").text) if provider.find("epg_time_offset") is not None else providerObj.epg_time_offset
+				providerObj.server_time_offset = provider.find("server_time_offset").text if provider.find("server_time_offset") is not None and provider.find("server_time_offset").text is not None else ""
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
 				if not providerObj.ignore_vod:
@@ -358,6 +359,7 @@ def writeProviders():
 			xml.append(f"\t\t<custom_user_agent>{val.custom_user_agent}</custom_user_agent>\n")
 			xml.append(f"\t\t<output_format>{val.output_format}</output_format>\n")
 			xml.append(f"\t\t<ch_order_strategy>{val.ch_order_strategy}</ch_order_strategy>\n")
+			xml.append(f"\t\t<server_time_offset>{val.server_timezone_offset}</server_time_offset>\n")
 			xml.append("\t</stalkerprovider>\n")
 	xml.append("</providers>\n")
 	makedirs(path.dirname(USER_IPTV_PROVIDERS_FILE), exist_ok=True)  # create config folder recursive if not exists
@@ -1538,8 +1540,8 @@ class M3UIPTVProviderEdit(Setup):
 			configlist.append((_("Use custom XMLTV URL"), self.is_custom_xmltv, _("Use your own XMLTV url for EPG importing.")))
 			if self.is_custom_xmltv.value:
 				configlist.append((_("Custom XMLTV URL"), self.custom_xmltv_url, _("The URL where EPG data for this provider can be downloaded.")))
-			if self.type.value == "Stalker" and self.create_epg.value and not self.is_custom_xmltv.value:
-				configlist.append((_("EPG entry GMT offset"), self.epg_time_offset, _("Set time offset in hours towards GMT.")))
+			#if self.type.value == "Stalker" and self.create_epg.value and not self.is_custom_xmltv.value:
+			#	configlist.append((_("EPG entry GMT offset"), self.epg_time_offset, _("Set time offset in hours towards GMT.")))
 
 		configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
 		configlist.append((_("Playback system"), self.play_system, _("The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3")))

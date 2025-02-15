@@ -6,6 +6,7 @@ from Components.config import config
 from xml.dom import minidom
 import requests
 import time, re, os
+from zoneinfo import ZoneInfo
 from datetime import datetime
 from .IPTVProcessor import IPTVProcessor
 from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, CATCHUP_STALKER, CATCHUP_STALKER_TEXT, USER_IPTV_PROVIDER_EPG_XML_FILE
@@ -102,7 +103,7 @@ class StalkerProvider(IPTVProcessor):
 								stop_time	= datetime.fromtimestamp(float(epg['stop_timestamp']))
 								
 								pg_entry = doc.createElement('programme')
-								format_string = f"%Y%m%d%H%M%S {'+' if self.epg_time_offset >= 0 else ''}{self.epg_time_offset :02d}00"
+								format_string = f"%Y%m%d%H%M%S {self.server_timezone_offset}"
 								pg_entry.setAttribute("start", start_time.strftime(format_string))
 								pg_entry.setAttribute("stop", stop_time.strftime(format_string))
 								pg_entry.setAttribute("channel", str(k))
@@ -137,6 +138,7 @@ class StalkerProvider(IPTVProcessor):
 		session = requests.Session()
 		token = self.get_token(session)
 		if token:
+			self.get_server_timezone_offset(session, token)
 			genres = self.get_genres(session, token)
 			groups = self.get_all_channels(session, token, genres)
 			self.channels_callback(groups)
@@ -232,6 +234,26 @@ class StalkerProvider(IPTVProcessor):
 				return genres
 		except Exception as ex:
 			print("[M3UIPTV] [Stalker] Error getting genres: " + str(ex))
+			pass
+
+	def get_server_timezone_offset(self, session, token):
+		try:
+			url = f"{self.url}/portal.php?type=stb&action=get_profile&JsHttpRequest=1-xml"
+			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
+			headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
+			response = session.get(url, cookies=cookies, headers=headers)
+			profile_data = response.json()["js"]
+			if profile_data:
+				zone = ZoneInfo(profile_data["default_timezone"])
+				server_timezone_offset = zone.utcoffset(datetime.now()).total_seconds()//3600
+				server_timezone_offset_string = f"{server_timezone_offset :+03.0f}00"
+				if server_timezone_offset_string != self.server_timezone_offset:
+					self.server_timezone_offset = server_timezone_offset_string
+					self.epg_time_offset = int(server_timezone_offset)
+					from .plugin import writeProviders  # deferred import
+					writeProviders()  # save to config so it doesn't get lost on reboot
+		except Exception as ex:
+			print("[M3UIPTV] [Stalker] Error getting default timezone: " + str(ex))
 			pass
 
 	def get_channels_for_group(self, groups, services, session, cookies, headers, genre_id):
