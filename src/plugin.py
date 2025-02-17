@@ -89,8 +89,8 @@ config.plugins.m3uiptv.bouquet_names_case = ConfigSelection(default=2, choices=[
 
 distro = BoxInfo.getItem("distro")
 
-type0_distros = ["openvix"]
-type1_distros = ["openpli", "openbh"]
+type0_distros = ["openvix", "openpli", "openbh"]
+type1_distros = []
 type2_distros = ["openatv", "egami"]
 
 
