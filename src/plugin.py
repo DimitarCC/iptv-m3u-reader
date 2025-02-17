@@ -89,7 +89,8 @@ config.plugins.m3uiptv.bouquet_names_case = ConfigSelection(default=2, choices=[
 
 distro = BoxInfo.getItem("distro")
 
-type1_distros = ["openvix", "openpli", "openbh"]
+type0_distros = ["openvix"]
+type1_distros = ["openpli", "openbh"]
 type2_distros = ["openatv", "egami"]
 
 
@@ -375,18 +376,28 @@ def writeProviders():
 # Function for overwrite some functions from Navigation.py so to inject own code
 def injectIntoNavigation(session):
 	import NavigationInstance
-	Navigation.originalPlayingServiceReference = None
 	if distro in type2_distros:
+		Navigation.originalPlayingServiceReference = None
 		NavigationInstance.instance.playService = playServiceWithIPTVATV.__get__(NavigationInstance.instance, Navigation)
 		PictureInPicture.playService = playServiceWithIPTVPiPATV
 		NavigationInstance.instance.recordService = recordServiceWithIPTVATV.__get__(NavigationInstance.instance, Navigation)
-	else:
+	elif distro in type1_distros:
+		Navigation.originalPlayingServiceReference = None
 		NavigationInstance.instance.playService = playServiceWithIPTV.__get__(NavigationInstance.instance, Navigation)
 		PictureInPicture.playService = playServiceWithIPTVPiP
 		NavigationInstance.instance.recordService = recordServiceWithIPTV.__get__(NavigationInstance.instance, Navigation)
+	else:
+		if playServiceExtension not in NavigationInstance.instance.playServiceExtensions:
+			NavigationInstance.instance.playServiceExtensions.append(playServiceExtension)
+		if record_pipServiceExtension not in NavigationInstance.instance.recordServiceExtensions:
+			NavigationInstance.instance.recordServiceExtensions.append(record_pipServiceExtension)
+		if record_pipServiceExtension not in PictureInPicture.playServiceExtensions:
+			PictureInPicture.playServiceExtensions.append(record_pipServiceExtension)
+
 	NavigationInstance.instance.playRealService = playRealService.__get__(NavigationInstance.instance, Navigation)
-	NavigationInstance.instance.getCurrentServiceReferenceOriginal = getCurrentServiceReferenceOriginal.__get__(NavigationInstance.instance, Navigation)
-	NavigationInstance.instance.getCurrentlyPlayingServiceOrGroup = getCurrentlyPlayingServiceOrGroup.__get__(NavigationInstance.instance, Navigation)
+	if distro not in type0_distros:
+		NavigationInstance.instance.getCurrentServiceReferenceOriginal = getCurrentServiceReferenceOriginal.__get__(NavigationInstance.instance, Navigation)
+		NavigationInstance.instance.getCurrentlyPlayingServiceOrGroup = getCurrentlyPlayingServiceOrGroup.__get__(NavigationInstance.instance, Navigation)
 	ChannelSelection.saveChannel = saveChannel
 	ParentalControl.servicePinEntered = servicePinEntered
 	injectCatchupInEPG()
@@ -448,7 +459,6 @@ def playServiceWithIPTVPiPATV(self, service):
 					Tools.Notifications.AddPopup(text=_("Incorrect type service for PiP!"), type=MessageBox.TYPE_ERROR, timeout=5, id="ZapPipError")
 		return False
 
-
 def playServiceWithIPTVPiP(self, service):
 		if service is None:
 			return False
@@ -487,6 +497,22 @@ def playServiceWithIPTVPiP(self, service):
 				if not config.usage.hide_zap_errors.value:
 					Tools.Notifications.AddPopup(text=_("Incorrect service type for PiP!"), type=MessageBox.TYPE_ERROR, timeout=5, id="ZapPipError")
 		return False
+
+def playServiceExtension(navigation_instance, playref, event, infoBar_instance):
+	if callable(processIPTVService):
+		result = processIPTVService(playref, navigation_instance.playRealService, event)
+		playref = result[0]
+		if infoBar_instance:
+			infoBar_instance.session.screen["Event_Now"].updateSource(playref)
+			infoBar_instance.session.screen["Event_Next"].updateSource(playref)
+		return result[0], result[2]
+	return playref, False
+		
+
+def record_pipServiceExtension(navigation_instance, playref):
+	if callable(processIPTVService):
+		return processIPTVService(playref, None)[0]
+	return playref
 
 
 def playServiceWithIPTV(self, ref, checkParentalControl=True, forceRestart=False, adjust=True, event=None):
@@ -753,7 +779,6 @@ def playServiceWithIPTVATV(self, ref, checkParentalControl=True, forceRestart=Fa
 
 def getCurrentServiceReferenceOriginal(self):
 	return self.originalPlayingServiceReference
-
 
 def getCurrentlyPlayingServiceOrGroup(self):
 	if not self.currentlyPlayingServiceOrGroup:
