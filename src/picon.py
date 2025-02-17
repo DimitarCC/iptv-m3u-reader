@@ -35,7 +35,8 @@ class Fetcher():
 
 	def downloadURL(self, url, success, fail=None):
 		try:
-			file = self.provider.picon_database[url][0] + ".png"
+			db = self.provider.picon_database if self.provider.picon_gen_strategy == 0 else self.provider.picon_sref_database
+			file = db[url][0] + ".png"
 			if not path.exists(piconname := path.join(self.pluginPiconDir, file)):
 				response = get(url, timeout=2.50, headers={"User-Agent": USER_AGENT})
 				response.raise_for_status()
@@ -53,9 +54,9 @@ class Fetcher():
 
 	def fetchall(self):
 		failed = []
-		if self.provider.picon_database:
+		if self.provider.picon_database or self.provider.picon_sref_database:
 			os_makedirs(self.pluginPiconDir, exist_ok=True)
-			threads = [threading.Thread(target=self.downloadURL, args=(url, self.success, self.failure)) for url in self.provider.picon_database]
+			threads = [threading.Thread(target=self.downloadURL, args=(url, self.success, self.failure)) for url in (self.provider.picon_database if self.provider.picon_gen_strategy == 0 else self.provider.picon_sref_database)]
 			for thread in threads:
 				while threading.activeCount() > self.maxthreads:
 					sleep(1)

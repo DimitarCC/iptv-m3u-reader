@@ -339,8 +339,11 @@ class StalkerProvider(IPTVProcessor):
 		headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
 		url = f"{self.url}/portal.php?type=itv&action=create_link&cmd={cmd}&series=&forced_storage=undefined&disable_ad=0&download=0&JsHttpRequest=1-xml"
 		response = session.get(url, cookies=cookies, headers=headers)
-		stream_data = response.json()["js"]
-		return stream_data["cmd"]
+		try:
+			stream_data = response.json()["js"]
+			return stream_data["cmd"]
+		except:
+			return cmd
 	
 	def processService(self, nref, iptvinfodata, callback=None, event=None):
 		cmd = ""

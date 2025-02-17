@@ -403,7 +403,7 @@ class IPTVProcessor():
 		ch_sref_picon = "_".join(sref_split[:10])
 		if not stream_icon.startswith('http'):
 			stream_icon = 'http://' + stream_icon
-		if stream_icon not in self.picon_database:
+		if stream_icon not in self.picon_sref_database:
 			self.picon_sref_database[stream_icon] = []
 		if ch_sref_picon not in self.picon_sref_database[stream_icon]:
 			self.picon_sref_database[stream_icon].append(ch_sref_picon)
