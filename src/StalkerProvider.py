@@ -384,6 +384,10 @@ class StalkerProvider(IPTVProcessor):
 				iptv_url = iptv_url.replace("extension=ts", "extension=m3u8")
 			nref_new = origRef + ":" + iptv_url.replace(":", "%3a").replace("ffmpeg ", "") + ":" + orig_name + "•" + self.iptv_service_provider
 			nnref = eServiceReference(nref_new)
+			try: #type2 distros support
+				nnref.setCompareSref(nref.toString())
+			except:
+				pass
 			self.isPlayBackup = False
 		if callback:
 			callback(nnref)

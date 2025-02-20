@@ -307,6 +307,10 @@ class M3UProvider(IPTVProcessor):
 					nref_new = origRef + ":" + iptv_url + ":" + orig_name + "•" + prov.iptv_service_provider
 					break
 			self.nnref = eServiceReference(nref_new)
+			try: #type2 distros support
+				self.nnref.setCompareSref(nref.toString())
+			except:
+				pass
 			self.isPlayBackup = False
 			return self.nnref  # , nref
 		except Exception as ex:
