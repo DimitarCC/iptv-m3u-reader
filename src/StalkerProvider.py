@@ -46,7 +46,7 @@ class StalkerProvider(IPTVProcessor):
 			url = url.removesuffix("/c") + "/server"
 		elif "/server" not in url:
 			url = url + "/server"
-		print("[M3UIPTV] [Stalker] Portal URL")
+		print("[M3UIPTV] [Stalker] Portal URL: " + url)
 		return url
 
 	def getEpgUrl(self):
