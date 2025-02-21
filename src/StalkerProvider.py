@@ -40,6 +40,15 @@ class StalkerProvider(IPTVProcessor):
 		self.session = requests.Session()
 		self.token = None
 
+	def getPortalUrl(self):
+		url = self.url.removesuffix("/")
+		if url.endswith("/c"):
+			url = url.removesuffix("/c") + "/server"
+		elif "/server" not in url:
+			url = url + "/server"
+		print("[M3UIPTV] [Stalker] Portal URL")
+		return url
+
 	def getEpgUrl(self):
 		return self.custom_xmltv_url if self.is_custom_xmltv and self.custom_xmltv_url else "http://localhost:9010/StalkerEPG?p=%s" % self.scheme
 
@@ -64,7 +73,7 @@ class StalkerProvider(IPTVProcessor):
 					channel_dict[x.id] = x
 
 				try:
-					url = f"{self.url}/portal.php?type=itv&action=get_epg_info&period=7&JsHttpRequest=1-xml"
+					url = f"{self.getPortalUrl()}/load.php?type=itv&action=get_epg_info&period=7&JsHttpRequest=1-xml"
 					cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
 					headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
 					response = session.get(url, cookies=cookies, headers=headers)
@@ -200,7 +209,7 @@ class StalkerProvider(IPTVProcessor):
 
 	def get_token(self, session):
 		try:
-			url = f"{self.url}/portal.php?type=stb&action=handshake&JsHttpRequest=1-xml"
+			url = f"{self.getPortalUrl()}/load.php?type=stb&action=handshake&JsHttpRequest=1-xml"
 			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
 			headers = {"User-Agent": USER_AGENT}
 			response = session.get(url, cookies=cookies, headers=headers)
@@ -213,7 +222,7 @@ class StalkerProvider(IPTVProcessor):
 
 	def get_genres(self, session, token):
 		try:
-			url = f"{self.url}/portal.php?type=itv&action=get_genres&JsHttpRequest=1-xml"
+			url = f"{self.getPortalUrl()}/load.php?type=itv&action=get_genres&JsHttpRequest=1-xml"
 			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
 			headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
 			response = session.get(url, cookies=cookies, headers=headers)
@@ -238,7 +247,7 @@ class StalkerProvider(IPTVProcessor):
 
 	def get_server_timezone_offset(self, session, token):
 		try:
-			url = f"{self.url}/portal.php?type=stb&action=get_profile&JsHttpRequest=1-xml"
+			url = f"{self.getPortalUrl()}/load.php?type=stb&action=get_profile&JsHttpRequest=1-xml"
 			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
 			headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
 			response = session.get(url, cookies=cookies, headers=headers)
@@ -262,7 +271,7 @@ class StalkerProvider(IPTVProcessor):
 		total_services_count = 0
 		while True:
 			time.sleep(0.05)
-			url = f"{self.url}/portal.php?type=itv&action=get_ordered_list&genre={genre_id}&fav=0&p={page_number}&JsHttpRequest=1-xml&from_ch_id=0"
+			url = f"{self.getPortalUrl()}/load.php?type=itv&action=get_ordered_list&genre={genre_id}&fav=0&p={page_number}&JsHttpRequest=1-xml&from_ch_id=0"
 			try:
 				response = session.get(url, cookies=cookies, headers=headers)
 			except:
@@ -311,7 +320,7 @@ class StalkerProvider(IPTVProcessor):
 
 		cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
 		headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
-		url = f"{self.url}/portal.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml"
+		url = f"{self.getPortalUrl()}/load.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml"
 		response = session.get(url, cookies=cookies, headers=headers)
 		channel_data = response.json()["js"]['data']
 		for channel in channel_data:
@@ -337,7 +346,7 @@ class StalkerProvider(IPTVProcessor):
 	def get_stream_play_url(self, cmd, session, token):
 		cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
 		headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
-		url = f"{self.url}/portal.php?type=itv&action=create_link&cmd={cmd}&series=&forced_storage=undefined&disable_ad=0&download=0&JsHttpRequest=1-xml"
+		url = f"{self.getPortalUrl()}/load.php?type=itv&action=create_link&cmd={cmd}&series=&forced_storage=undefined&disable_ad=0&download=0&JsHttpRequest=1-xml"
 		response = session.get(url, cookies=cookies, headers=headers)
 		try:
 			stream_data = response.json()["js"]
