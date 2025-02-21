@@ -47,6 +47,7 @@ from Components.ParentalControl import ParentalControl
 from Tools.Directories import fileExists, isPluginInstalled
 from Tools.BoundFunction import boundFunction
 from Tools.Notifications import AddPopup
+from Tools.LoadPixmap import LoadPixmap
 from Navigation import Navigation
 
 try:
@@ -92,7 +93,8 @@ distro = BoxInfo.getItem("distro")
 type0_distros = ["openvix", "openpli", "openbh"]
 type2_distros = ["openatv", "egami"]
 
-file = open("%s/menu.xml" % path.dirname(modules[__name__].__file__), 'r')
+plugin_dir = path.dirname(modules[__name__].__file__)
+file = open("%s/menu.xml" % plugin_dir, 'r')
 mdom = xml.etree.cElementTree.parse(file)
 file.close()
 
@@ -1042,6 +1044,7 @@ class M3UIPTVManagerConfig(Screen):
 			<widget source="list" render="Listbox" position="%d,%d" size="%d,%d" scrollbarMode="showOnDemand">
 				<convert type="TemplatedMultiContent">
 					{"template": [
+		 					MultiContentEntryPixmapAlphaBlend(pos = (%d,%d), size = (%d,%d), flags = BT_SCALE | BT_KEEP_ASPECT_RATIO, png = 2),
 							MultiContentEntryText(pos = (%d,%d), size = (%d,%d), flags = RT_HALIGN_LEFT, text = 1), # index 0 is the MenuText,
 						],
 					"fonts": [gFont("Regular",%d)],
@@ -1054,7 +1057,8 @@ class M3UIPTVManagerConfig(Screen):
 		</screen>""",
 			980, 600,  # screen
 			15, 60, 950, 430,  # Listbox
-			2, 0, 630, 26,  # template
+			2, 5, 66, 16,  # logo
+			80, 0, 552, 26,  # template
 			22,  # fonts
 			26,  # ItemHeight
 			5, 500, 940, 50, 22,  # description
@@ -1066,6 +1070,11 @@ class M3UIPTVManagerConfig(Screen):
 		self.setTitle(_("M3U IPTV Manager - providers"))
 		self["list"] = List([])
 		self["progress"] = Progress()
+		self.logos = {}
+		self.logos["M3U"] = LoadPixmap("%s/m3u.png" % plugin_dir)
+		self.logos["Xtreeme"] = LoadPixmap("%s/xc.png" % plugin_dir)
+		self.logos["Stalker"] = LoadPixmap("%s/stalker.png" % plugin_dir)
+		self.logos["TVH"] = LoadPixmap("%s/tvheadend.png" % plugin_dir)
 		self.generate_timer = eTimer()
 		self.generate_timer.callback.append(self.generateBouquets)
 		self.progress_timer = eTimer()
@@ -1129,7 +1138,7 @@ class M3UIPTVManagerConfig(Screen):
 			self["progress"].value = progress_val if progress_val >= 0 else 0
 
 	def buildList(self):
-		self["list"].list = list(sorted([(provider, providers[provider].iptv_service_provider) for provider in providers], key=lambda x: x[1]))
+		self["list"].list = list(sorted([(provider, providers[provider].iptv_service_provider,self.logos[providers[provider].type]) for provider in providers], key=lambda x: x[1]))
 
 	def addProvider(self):
 		self.session.openWithCallback(self.providerCallback, M3UIPTVProviderEdit)
