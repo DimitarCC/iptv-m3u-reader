@@ -4,12 +4,13 @@ from enigma import eDVBDB, eServiceReference
 from ServiceReference import ServiceReference
 from Components.config import config
 from xml.dom import minidom
-import requests
-import time, re, os
+import requests, time, re, math, json
 from zoneinfo import ZoneInfo
 from datetime import datetime
+from twisted.internet import threads
 from .IPTVProcessor import IPTVProcessor
-from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, CATCHUP_STALKER, CATCHUP_STALKER_TEXT, USER_IPTV_PROVIDER_EPG_XML_FILE
+from .VoDItem import VoDItem
+from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, USER_AGENTS, CATCHUP_STALKER, CATCHUP_STALKER_TEXT, USER_IPTV_PROVIDER_EPG_XML_FILE, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE
 
 db = eDVBDB.getInstance()
 
@@ -39,14 +40,22 @@ class StalkerProvider(IPTVProcessor):
 		self.play_system_catchup = "4097"
 		self.session = requests.Session()
 		self.token = None
+		self.portal_entry_point_type = 0
+		self.v_movies = []
+		self.v_series = []
 
 	def getPortalUrl(self):
 		url = self.url.removesuffix("/")
-		if url.endswith("/c"):
-			url = url.removesuffix("/c") + "/server"
-		elif "/server" not in url:
-			url = url + "/server"
-		print("[M3UIPTV] [Stalker] Portal URL: " + url)
+		if self.portal_entry_point_type == 0:
+			if url.endswith("/c"):
+				url = url.removesuffix("/c") + "/server"
+			elif "/server" not in url:
+				url = url + "/server"
+			url = url + "/load.php"
+		elif self.portal_entry_point_type == 1:
+			url = url + "/portal.php"
+
+		print("[M3UIPTV][Stalker] Portal URL: " + url)
 		return url
 
 	def getEpgUrl(self):
@@ -73,7 +82,7 @@ class StalkerProvider(IPTVProcessor):
 					channel_dict[x.id] = x
 
 				try:
-					url = f"{self.getPortalUrl()}/load.php?type=itv&action=get_epg_info&period=7&JsHttpRequest=1-xml"
+					url = f"{self.getPortalUrl()}?type=itv&action=get_epg_info&period=7&JsHttpRequest=1-xml"
 					cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
 					headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
 					response = session.get(url, cookies=cookies, headers=headers)
@@ -138,21 +147,25 @@ class StalkerProvider(IPTVProcessor):
 									pg_entry.appendChild(c_entry)
 						return doc.toxml(encoding='utf-8')
 				except Exception as ex:
-					print("[M3UIPTV] [Stalker] Error getting epg info: " + str(ex))
+					print("[M3UIPTV][Stalker] Error getting epg info: " + str(ex))
 					return None
 		return None
 
 	def storePlaylistAndGenBouquet(self):
 		self.checkForNetwrok()
-		session = requests.Session()
-		token = self.get_token(session)
-		if token:
-			self.get_server_timezone_offset(session, token)
-			genres = self.get_genres(session, token)
-			groups = self.get_all_channels(session, token, genres)
+		self.token = self.get_token(self.session)
+		if self.token:
+			self.get_server_timezone_offset(self.session, self.token)
+			genres = self.get_genres(self.session, self.token)
+			groups = self.get_all_channels(self.session, self.token, genres)
 			self.channels_callback(groups)
 			self.piconsDownload()
 			self.generateEPGImportFiles(groups)
+			if not self.ignore_vod:
+				vod_categories = self.getVODCategories(self.session, self.token)
+				for category in vod_categories:
+					self.movie_categories[category["category_id"]] = category["category_name"]
+				threads.deferToThread(self.get_vod).addCallback(self.store_vod)
 
 	def channels_callback(self, groups):
 		tsid = 1000
@@ -209,20 +222,26 @@ class StalkerProvider(IPTVProcessor):
 
 	def get_token(self, session):
 		try:
-			url = f"{self.getPortalUrl()}/load.php?type=stb&action=handshake&JsHttpRequest=1-xml"
+			url = f"{self.getPortalUrl()}?type=stb&action=handshake&JsHttpRequest=1-xml"
 			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
 			headers = {"User-Agent": USER_AGENT}
+			response = session.get(url, cookies=cookies, headers=headers)
+			if response.status_code == 404:
+				self.portal_entry_point_type = 1
+				from .plugin import writeProviders  # deferred import
+				writeProviders()  # save to config so it doesn't get lost on reboot
+			url = f"{self.getPortalUrl()}?type=stb&action=handshake&JsHttpRequest=1-xml"
 			response = session.get(url, cookies=cookies, headers=headers)
 			token = response.json()["js"]["token"]
 			if token:
 				return token
 		except Exception as ex:
-			print("[M3UIPTV] [Stalker] Error getting token: " + str(ex))
+			print("[M3UIPTV][Stalker] Error getting token: " + str(ex))
 			pass
 
 	def get_genres(self, session, token):
 		try:
-			url = f"{self.getPortalUrl()}/load.php?type=itv&action=get_genres&JsHttpRequest=1-xml"
+			url = f"{self.getPortalUrl()}?type=itv&action=get_genres&JsHttpRequest=1-xml"
 			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
 			headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
 			response = session.get(url, cookies=cookies, headers=headers)
@@ -235,6 +254,8 @@ class StalkerProvider(IPTVProcessor):
 				examples.append(_("UNCATEGORIZED"))
 				for i in genre_data:
 					gid = i["id"]
+					if isinstance(gid, int):
+						gid = str(gid)
 					name = i["title"]
 					genres.append({'name': name, 'category_type': 'IPTV', 'genre_id': gid})
 					if gid != "*":
@@ -242,12 +263,33 @@ class StalkerProvider(IPTVProcessor):
 				self.writeExampleBlacklist(examples)
 				return genres
 		except Exception as ex:
-			print("[M3UIPTV] [Stalker] Error getting genres: " + str(ex))
+			print("[M3UIPTV][Stalker] Error getting genres: " + str(ex))
+			pass
+
+	def getVODCategories(self, session, token):
+		try:
+			url = f"{self.getPortalUrl()}?type=vod&action=get_categories&JsHttpRequest=1-xml"
+			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
+			headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
+			response = session.get(url, cookies=cookies, headers=headers)
+			genre_data = response.json()["js"]
+			if genre_data:
+				genres = []
+				for i in genre_data:
+					gid = i["id"]
+					if isinstance(gid, int):
+						gid = str(gid)
+					name = i["title"]
+					genres.append({'category_name': name, 'category_type': 'VOD', 'category_id': gid})
+				dest_file = USER_IPTV_MOVIE_CATEGORIES_FILE % self.scheme
+				return self.getDataToFile(genres, dest_file)
+		except Exception as ex:
+			print("[M3UIPTV][Stalker] Error getting vod genres: " + str(ex))
 			pass
 
 	def get_server_timezone_offset(self, session, token):
 		try:
-			url = f"{self.getPortalUrl()}/load.php?type=stb&action=get_profile&JsHttpRequest=1-xml"
+			url = f"{self.getPortalUrl()}?type=stb&action=get_profile&JsHttpRequest=1-xml"
 			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
 			headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
 			response = session.get(url, cookies=cookies, headers=headers)
@@ -262,7 +304,7 @@ class StalkerProvider(IPTVProcessor):
 					from .plugin import writeProviders  # deferred import
 					writeProviders()  # save to config so it doesn't get lost on reboot
 		except Exception as ex:
-			print("[M3UIPTV] [Stalker] Error getting default timezone: " + str(ex))
+			print("[M3UIPTV][Stalker] Error getting default timezone: " + str(ex))
 			pass
 
 	def get_channels_for_group(self, groups, services, session, cookies, headers, genre_id):
@@ -271,7 +313,7 @@ class StalkerProvider(IPTVProcessor):
 		total_services_count = 0
 		while True:
 			time.sleep(0.05)
-			url = f"{self.getPortalUrl()}/load.php?type=itv&action=get_ordered_list&genre={genre_id}&fav=0&p={page_number}&JsHttpRequest=1-xml&from_ch_id=0"
+			url = f"{self.getPortalUrl()}?type=itv&action=get_ordered_list&genre={genre_id}&fav=0&p={page_number}&JsHttpRequest=1-xml&from_ch_id=0"
 			try:
 				response = session.get(url, cookies=cookies, headers=headers)
 			except:
@@ -300,9 +342,9 @@ class StalkerProvider(IPTVProcessor):
 						break
 					page_number += 1
 				except ValueError:
-					print("[M3UIPTV] [Stalker] Invalid JSON format in response")
+					print("[M3UIPTV][Stalker] Invalid JSON format in response")
 			else:
-				print(f"[M3UIPTV] [Stalker] IPTV Request failed for page {page_number}")
+				print(f"[M3UIPTV][Stalker] IPTV Request failed for page {page_number}")
 	
 	def get_all_channels(self, session, token, genres):
 		groups = {} 
@@ -320,7 +362,7 @@ class StalkerProvider(IPTVProcessor):
 
 		cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
 		headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
-		url = f"{self.getPortalUrl()}/load.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml"
+		url = f"{self.getPortalUrl()}?type=itv&action=get_all_channels&JsHttpRequest=1-xml"
 		response = session.get(url, cookies=cookies, headers=headers)
 		channel_data = response.json()["js"]['data']
 		for channel in channel_data:
@@ -330,6 +372,8 @@ class StalkerProvider(IPTVProcessor):
 			elif self.output_format == "m3u8":
 				surl = surl.replace("extension=ts", "extension=m3u8")
 			if genre_id := channel["tv_genre_id"]:
+				if isinstance(genre_id, int):
+					genre_id = str(genre_id)
 				category_id = genre_id
 				if self.create_bouquets_strategy > 0:  # config option here: for user-optional, all-channels bouquet
 					if category_id not in groups or groups[category_id][0] not in blacklist:
@@ -346,14 +390,37 @@ class StalkerProvider(IPTVProcessor):
 	def get_stream_play_url(self, cmd, session, token):
 		cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
 		headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
-		url = f"{self.getPortalUrl()}/load.php?type=itv&action=create_link&cmd={cmd}&series=&forced_storage=undefined&disable_ad=0&download=0&JsHttpRequest=1-xml"
+		url = f"{self.getPortalUrl()}?type=itv&action=create_link&cmd={cmd}&series=&forced_storage=undefined&disable_ad=0&download=0&JsHttpRequest=1-xml"
 		response = session.get(url, cookies=cookies, headers=headers)
 		try:
 			stream_data = response.json()["js"]
-			return stream_data["cmd"]
-		except:
-			return cmd
+			return stream_data["cmd"], True
+		except: # probably token has expired
+			return cmd, False
 	
+	def getVoDPlayUrl(self, url):
+		if ("http://" in url or "https://" in url) and "localhost" not in url:
+			return url.replace("ffmpeg ", "")
+		if not self.token:
+			self.token = self.get_token(self.session)
+		cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
+		headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + self.token}
+		url = f"{self.getPortalUrl()}?type=vod&action=create_link&cmd={url.replace('ffmpeg ', '')}&JsHttpRequest=1-xml"
+		response = self.session.get(url, cookies=cookies, headers=headers)
+		try:
+			stream_data = response.json()["js"]
+			return stream_data["cmd"].replace("ffmpeg ", "")
+		except: # probably token has expired
+			self.token = self.get_token(self.session)
+			headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + self.token}
+			response = self.session.get(url, cookies=cookies, headers=headers)
+			try:
+				stream_data = response.json()["js"]
+				return stream_data["cmd"].replace("ffmpeg ", "")
+			except:
+				pass
+			return url.replace("ffmpeg ", "")
+
 	def processService(self, nref, iptvinfodata, callback=None, event=None):
 		cmd = ""
 		splittedRef = nref.toString().split(":")
@@ -383,7 +450,10 @@ class StalkerProvider(IPTVProcessor):
 		if not self.token:
 			self.token = self.get_token(self.session)
 		if self.token:
-			iptv_url = self.get_stream_play_url(cmd.replace("%3a", ":").replace("|amp|", "&"), self.session, self.token)
+			iptv_url, token_valid = self.get_stream_play_url(cmd.replace("%3a", ":").replace("|amp|", "&"), self.session, self.token)
+			if not token_valid:
+				self.token = self.get_token(self.session)
+				iptv_url, token_valid = self.get_stream_play_url(cmd.replace("%3a", ":").replace("|amp|", "&"), self.session, self.token)
 			if catchup_days:
 				iptv_url = self.constructCatchupSuffix(catchup_days, iptv_url, CATCHUP_STALKER_TEXT)
 
@@ -391,6 +461,7 @@ class StalkerProvider(IPTVProcessor):
 				iptv_url = iptv_url.replace("extension=m3u8", "extension=ts")
 			elif self.output_format == "m3u8":
 				iptv_url = iptv_url.replace("extension=ts", "extension=m3u8")
+			nref_new = "%s:%s%s:%s•%s" % (origRef, iptv_url.replace(":", "%3a").replace("ffmpeg ", ""), "" if self.custom_user_agent == "off" else ("#User-Agent=" + USER_AGENTS[self.custom_user_agent]), orig_name, self.iptv_service_provider)
 			nref_new = origRef + ":" + iptv_url.replace(":", "%3a").replace("ffmpeg ", "") + ":" + orig_name + "•" + self.iptv_service_provider
 			nnref = eServiceReference(nref_new)
 			try: #type2 distros support
@@ -401,6 +472,90 @@ class StalkerProvider(IPTVProcessor):
 		if callback:
 			callback(nnref)
 		return nnref, nref, False
+	
+	def get_vod(self):
+		if not self.token:
+			self.token = self.get_token(self.session)
+		cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
+		headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + self.token}
+		page_number = 1
+		total_vod_count = 0
+		total_items = 0
+		total_pages = 0
+		self.progress_percentage = 0
+		movies = []
+		series = []
+		while True:
+			time.sleep(0.05)
+			url = f"{self.getPortalUrl()}?type=vod&action=get_ordered_list&p={page_number}&JsHttpRequest=1-xml"
+			try:
+				response = self.session.get(url, cookies=cookies, headers=headers)
+			except:
+				time.sleep(3)
+				response = self.session.get(url, cookies=cookies, headers=headers)
+			if response.status_code != 200:
+				time.sleep(3)
+				response = self.session.get(url, cookies=cookies, headers=headers)
+
+			if response.status_code == 200:
+				# print("[M3UIPTV] GETTING CHANNELS FOR PAGE %d" % page_number)
+				try:
+					response_json = response.json()
+					vods_data = response_json["js"]["data"]
+					for vod in vods_data:
+						item = {}
+						item["num"] = vod["id"]
+						item["name"] = vod["name"]
+						item["stream_type"] = "movie" if vod["is_movie"] == 1 else "series"
+						item["stream_id"] = vod["id"]
+						item["stream_icon"] = vod["screenshot_uri"]
+						item["rating"] = vod["rating_kinopoisk"]
+						item["added"] = vod["added"]
+						item["is_adult"] = vod["censored"]
+						item["category_id"] = vod["category_id"]
+						item["hd"] = vod["hd"]
+						item["tmdb_id"] = vod["tmdb_id"]
+						item["plot"] = vod["description"]
+						item["director"] = vod["director"]
+						item["actors"] = vod["actors"]
+						item["year"] = vod["year"]
+						item["genres_str"] = vod["genres_str"]
+						item["play_url"] = vod["cmd"]
+						if vod["is_movie"] == 1:
+							movies.append(item)
+						else:
+							series.append(item)
+						total_vod_count += 1
+					if total_pages == 0:
+						total_items = response_json["js"]["total_items"]
+						max_page_items = response_json["js"]["max_page_items"]
+						total_pages = math.ceil(total_items / max_page_items)
+					self.progress_percentage = int((page_number / total_pages) * 100)
+					for x in self.onProgressChanged:
+						x()
+					#print("[M3UIPTV][Stalker][VOD] progress %d / Page Number: %d / Total Pages: %d" % (self.progress_percentage, page_number, total_pages))
+					if page_number == total_pages or self.progress_percentage >= 100:
+						self.progress_percentage = -1
+						for x in self.onProgressChanged:
+							x()
+						break
+					page_number += 1
+				except ValueError:
+					print("[M3UIPTV][Stalker] Invalid JSON format in response")
+			else:
+				print(f"[M3UIPTV][Stalker] IPTV Request failed for page {page_number}")
+		return movies, series
+
+	def store_vod(self, data):
+		vod_movies, vod_series = data
+		if len(vod_movies) > 0:
+			dest_file_movies = USER_IPTV_VOD_MOVIES_FILE % self.scheme
+			self.v_movies = self.getDataToFile(vod_movies, dest_file_movies)
+		if len(vod_series) > 0:
+			dest_file_series = USER_IPTV_VOD_SERIES_FILE % self.scheme
+			self.v_series = self.getDataToFile(vod_series, dest_file_series)
+		self.loadVoDMoviesFromFile()
+		self.loadVoDSeriesFromFile()
 
 # 	def getVoDMovies(self):
 # 		self.vod_movies = []
@@ -408,6 +563,16 @@ class StalkerProvider(IPTVProcessor):
 # 		dest_file = USER_IPTV_VOD_MOVIES_FILE % self.scheme
 # 		json_string = self.getUrlToFile(url, dest_file)
 # 		self.makeVodListFromJson(json_string)
+	def makeVodListFromJson(self, json_string):
+		if json_string:
+			vod_json_obj = json.loads(json_string)
+			for movie in vod_json_obj:
+				name = movie["name"]
+				#ext = movie["container_extension"]
+				id = int(movie["stream_id"])
+				url = movie["play_url"]
+				vod_item = VoDItem(url, name, id, self, self.movie_categories.get(str(movie.get("category_id"))), movie.get("plot"))
+				self.vod_movies.append(vod_item)	
 
 	def loadVoDMoviesFromFile(self):
 		self.vod_movies = []

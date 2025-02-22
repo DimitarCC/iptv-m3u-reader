@@ -3,7 +3,7 @@ from . import _
 
 from twisted.internet import threads
 from .epgimport_helper import epgimport_helper
-from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, CATCHUP_FLUSSONIC_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_FOLDER, USER_AGENTS, USER_IPTV_PROVIDER_EPG_XML_FILE
+from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, CATCHUP_FLUSSONIC_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_FOLDER, USER_AGENTS, USER_IPTV_PROVIDER_EPG_XML_FILE, USER_IPTV_MOVIE_CATEGORIES_FILE
 from .VoDItem import VoDItem
 from .picon import Fetcher
 from Components.config import config
@@ -112,6 +112,7 @@ class IPTVProcessor():
 		self.vod_movies = []
 		self.vod_series = {}
 		self.onBouquetCreated = []
+		self.onProgressChanged = []
 		self.progress_percentage = -1
 		self.update_status_callback = []  # for passing messages
 		self.epg_url = ""
@@ -139,6 +140,7 @@ class IPTVProcessor():
 		self.ch_order_strategy = 0
 		self.epg_time_offset = 0 # Only for Stalker providers
 		self.server_time_offset = "" # Only for Stalker providers
+		self.portal_entry_point_type = 0 # Only for Stalker providers
 
 	def checkForNetwrok(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
@@ -174,11 +176,22 @@ class IPTVProcessor():
 	def getVoDMovies(self):
 		pass
 
+	def getVoDPlayUrl(self, url):
+		return url
+
 	def getMovieCategories(self):
 		pass
 
 	def loadMovieCategoriesFromFile(self):
-		pass
+		vodFile = USER_IPTV_MOVIE_CATEGORIES_FILE % self.scheme
+		json_string = self.loadFromFile(vodFile)
+		self.makeMovieCategoriesDictFromJson(json_string)
+
+	def makeMovieCategoriesDictFromJson(self, json_string):
+		self.movie_categories = {}
+		if json_string:
+			for category in json.loads(json_string):
+				self.movie_categories[category["category_id"]] = category["category_name"]
 
 	def loadVoDMoviesFromFile(self):
 		pass
@@ -276,6 +289,20 @@ class IPTVProcessor():
 			f.close()
 			rename(dest_file + ".writing", dest_file)
 		return vod_response
+	
+	def getDataToFile(self, data, dest_file):
+		if not data:
+			return None
+		makedirs(path.realpath(path.dirname(dest_file)), exist_ok=True)  # make folders and sub folders if not exists
+		with write_lock:
+			f = open(dest_file + ".writing", 'wb')
+			json_str = json.dumps(data).encode()
+			f.write(json_str)
+			f.flush()
+			fsync(f.fileno())
+			f.close()
+			rename(dest_file + ".writing", dest_file)
+		return data
 
 	def loadFromFile(self, source_file):
 		if not fileExists(source_file):

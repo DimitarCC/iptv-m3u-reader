@@ -41,10 +41,9 @@ from Components.SelectionList import SelectionList, SelectionEntryComponent
 from Components.Sources.StaticText import StaticText
 from Components.Sources.List import List
 from Components.Sources.Progress import Progress
-from Components.SystemInfo import SystemInfo, BoxInfo
-from Components.Sources.StreamService import StreamServiceList
+from Components.SystemInfo import BoxInfo
 from Components.ParentalControl import ParentalControl
-from Tools.Directories import fileExists, isPluginInstalled
+from Tools.Directories import fileExists, isPluginInstalled, resolveFilename, SCOPE_CURRENT_SKIN
 from Tools.BoundFunction import boundFunction
 from Tools.Notifications import AddPopup
 from Tools.LoadPixmap import LoadPixmap
@@ -218,9 +217,11 @@ def readProviders():
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
 				if not providerObj.ignore_vod:
+					providerObj.loadMovieCategoriesFromFile()
 					providerObj.loadVoDMoviesFromFile()
 					providerObj.loadVoDSeriesFromFile()
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
+				providerObj.portal_entry_point_type = int(provider.find("portal_entry_point_type").text) if provider.find("portal_entry_point_type") is not None else 0
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("tvhprovider"):
 				providerObj = TVHeadendProvider()
@@ -358,6 +359,7 @@ def writeProviders():
 			xml.append(f"\t\t<output_format>{val.output_format}</output_format>\n")
 			xml.append(f"\t\t<ch_order_strategy>{val.ch_order_strategy}</ch_order_strategy>\n")
 			xml.append(f"\t\t<server_time_offset>{val.server_timezone_offset}</server_time_offset>\n")
+			xml.append(f"\t\t<portal_entry_point_type>{val.portal_entry_point_type}</portal_entry_point_type>\n")
 			xml.append("\t</stalkerprovider>\n")
 	xml.append("</providers>\n")
 	makedirs(path.dirname(USER_IPTV_PROVIDERS_FILE), exist_ok=True)  # create config folder recursive if not exists
@@ -1024,7 +1026,8 @@ class M3UIPTVVoDMovies(Screen):
 			infobar = InfoBar.instance
 			if infobar:
 				LastService = self.session.nav.getCurrentlyPlayingServiceOrGroup()
-				ref = eServiceReference("4097:0:1:9999:1009:1:CCCC0000:0:0:0:%s:%s" % (current[0].url.replace(":", "%3a"), current[0].name))
+				url = current[0].providerObj.getVoDPlayUrl(current[0].url)
+				ref = eServiceReference("4097:0:1:%x:1009:1:CCCC0000:0:0:0:%s:%s" % (current[0].id, url.replace(":", "%3a"), current[0].name))
 				self.session.open(VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
 
 	def keyCancel(self):
@@ -1046,6 +1049,8 @@ class M3UIPTVManagerConfig(Screen):
 					{"template": [
 		 					MultiContentEntryPixmapAlphaBlend(pos = (%d,%d), size = (%d,%d), flags = BT_SCALE | BT_KEEP_ASPECT_RATIO, png = 2),
 							MultiContentEntryText(pos = (%d,%d), size = (%d,%d), flags = RT_HALIGN_LEFT, text = 1), # index 0 is the MenuText,
+		 					MultiContentEntryText(pos = (%d,%d), size = (%d,%d), flags = RT_HALIGN_LEFT, text = 4),
+		 					MultiContentEntryPixmapAlphaBlend(pos = (%d,%d), size = (%d,%d), flags = BT_SCALE | BT_KEEP_ASPECT_RATIO, png = 3),
 						],
 					"fonts": [gFont("Regular",%d)],
 					"itemHeight":%d
@@ -1058,7 +1063,9 @@ class M3UIPTVManagerConfig(Screen):
 			980, 600,  # screen
 			15, 60, 950, 430,  # Listbox
 			2, 5, 66, 16,  # logo
-			80, 0, 552, 26,  # template
+			80, 0, 302, 26,  # template
+			392, 0, 200, 26,  # progress
+			602, 0, 26, 26,  # vod ico
 			22,  # fonts
 			26,  # ItemHeight
 			5, 500, 940, 50, 22,  # description
@@ -1070,18 +1077,31 @@ class M3UIPTVManagerConfig(Screen):
 		self.setTitle(_("M3U IPTV Manager - providers"))
 		self["list"] = List([])
 		self["progress"] = Progress()
+		self.vod_ico = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "icons/vod.png"))
+		if not self.vod_ico:
+			self.vod_ico = LoadPixmap("%s/vod.png" % plugin_dir)
+		m3u_ico = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "icons/m3u.png"))
+		if not m3u_ico:
+			m3u_ico = LoadPixmap("%s/m3u.png" % plugin_dir)
+		xtream_ico = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "icons/xc.png"))
+		if not xtream_ico:
+			xtream_ico = LoadPixmap("%s/xc.png" % plugin_dir)
+		stalker_ico = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "icons/stalker.png"))
+		if not stalker_ico:
+			stalker_ico = LoadPixmap("%s/stalker.png" % plugin_dir)
+		tvh_ico = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "icons/tvheadend.png"))
+		if not tvh_ico:
+			tvh_ico = LoadPixmap("%s/tvheadend.png" % plugin_dir)
 		self.logos = {}
-		self.logos["M3U"] = LoadPixmap("%s/m3u.png" % plugin_dir)
-		self.logos["Xtreeme"] = LoadPixmap("%s/xc.png" % plugin_dir)
-		self.logos["Stalker"] = LoadPixmap("%s/stalker.png" % plugin_dir)
-		self.logos["TVH"] = LoadPixmap("%s/tvheadend.png" % plugin_dir)
+		self.logos["M3U"] = m3u_ico
+		self.logos["Xtreeme"] = xtream_ico
+		self.logos["Stalker"] = stalker_ico
+		self.logos["TVH"] = tvh_ico
 		self.generate_timer = eTimer()
 		self.generate_timer.callback.append(self.generateBouquets)
-		self.progress_timer = eTimer()
-		self.progress_timer.callback.append(self.onProgressTimer)
-		self.progress_timer.start(1000)
-		self.onProgressTimer()
 		self.buildList()
+		for provider in providers:
+			providers[provider].onProgressChanged.append(self.onProgressChanged)
 		self["key_red"] = StaticText(_("Close"))
 		self["key_green"] = StaticText(_("Add provider"))
 		self["key_yellow"] = StaticText(_("Generate bouquets"))
@@ -1115,6 +1135,8 @@ class M3UIPTVManagerConfig(Screen):
 			providerObj = providers[provider]
 			while self.updateDescription in providerObj.update_status_callback:
 				providerObj.update_status_callback.remove(self.updateDescription)
+			while self.onProgressChanged in providerObj.onProgressChanged:
+				providerObj.onProgressChanged.remove(self.onProgressChanged)
 
 	def updateCallbacks(self):
 		for provider in providers:
@@ -1122,23 +1144,8 @@ class M3UIPTVManagerConfig(Screen):
 			if self.updateDescription not in providerObj.update_status_callback:
 				providerObj.update_status_callback.append(self.updateDescription)
 
-	def onProgressTimer(self):
-		providers_updating = 0
-		providers_overal_progress = 0
-		for provider in providers:
-			prov = providers[provider]
-			if prov.progress_percentage > -1:
-				providers_updating += 1
-				providers_overal_progress += prov.progress_percentage
-
-		if providers_updating == 0:
-			self.progress_timer.stop()
-		else:
-			progress_val = int(providers_overal_progress // providers_updating)
-			self["progress"].value = progress_val if progress_val >= 0 else 0
-
 	def buildList(self):
-		self["list"].list = list(sorted([(provider, providers[provider].iptv_service_provider,self.logos[providers[provider].type]) for provider in providers], key=lambda x: x[1]))
+		self["list"].list = list(sorted([(provider, providers[provider].iptv_service_provider,self.logos[providers[provider].type], self.vod_ico if len(providers[provider].vod_movies) > 0 or len(providers[provider].vod_series) > 0 else None,  "" if providers[provider].progress_percentage == -1 else (_("Fetching VoD items") + " " + str(providers[provider].progress_percentage) + "%")) for provider in providers], key=lambda x: x[1]))
 
 	def addProvider(self):
 		self.session.openWithCallback(self.providerCallback, M3UIPTVProviderEdit)
@@ -1164,25 +1171,26 @@ class M3UIPTVManagerConfig(Screen):
 			provider = current[0]
 			providerObj = providers[provider]
 			providerObj.progress_percentage = 0
-			self.progress_timer.stop()
-			self.progress_timer.start(1000)
 			try:
 				providerObj.onBouquetCreated.append(self.onBouquetCreated)
+				providerObj.onProgressChanged.append(self.onProgressChanged)
 				providerObj.getPlaylistAndGenBouquet()
 			except Exception as ex:
 				import traceback
 				err = traceback.format_exc()
 				print("[M3UIPTV] Error has occured during bouquet creation:", err)
-				self.progress_timer.stop()
-				self["progress"].value = -1
 				self.updateDescription(_("%s: an error occured during bouquet creation\n\nError type: %s") % (providerObj.iptv_service_provider, type(ex).__name__))
 				self.session.open(MessageBox, _("%s: an error occured during bouquet creation\n\nError type: %s") % (providerObj.iptv_service_provider, type(ex).__name__), MessageBox.TYPE_ERROR)
+
+	def onProgressChanged(self):
+		try:
+			self["list"].setList(list(sorted([(provider, providers[provider].iptv_service_provider,self.logos[providers[provider].type], self.vod_ico if len(providers[provider].vod_movies) > 0 or len(providers[provider].vod_series) > 0 else None,  "" if providers[provider].progress_percentage == -1 else (_("Fetching VoD items") + " " + str(providers[provider].progress_percentage) + "%")) for provider in providers], key=lambda x: x[1])))
+		except:
+			pass
 
 	def onBouquetCreated(self, providerObj, error):
 		if not hasattr(self, "session") or not self.session:
 			return
-		self.progress_timer.stop()
-		self["progress"].value = -1
 		if error:
 			self.updateDescription(_("%s: unable to create bouquet") % providerObj.iptv_service_provider)
 			self.session.open(MessageBox, _("Unable to create bouquet \"%s\"!\nPossible reason can be no network available.") % providerObj.iptv_service_provider, MessageBox.TYPE_ERROR, timeout=5)
@@ -1321,7 +1329,7 @@ class M3UIPTVProviderEdit(Setup):
 			configlist.append((_("Password"), self.password, _("Password used for authenticating in the streaming server.")))
 		else:
 			configlist.append((_("MAC address"), self.mac, _("MAC address used for authenticating in Stalker portal.")))
-		if self.type.value == "Xtreeme":
+		if self.type.value == "Xtreeme" or self.type.value == "Stalker":
 			configlist.append((_("Skip VOD entries"), self.novod, _("Skip VOD entries in the playlist")))
 		configlist.append((_("Generate EPG files for EPGImport plugin"), self.create_epg, _("Creates files needed for importing EPG via EPGImport plugin")))
 		if self.create_epg.value:

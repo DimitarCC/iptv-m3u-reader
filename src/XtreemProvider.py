@@ -182,14 +182,3 @@ class XtreemProvider(IPTVProcessor):
 		dest_file = USER_IPTV_MOVIE_CATEGORIES_FILE % self.scheme
 		json_string = self.getUrlToFile(url, dest_file)
 		self.makeMovieCategoriesDictFromJson(json_string)
-
-	def loadMovieCategoriesFromFile(self):
-		vodFile = USER_IPTV_MOVIE_CATEGORIES_FILE % self.scheme
-		json_string = self.loadFromFile(vodFile)
-		self.makeMovieCategoriesDictFromJson(json_string)
-
-	def makeMovieCategoriesDictFromJson(self, json_string):
-		self.movie_categories = {}
-		if json_string:
-			for category in json.loads(json_string):
-				self.movie_categories[category["category_id"]] = category["category_name"]
