@@ -1,13 +1,11 @@
 from . import _
 
+import urllib, json, time
 from enigma import eDVBDB
 from Components.config import config
-import socket
-import urllib
-import json
-import time
+from os import path
 from .IPTVProcessor import IPTVProcessor
-from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_PROVIDER_INFO_FILE, USER_IPTV_VOD_SERIES_FILE, CATCHUP_XTREME, CATCHUP_XTREME_TEXT
+from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_PROVIDER_INFO_FILE, USER_IPTV_VOD_SERIES_FILE, CATCHUP_XTREME, CATCHUP_XTREME_TEXT, USER_IPTV_SERIES_CATEGORIES_FILE
 
 db = eDVBDB.getInstance()
 
@@ -100,6 +98,7 @@ class XtreemProvider(IPTVProcessor):
 		if not self.ignore_vod:
 			self.getMovieCategories()
 			self.getVoDMovies()
+			self.getSeriesCategories()
 			self.getVoDSeries()
 
 		examples = []
@@ -141,6 +140,8 @@ class XtreemProvider(IPTVProcessor):
 		vodFile = USER_IPTV_VOD_MOVIES_FILE % self.scheme
 		json_string = self.loadFromFile(vodFile)
 		self.makeVodListFromJson(json_string)
+		for x in self.onProgressChanged:
+			x()
 
 	def getVoDSeries(self):
 		self.vod_series = {}
@@ -149,11 +150,43 @@ class XtreemProvider(IPTVProcessor):
 		json_string = self.getUrlToFile(url, dest_file)
 		self.makeVodSeriesDictFromJson(json_string)
 
-	def loadVoDSeriesFromFile(self):
-		self.vod_series = {}
-		vodFile = USER_IPTV_VOD_SERIES_FILE % self.scheme
-		json_string = self.loadFromFile(vodFile)
-		self.makeVodSeriesDictFromJson(json_string)
+	def getSeriesById(self, series_id):
+		ret = []
+		titles = []  # this is a temporary hack to avoid duplicates when there are multiple container extensions
+		file = path.join(self.getTempDir(), series_id)
+		url = "%s/player_api.php?username=%s&password=%s&action=get_series_info&series_id=%s" % (self.url, self.username, self.password, series_id)
+		json_string = self.loadFromFile(file) or self.getUrlToFile(url, file)
+		if json_string:
+			series = json.loads(json_string)
+			episodes = series.get("episodes")
+			if episodes:
+				for season in episodes:
+					iter = episodes[season] if isinstance(episodes, dict) else season  # this workaround is because there are multiple json formats for series
+					for episode in iter:
+						id = episode.get("id") and str(episode["id"])
+						title = episode.get("title") and str(episode["title"])
+						info = episode.get("info")
+						print("getSeriesById info", info)
+						marker = []
+						if info and info.get("season"):
+							marker.append(_("S%s") % str(info.get("season")))
+						episode_num = episode.get("episode_num") and str(episode["episode_num"])
+						if episode_num:
+							marker.append(_("Ep%s") % episode_num)
+						if marker:
+							marker = ["[%s]" % " ".join(marker)]
+						if info and (duration := info.get("duration")):
+							marker.insert(0, _("Duration: %s") % str(duration))
+						if info and (date := info.get("release_date") or info.get("releasedate") or info.get("air_date")):
+							if date[:4].isdigit():
+								date = date[:4]
+							marker.insert(0, _("Released: %s") % str(date))
+						ext = episode.get("container_extension")
+						episode_url = "%s/series/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
+						if title and info and title not in titles:
+							ret.append((episode_url, title, info, self, ", ".join(marker), id.split(":")[0]))
+							titles.append(title)
+		return ret
 
 	def getServerTZoffset(self):
 		url = "%s/player_api.php?username=%s&password=%s" % (self.url, self.username, self.password)
@@ -182,3 +215,9 @@ class XtreemProvider(IPTVProcessor):
 		dest_file = USER_IPTV_MOVIE_CATEGORIES_FILE % self.scheme
 		json_string = self.getUrlToFile(url, dest_file)
 		self.makeMovieCategoriesDictFromJson(json_string)
+
+	def getSeriesCategories(self):
+		url = "%s/player_api.php?username=%s&password=%s&action=get_series_categories" % (self.url, self.username, self.password)
+		dest_file = USER_IPTV_SERIES_CATEGORIES_FILE % self.scheme
+		json_string = self.getUrlToFile(url, dest_file)
+		self.makeSeriesCategoriesDictFromJson(json_string)

@@ -3,7 +3,7 @@ from . import _
 
 from twisted.internet import threads
 from .epgimport_helper import epgimport_helper
-from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, CATCHUP_FLUSSONIC_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_FOLDER, USER_AGENTS, USER_IPTV_PROVIDER_EPG_XML_FILE, USER_IPTV_MOVIE_CATEGORIES_FILE
+from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, CATCHUP_FLUSSONIC_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_FOLDER, USER_AGENTS, USER_IPTV_PROVIDER_EPG_XML_FILE, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE, USER_IPTV_VOD_SERIES_FILE
 from .VoDItem import VoDItem
 from .picon import Fetcher
 from Components.config import config
@@ -120,6 +120,7 @@ class IPTVProcessor():
 		self.play_system_vod = "4097"
 		self.play_system_catchup = "4097"
 		self.movie_categories = {}
+		self.series_categories = {}
 		self.is_dynamic_epg = False
 		self.is_custom_xmltv = False
 		self.custom_xmltv_url = ""
@@ -182,16 +183,30 @@ class IPTVProcessor():
 	def getMovieCategories(self):
 		pass
 
+	def getSeriesCategories(self):
+		pass
+
 	def loadMovieCategoriesFromFile(self):
 		vodFile = USER_IPTV_MOVIE_CATEGORIES_FILE % self.scheme
 		json_string = self.loadFromFile(vodFile)
 		self.makeMovieCategoriesDictFromJson(json_string)
+
+	def loadSeriesCategoriesFromFile(self):
+		vodFile = USER_IPTV_SERIES_CATEGORIES_FILE % self.scheme
+		json_string = self.loadFromFile(vodFile)
+		self.makeSeriesCategoriesDictFromJson(json_string)
 
 	def makeMovieCategoriesDictFromJson(self, json_string):
 		self.movie_categories = {}
 		if json_string:
 			for category in json.loads(json_string):
 				self.movie_categories[category["category_id"]] = category["category_name"]
+
+	def makeSeriesCategoriesDictFromJson(self, json_string):
+		self.series_categories = {}
+		if json_string:
+			for category in json.loads(json_string):
+				self.series_categories[category["category_id"]] = category["category_name"]
 
 	def loadVoDMoviesFromFile(self):
 		pass
@@ -200,7 +215,12 @@ class IPTVProcessor():
 		pass
 
 	def loadVoDSeriesFromFile(self):
-		pass
+		self.vod_series = {}
+		vodFile = USER_IPTV_VOD_SERIES_FILE % self.scheme
+		json_string = self.loadFromFile(vodFile)
+		self.makeVodSeriesDictFromJson(json_string)
+		for x in self.onProgressChanged:
+			x()
 
 	def loadInfoFromFile(self):
 		pass
@@ -210,54 +230,19 @@ class IPTVProcessor():
 		if json_string:
 			series = json.loads(json_string)
 			for x in series:
-				genre = x.get("genre")
+				category_id = x.get("category_id")
+				if isinstance(category_id, int):
+					category_id = str(category_id)
+				category = "UNCATEGORIZED" if not category_id or category_id not in self.series_categories else self.series_categories[category_id]
 				name = x.get("title") or x.get("name")
 				series_id = x.get("series_id") and str(x["series_id"])
-				if genre is None:
-					genre = "UNCATEGORIZED"
-				else:
-					genre = ", ".join([s for s in sorted(map(str.strip, genre.replace("&amp;", "&").replace("/", ",").split(",")))])
 				if name and series_id:
-					if genre not in self.vod_series:
-						self.vod_series[genre] = []
-					self.vod_series[genre].append((series_id, name))
+					if category not in self.vod_series:
+						self.vod_series[category] = []
+					self.vod_series[category].append((series_id, name))
 
 	def getSeriesById(self, series_id):
 		ret = []
-		titles = []  # this is a temporary hack to avoid duplicates when there are multiple container extensions
-		file = path.join(self.getTempDir(), series_id)
-		url = "%s/player_api.php?username=%s&password=%s&action=get_series_info&series_id=%s" % (self.url, self.username, self.password, series_id)
-		json_string = self.loadFromFile(file) or self.getUrlToFile(url, file)
-		if json_string:
-			series = json.loads(json_string)
-			episodes = series.get("episodes")
-			if episodes:
-				for season in episodes:
-					iter = episodes[season] if isinstance(episodes, dict) else season  # this workaround is because there are multiple json formats for series
-					for episode in iter:
-						id = episode.get("id") and str(episode["id"])
-						title = episode.get("title") and str(episode["title"])
-						info = episode.get("info")
-						print("getSeriesById info", info)
-						marker = []
-						if info and info.get("season"):
-							marker.append(_("S%s") % str(info.get("season")))
-						episode_num = episode.get("episode_num") and str(episode["episode_num"])
-						if episode_num:
-							marker.append(_("Ep%s") % episode_num)
-						if marker:
-							marker = ["[%s]" % " ".join(marker)]
-						if info and (duration := info.get("duration")):
-							marker.insert(0, _("Duration: %s") % str(duration))
-						if info and (date := info.get("release_date") or info.get("releasedate") or info.get("air_date")):
-							if date[:4].isdigit():
-								date = date[:4]
-							marker.insert(0, _("Released: %s") % str(date))
-						ext = episode.get("container_extension")
-						episode_url = "%s/series/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
-						if title and info and title not in titles:
-							ret.append((episode_url, title, info, self, ", ".join(marker)))
-							titles.append(title)
 		return ret
 
 	def getUrl(self, url):

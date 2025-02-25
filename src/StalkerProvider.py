@@ -4,13 +4,14 @@ from enigma import eDVBDB, eServiceReference
 from ServiceReference import ServiceReference
 from Components.config import config
 from xml.dom import minidom
+from os import path
 import requests, time, re, math, json
 from zoneinfo import ZoneInfo
 from datetime import datetime
 from twisted.internet import threads
 from .IPTVProcessor import IPTVProcessor
 from .VoDItem import VoDItem
-from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, USER_AGENTS, CATCHUP_STALKER, CATCHUP_STALKER_TEXT, USER_IPTV_PROVIDER_EPG_XML_FILE, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE
+from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, USER_AGENTS, CATCHUP_STALKER, CATCHUP_STALKER_TEXT, USER_IPTV_PROVIDER_EPG_XML_FILE, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE
 
 db = eDVBDB.getInstance()
 
@@ -165,6 +166,9 @@ class StalkerProvider(IPTVProcessor):
 				vod_categories = self.getVODCategories(self.session, self.token)
 				for category in vod_categories:
 					self.movie_categories[category["category_id"]] = category["category_name"]
+				series_categories = self.getSeriesCategories(self.session, self.token)
+				for category in series_categories:
+					self.series_categories[category["category_id"]] = category["category_name"]
 				threads.deferToThread(self.get_vod).addCallback(self.store_vod)
 
 	def channels_callback(self, groups):
@@ -287,6 +291,27 @@ class StalkerProvider(IPTVProcessor):
 			print("[M3UIPTV][Stalker] Error getting vod genres: " + str(ex))
 			pass
 
+	def getSeriesCategories(self, session, token):
+		try:
+			url = f"{self.getPortalUrl()}?type=series&action=get_categories&JsHttpRequest=1-xml"
+			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
+			headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
+			response = session.get(url, cookies=cookies, headers=headers)
+			genre_data = response.json()["js"]
+			if genre_data:
+				genres = []
+				for i in genre_data:
+					gid = i["id"]
+					if isinstance(gid, int):
+						gid = str(gid)
+					name = i["title"]
+					genres.append({'category_name': name, 'category_type': 'SERIES', 'category_id': gid})
+				dest_file = USER_IPTV_SERIES_CATEGORIES_FILE % self.scheme
+				return self.getDataToFile(genres, dest_file)
+		except Exception as ex:
+			print("[M3UIPTV][Stalker] Error getting series genres: " + str(ex))
+			pass
+
 	def get_server_timezone_offset(self, session, token):
 		try:
 			url = f"{self.getPortalUrl()}?type=stb&action=get_profile&JsHttpRequest=1-xml"
@@ -398,14 +423,14 @@ class StalkerProvider(IPTVProcessor):
 		except: # probably token has expired
 			return cmd, False
 	
-	def getVoDPlayUrl(self, url):
+	def getVoDPlayUrl(self, url, series=0):
 		if ("http://" in url or "https://" in url) and "localhost" not in url:
 			return url.replace("ffmpeg ", "")
 		if not self.token:
 			self.token = self.get_token(self.session)
 		cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
 		headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + self.token}
-		url = f"{self.getPortalUrl()}?type=vod&action=create_link&cmd={url.replace('ffmpeg ', '')}&JsHttpRequest=1-xml"
+		url = f"{self.getPortalUrl()}?type=vod&action=create_link&cmd={url.replace('ffmpeg ', '')}&JsHttpRequest=1-xml&series={str(series)}"
 		response = self.session.get(url, cookies=cookies, headers=headers)
 		try:
 			stream_data = response.json()["js"]
@@ -479,9 +504,8 @@ class StalkerProvider(IPTVProcessor):
 		cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
 		headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + self.token}
 		page_number = 1
-		total_vod_count = 0
-		total_items = 0
 		total_pages = 0
+		total_pages_series = 0
 		self.progress_percentage = 0
 		movies = []
 		series = []
@@ -491,11 +515,22 @@ class StalkerProvider(IPTVProcessor):
 			try:
 				response = self.session.get(url, cookies=cookies, headers=headers)
 			except:
-				time.sleep(3)
+				time.sleep(2)
 				response = self.session.get(url, cookies=cookies, headers=headers)
 			if response.status_code != 200:
-				time.sleep(3)
+				time.sleep(2)
 				response = self.session.get(url, cookies=cookies, headers=headers)
+
+			try:
+				url_series = f"{self.getPortalUrl()}?type=series&action=get_ordered_list&p=1&JsHttpRequest=1-xml"
+				response_series = self.session.get(url_series, cookies=cookies, headers=headers)
+				if response_series.status_code == 200:
+					response_series_json = response_series.json()
+					total_items_series = response_series_json["js"]["total_items"]
+					max_page_items_series = response_series_json["js"]["max_page_items"]
+					total_pages_series = math.ceil(total_items_series / max_page_items_series)
+			except:
+				pass
 
 			if response.status_code == 200:
 				# print("[M3UIPTV] GETTING CHANNELS FOR PAGE %d" % page_number)
@@ -509,7 +544,7 @@ class StalkerProvider(IPTVProcessor):
 						item["stream_type"] = "movie" if vod["is_movie"] == 1 else "series"
 						item["stream_id"] = vod["id"]
 						item["stream_icon"] = vod["screenshot_uri"]
-						item["rating"] = vod["rating_kinopoisk"]
+						item["rating"] = vod["rating_imdb"]
 						item["added"] = vod["added"]
 						item["is_adult"] = vod["censored"]
 						item["category_id"] = vod["category_id"]
@@ -521,29 +556,79 @@ class StalkerProvider(IPTVProcessor):
 						item["year"] = vod["year"]
 						item["genres_str"] = vod["genres_str"]
 						item["play_url"] = vod["cmd"]
-						if vod["is_movie"] == 1:
-							movies.append(item)
-						else:
-							series.append(item)
+						movies.append(item)
 						total_vod_count += 1
 					if total_pages == 0:
 						total_items = response_json["js"]["total_items"]
 						max_page_items = response_json["js"]["max_page_items"]
 						total_pages = math.ceil(total_items / max_page_items)
-					self.progress_percentage = int((page_number / total_pages) * 100)
+					self.progress_percentage = int((page_number / (total_pages + total_pages_series)) * 100)
 					for x in self.onProgressChanged:
 						x()
 					#print("[M3UIPTV][Stalker][VOD] progress %d / Page Number: %d / Total Pages: %d" % (self.progress_percentage, page_number, total_pages))
-					if page_number == total_pages or self.progress_percentage >= 100:
-						self.progress_percentage = -1
-						for x in self.onProgressChanged:
-							x()
-						break
 					page_number += 1
+					if page_number >= total_pages:
+						break
 				except ValueError:
 					print("[M3UIPTV][Stalker] Invalid JSON format in response")
 			else:
 				print(f"[M3UIPTV][Stalker] IPTV Request failed for page {page_number}")
+
+		# Series retrival
+		page_number = 1
+		while True:
+			time.sleep(0.05)
+			url = f"{self.getPortalUrl()}?type=series&action=get_ordered_list&p={page_number}&JsHttpRequest=1-xml"
+			try:
+				response = self.session.get(url, cookies=cookies, headers=headers)
+			except:
+				time.sleep(2)
+				response = self.session.get(url, cookies=cookies, headers=headers)
+			if response.status_code != 200:
+				time.sleep(2)
+				response = self.session.get(url, cookies=cookies, headers=headers)
+
+			if response.status_code == 200:
+				# print("[M3UIPTV] GETTING CHANNELS FOR PAGE %d" % page_number)
+				try:
+					response_json = response.json()
+					vods_data = response_json["js"]["data"]
+					for vod in vods_data:
+						item = {}
+						item["num"] = vod["id"]
+						item["name"] = vod["name"]
+						item["stream_type"] = "movie" if vod["is_movie"] == 1 else "series"
+						item["series_id"] = vod["id"]
+						item["stream_icon"] = vod["screenshot_uri"]
+						item["rating"] = vod["rating_imdb"]
+						item["added"] = vod["added"]
+						item["is_adult"] = vod["censored"]
+						item["category_id"] = vod["category_id"]
+						item["hd"] = vod["hd"]
+						item["tmdb_id"] = vod["tmdb_id"]
+						item["plot"] = vod["description"]
+						item["director"] = vod["director"]
+						item["actors"] = vod["actors"]
+						item["year"] = vod["year"]
+						item["genres_str"] = vod["genres_str"]
+						item["play_url"] = vod["cmd"]
+						series.append(item)
+					total_items = response_json["js"]["total_items"]
+					self.progress_percentage = int(((page_number + total_pages) / (total_pages + total_pages_series)) * 100)
+					for x in self.onProgressChanged:
+						x()
+					#print("[M3UIPTV][Stalker][VOD] progress %d / Page Number: %d / Total Pages: %d" % (self.progress_percentage, page_number, total_pages))
+					page_number += 1
+					if page_number >= total_pages_series:
+						break
+				except ValueError:
+					print("[M3UIPTV][Stalker] Invalid JSON format in response")
+			else:
+				print(f"[M3UIPTV][Stalker] IPTV Request failed for page {page_number}")
+
+		self.progress_percentage = -1
+		for x in self.onProgressChanged:
+			x()
 		return movies, series
 
 	def store_vod(self, data):
@@ -557,12 +642,6 @@ class StalkerProvider(IPTVProcessor):
 		self.loadVoDMoviesFromFile()
 		self.loadVoDSeriesFromFile()
 
-# 	def getVoDMovies(self):
-# 		self.vod_movies = []
-# 		url = "%s/player_api.php?username=%s&password=%s&action=get_vod_streams" % (self.url, self.username, self.password)
-# 		dest_file = USER_IPTV_VOD_MOVIES_FILE % self.scheme
-# 		json_string = self.getUrlToFile(url, dest_file)
-# 		self.makeVodListFromJson(json_string)
 	def makeVodListFromJson(self, json_string):
 		if json_string:
 			vod_json_obj = json.loads(json_string)
@@ -579,3 +658,53 @@ class StalkerProvider(IPTVProcessor):
 		vodFile = USER_IPTV_VOD_MOVIES_FILE % self.scheme
 		json_string = self.loadFromFile(vodFile)
 		self.makeVodListFromJson(json_string)
+		for x in self.onProgressChanged:
+			x()
+
+	def getSeriesById(self, series_id):
+		if not self.token:
+			self.token = self.get_token(self.session)
+		cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
+		headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + self.token}
+		ret = []
+		titles = []  # this is a temporary hack to avoid duplicates when there are multiple container extensions
+		#file = path.join(self.getTempDir(), series_id)
+		page_number = 1
+		total_vod_count = 0
+		while True:
+			url = f"{self.getPortalUrl()}?type=series&action=get_ordered_list&p={page_number}&JsHttpRequest=1-xml&movie_id={series_id}"
+			response = self.session.get(url, cookies=cookies, headers=headers)
+			if response.status_code == 200:
+				response_json = response.json()
+				seasons_data = response_json["js"]["data"]
+				for season in reversed(seasons_data):
+					for episode in season["series"]:
+						id = season.get("id") and str(season["id"])
+						title = season.get("name") and str(season["name"]) + " - Episode " + str(episode)
+						info = {}
+						info["plot"] = season.get("description")
+						print("getSeriesById info", info)
+						marker = []
+						# if info and info.get("season"):
+						# 	marker.append(_("S%s") % str(info.get("season")))
+						episode_num = str(episode)
+						if episode_num:
+							marker.append(_("Ep%s") % episode_num)
+						if marker:
+							marker = ["[%s]" % " ".join(marker)]
+						# if info and (duration := info.get("duration")):
+						# 	marker.insert(0, _("Duration: %s") % str(duration))
+						# if info and (date := info.get("release_date") or info.get("releasedate") or info.get("air_date")):
+						# 	if date[:4].isdigit():
+						# 		date = date[:4]
+						# 	marker.insert(0, _("Released: %s") % str(date))
+						episode_url = f"{season['cmd']}||{str(episode)}" #self.getVoDPlayUrl(season["cmd"], episode)
+						if title and info and title not in titles:
+							ret.append((episode_url, title, info, self, ", ".join(marker), id.split(":")[0]))
+							titles.append(title)
+					total_vod_count += 1
+				total_items = response_json["js"]["total_items"]
+				page_number += 1
+				if total_vod_count >= total_items:
+					break
+		return ret

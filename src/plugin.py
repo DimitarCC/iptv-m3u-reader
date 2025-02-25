@@ -9,7 +9,7 @@ import base64
 from urllib.error import HTTPError, URLError
 from twisted.web import server, resource
 from twisted.internet import threads, reactor
-from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, setPreferredTuner
+from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, iPlayableService
 try:
 	from enigma import pNavigation
 except ImportError:
@@ -34,11 +34,13 @@ from Screens.Menu import Menu
 from Screens.MessageBox import MessageBox
 from Screens.TextBox import TextBox
 from Screens.VirtualKeyBoard import VirtualKeyBoard
+from Components.ServiceEventTracker import ServiceEventTracker
 from Components.ActionMap import ActionMap, HelpableActionMap
 from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigText, ConfigPassword, ConfigSelectionNumber, ConfigNumber
 from Components.ParentalControl import parentalControl
 from Components.SelectionList import SelectionList, SelectionEntryComponent
 from Components.Sources.StaticText import StaticText
+from Components.Label import Label
 from Components.Sources.List import List
 from Components.Sources.Progress import Progress
 from Components.SystemInfo import BoxInfo
@@ -86,6 +88,10 @@ config.plugins.m3uiptv.inmenu = ConfigYesNo(default=True)
 config.plugins.m3uiptv.inextensions = ConfigYesNo(default=False)
 config.plugins.m3uiptv.picon_threads = ConfigSelectionNumber(min=50, max=1000, stepwidth=50, default=100, wraparound=True)
 config.plugins.m3uiptv.bouquet_names_case = ConfigSelection(default=2, choices=[(0, _("Original case")), (1, _("lower case")), (2, _("UPPER case"))])
+vod_play_system_choices = [("4097", "HiSilicon" if BoxInfo.getItem("mediaservice") == "servicehisilicon" else "GStreamer")]
+if isPluginInstalled("ServiceApp"):
+	vod_play_system_choices.append(("5002", "Exteplayer3"))
+config.plugins.m3uiptv.vod_play_system = ConfigSelection(default="4097", choices=vod_play_system_choices)
 
 distro = BoxInfo.getItem("distro")
 
@@ -187,6 +193,7 @@ def readProviders():
 					providerObj.loadInfoFromFile()
 					providerObj.loadMovieCategoriesFromFile()
 					providerObj.loadVoDMoviesFromFile()
+					providerObj.loadSeriesCategoriesFromFile()
 					providerObj.loadVoDSeriesFromFile()
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
 				providerObj.picon_gen_strategy = int(provider.find("picon_gen_strategy").text) if provider.find("picon_gen_strategy") is not None else 0
@@ -219,6 +226,7 @@ def readProviders():
 				if not providerObj.ignore_vod:
 					providerObj.loadMovieCategoriesFromFile()
 					providerObj.loadVoDMoviesFromFile()
+					providerObj.loadSeriesCategoriesFromFile()
 					providerObj.loadVoDSeriesFromFile()
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
 				providerObj.portal_entry_point_type = int(provider.find("portal_entry_point_type").text) if provider.find("portal_entry_point_type") is not None else 0
@@ -606,6 +614,11 @@ class VoDMoviePlayer(MoviePlayer):
 	def __init__(self, session, service, slist=None, lastservice=None):
 		MoviePlayer.__init__(self, session, service=service, slist=slist, lastservice=lastservice)
 		self.skinName = ["VoDMoviePlayer", "MoviePlayer"]
+		self.__event_tracker = ServiceEventTracker(screen=self, eventmap={
+			iPlayableService.evStart: self.__evServiceStart,})
+		
+	def __evServiceStart(self):
+		self.jumpPreviousNextMark(lambda x: 0, start=True) # Reset the stream to beginning since some network streams jumps to the end marker
 
 	def leavePlayer(self):
 		self.setResumePoint()
@@ -660,6 +673,7 @@ class M3UIPTVVoDSeries(Screen):
 	skin = ["""
 		<screen name="M3UIPTVVoDSeries" position="center,center" size="%d,%d">
 			<panel name="__DynamicColorButtonTemplate__"/>
+		 	<widget name="overlay" position="%d,%d" zPosition="12" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1"/>
 			<widget source="list" render="Listbox" position="%d,%d" size="%d,%d" scrollbarMode="showOnDemand">
 				<convert type="TemplatedMultiContent">
 					{"template": [
@@ -673,6 +687,7 @@ class M3UIPTVVoDSeries(Screen):
 			<widget source="description" render="Label" position="%d,%d" zPosition="10" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1" />
 		</screen>""",
 			980, 600,  # screen
+			15, 60, 950, 430, 22,  # overlay
 			15, 60, 950, 430,  # Listbox
 			2, 0, 630, 26,  # template
 			22,  # fonts
@@ -685,6 +700,8 @@ class M3UIPTVVoDSeries(Screen):
 		self.skinName = [self.skinName, "M3UIPTVVoDMovies"]
 		self["list"] = List([])
 		self["description"] = StaticText()
+		self["overlay"] = Label(_("Please wait! Loading data from server."))
+		self["overlay"].hide()
 		self.mode = self.MODE_GENRE
 		self.allseries = {}
 		allEpisodes = []
@@ -759,18 +776,34 @@ class M3UIPTVVoDSeries(Screen):
 			elif self.mode in (self.MODE_SERIES, self.MODE_SEARCH):
 				id = current[0]
 				provider = current[2]
-				try:
-					self.episodes = providers[provider].getSeriesById(id)
-				except (TimeoutError, HTTPError, URLError) as err:
-					print("[M3UIPTVVoDSeries] keySelect, failure in getSeriesById, %s:" % type(err).__name__, err)
-					return
-				self.pushStack()
-				self.seriesName = current[1]
-				self.mode = self.MODE_EPISODE
-				self.buildList()
-				self["list"].index = 0
+				self["overlay"].show()
+				self["list"].master.master.hide()
+				threads.deferToThread(self.getSeriesById, provider, id).addCallback(self.loadSeriesList)
 			elif self.mode == self.MODE_EPISODE:
 				self.playMovie()
+
+	def getSeriesById(self, provider, id):
+		try:
+			self.episodes = providers[provider].getSeriesById(id)
+			return True
+		except (TimeoutError, HTTPError, URLError) as err:
+			print("[M3UIPTVVoDSeries] keySelect, failure in getSeriesById, %s:" % type(err).__name__, err)
+			return False
+		
+	def loadSeriesList(self, state):
+		if not state:
+			self["overlay"].hide()
+			self["list"].master.master.show()
+			return
+		if current := self["list"].getCurrent():
+			self["overlay"].hide()
+			self.pushStack()
+			self.seriesName = current[1]
+			self.mode = self.MODE_EPISODE
+			self.buildList()
+			self["list"].index = 0
+			self["list"].master.master.show()
+
 
 	def key_play(self):
 		if self.mode == self.MODE_EPISODE:
@@ -830,7 +863,14 @@ class M3UIPTVVoDSeries(Screen):
 			infobar = InfoBar.instance
 			if infobar:
 				LastService = self.session.nav.getCurrentlyPlayingServiceOrGroup()
-				ref = eServiceReference("4097:0:1:9999:1009:1:CCCC0000:0:0:0:%s:%s" % (current[0].replace(":", "%3a"), current[1]))
+				stream_data = current[0]
+				stream_data_split = stream_data.split("||")
+				url = stream_data_split[0]
+				if len(stream_data_split) > 1:
+					providerObj = current[3]
+					series = int(stream_data_split[1])
+					url = providerObj.getVoDPlayUrl(url, series)
+				ref = eServiceReference("%s:0:1:%x:1009:1:CCCC0000:0:0:0:%s:%s" % (config.plugins.m3uiptv.vod_play_system.value, int(current[5]) + (10000*series), url.replace(":", "%3a"), current[1]))
 				self.session.open(VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
 
 	def mdb(self):
@@ -1482,6 +1522,7 @@ class IPTVPluginConfig(Setup):
 		configlist.append((_("Show 'Video on Demand' menu entry") + " *", config.plugins.m3uiptv.inmenu, _("Allow showing of 'Video on Demand' menu entry in Main Menu.")))
 		configlist.append((_("Show 'Video on Demand' extensions entry") + " *", config.plugins.m3uiptv.inextensions, _("Allow showing of 'Video on Demand' entry in the extensions (BLUE button) menu.") + " *"))
 		configlist.append((_("Bouquet name character case"), config.plugins.m3uiptv.bouquet_names_case, _("Specify the character case used for bouquet names and titles.")))
+		configlist.append((_("VoD playback system"), config.plugins.m3uiptv.vod_play_system, _("Specify the type of services that will be generated for VoD items.")))
 		configlist.append(("---",))
 		configlist.append((_("Enable catchup/archive entries in EPG screens for period"), config.epg.histminutes, _("Enables possibility to return back in epg screens so to use old entries for invoke catchup/archive/timeshift.")))
 		configlist.append((_("Local EPG server listening port") + " *", config.plugins.m3uiptv.epg_loc_port, _("Enables possibility to return back in epg screens so to use old entries for invoke catchup/archive/timeshift.")))
