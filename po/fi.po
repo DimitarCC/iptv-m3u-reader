@@ -8,13 +8,13 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-02-25 16:40+0200\n"
-"PO-Revision-Date: 2025-02-11 16:30+0200\n"
+"PO-Revision-Date: 2025-02-25 18:28+0200\n"
 "Last-Translator: Orlandox <huoltovalikko.com>\n"
 "Language-Team: Orlandox\n"
+"Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fi\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.5\n"
 
@@ -292,7 +292,7 @@ msgstr "J%s"
 
 #: ../src/plugin.py:1188 ../src/plugin.py:1227
 msgid "Fetching VoD items"
-msgstr ""
+msgstr "Haetaan VoD-kohteita"
 
 #: ../src/plugin.py:1366
 msgid "Filter"
@@ -489,7 +489,7 @@ msgstr "Soittolistan hallinta"
 
 #: ../src/plugin.py:703
 msgid "Please wait! Loading data from server."
-msgstr ""
+msgstr "Odota! Ladataan tietoja palvelimelta."
 
 #: ../src/plugin.py:753
 msgid "Press OK to access selected item"
@@ -704,9 +704,8 @@ msgid "Specify the provider user friendly name that will be used for the bouquet
 msgstr "Määritä palveluntarjoajan käyttäjäystävällinen nimi, jota käytetään suosikkilistan nimessä ja näytettäessä tietopalkki."
 
 #: ../src/plugin.py:1525
-#, fuzzy
 msgid "Specify the type of services that will be generated for VoD items."
-msgstr "Määritä, kuinka xmltv-merkinnät yhdistetään kanaviin."
+msgstr "Määritä palvelutyypit, jotka luodaan VoD-kohteille."
 
 #: ../src/plugin.py:1384
 msgid ""
@@ -948,9 +947,8 @@ msgid "VoD Series: enter search terms"
 msgstr "Tilaus-TV (VoD) sarjat: syötä hakutermit"
 
 #: ../src/plugin.py:1525
-#, fuzzy
 msgid "VoD playback system"
-msgstr "Toistojärjestelmä"
+msgstr "VoD-toistojärjestelmä"
 
 #: ../src/plugin.py:1540
 msgid "When enabled, a warning will be displayed and the user will get an option to stop or to continue the time shift."
