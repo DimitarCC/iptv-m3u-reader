@@ -578,5 +578,5 @@ def playArchiveEntry(self):
 				playref.setName(event.getEventName())
 				infobar = InfoBar.instance
 				if infobar:
-					LastService = self.session.nav.getCurrentlyPlayingServiceOrGroup()
+					LastService = self.session.nav.getCurrentServiceReferenceOriginal()
 					self.session.open(CatchupPlayer, playref, sref_ret=sref, slist=infobar.servicelist, lastservice=LastService, event=event, orig_url=url, start_orig=stime, end_org=stime + duration, duration=duration, catchup_ref_type=catchup_ref_type, orig_sref=service.toString())

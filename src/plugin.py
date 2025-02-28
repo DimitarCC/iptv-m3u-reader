@@ -397,10 +397,22 @@ def injectIntoNavigation(session):
 
 	NavigationInstance.instance.playRealService = playRealService.__get__(NavigationInstance.instance, Navigation)
 
+	if distro not in type0_distros:
+		NavigationInstance.instance.getCurrentServiceReferenceOriginal = getCurrentServiceReferenceOriginal.__get__(NavigationInstance.instance, Navigation)
+		NavigationInstance.instance.getCurrentlyPlayingServiceOrGroup = getCurrentlyPlayingServiceOrGroup.__get__(NavigationInstance.instance, Navigation)
+
 	ChannelSelection.saveChannel = saveChannel
 	ParentalControl.servicePinEntered = servicePinEntered
 	injectCatchupInEPG()
 	overwriteEPGImportEPGSourceInit()
+
+def getCurrentServiceReferenceOriginal(self):
+	return self.originalPlayingServiceReference
+
+def getCurrentlyPlayingServiceOrGroup(self):
+	if not self.currentlyPlayingServiceOrGroup:
+		return None
+	return self.originalPlayingServiceReference or self.currentlyPlayingServiceOrGroup
 
 def saveChannel(self, ref):
 		if ref is not None:
@@ -632,7 +644,7 @@ class VoDMoviePlayer(MoviePlayer):
 
 	def setResumePoint(self):
 		service = self.session.nav.getCurrentService()
-		ref = self.session.nav.getCurrentlyPlayingServiceOrGroup()
+		ref = self.session.nav.getCurrentServiceReferenceOriginal()
 		if (service is not None) and (ref is not None):
 			seek = service.seek()
 			if seek:
@@ -653,7 +665,7 @@ class VoDMoviePlayer(MoviePlayer):
 			return
 		if not playing:
 			return
-		ref = self.session.nav.getCurrentlyPlayingServiceOrGroup()
+		ref = self.session.nav.getCurrentServiceReferenceOriginal()
 		if ref:
 			delResumePoint(ref)
 		self.handleLeave("quit")
@@ -861,8 +873,9 @@ class M3UIPTVVoDSeries(Screen):
 	def playMovie(self):
 		if current := self["list"].getCurrent():
 			infobar = InfoBar.instance
+			series = 0
 			if infobar:
-				LastService = self.session.nav.getCurrentlyPlayingServiceOrGroup()
+				LastService = self.session.nav.getCurrentServiceReferenceOriginal()
 				stream_data = current[0]
 				stream_data_split = stream_data.split("||")
 				url = stream_data_split[0]
@@ -1065,9 +1078,9 @@ class M3UIPTVVoDMovies(Screen):
 		if current := self["list"].getCurrent():
 			infobar = InfoBar.instance
 			if infobar:
-				LastService = self.session.nav.getCurrentlyPlayingServiceOrGroup()
+				LastService = self.session.nav.getCurrentServiceReferenceOriginal()
 				url = current[0].providerObj.getVoDPlayUrl(current[0].url)
-				ref = eServiceReference("4097:0:1:%x:1009:1:CCCC0000:0:0:0:%s:%s" % (current[0].id, url.replace(":", "%3a"), current[0].name))
+				ref = eServiceReference("%s:0:1:%x:1009:1:CCCC0000:0:0:0:%s:%s" % (config.plugins.m3uiptv.vod_play_system.value, current[0].id, url.replace(":", "%3a"), current[0].name))
 				self.session.open(VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
 
 	def keyCancel(self):
@@ -1210,7 +1223,7 @@ class M3UIPTVManagerConfig(Screen):
 		if current := self["list"].getCurrent():
 			provider = current[0]
 			providerObj = providers[provider]
-			providerObj.progress_percentage = 0
+			providerObj.progress_percentage = -1
 			try:
 				providerObj.onBouquetCreated.append(self.onBouquetCreated)
 				providerObj.onProgressChanged.append(self.onProgressChanged)

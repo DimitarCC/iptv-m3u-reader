@@ -544,7 +544,7 @@ class StalkerProvider(IPTVProcessor):
 						item["stream_type"] = "movie" if vod["is_movie"] == 1 else "series"
 						item["stream_id"] = vod["id"]
 						item["stream_icon"] = vod["screenshot_uri"]
-						item["rating"] = vod["rating_imdb"]
+						item["rating"] = vod["rating_imdb"] if "raating_imdb" in vod else vod["rating_kinopoisk"]
 						item["added"] = vod["added"]
 						item["is_adult"] = vod["censored"]
 						item["category_id"] = vod["category_id"]
@@ -557,7 +557,6 @@ class StalkerProvider(IPTVProcessor):
 						item["genres_str"] = vod["genres_str"]
 						item["play_url"] = vod["cmd"]
 						movies.append(item)
-						total_vod_count += 1
 					if total_pages == 0:
 						total_items = response_json["js"]["total_items"]
 						max_page_items = response_json["js"]["max_page_items"]
@@ -600,7 +599,7 @@ class StalkerProvider(IPTVProcessor):
 						item["stream_type"] = "movie" if vod["is_movie"] == 1 else "series"
 						item["series_id"] = vod["id"]
 						item["stream_icon"] = vod["screenshot_uri"]
-						item["rating"] = vod["rating_imdb"]
+						item["rating"] = vod["rating_imdb"] if "raating_imdb" in vod else vod["rating_kinopoisk"]
 						item["added"] = vod["added"]
 						item["is_adult"] = vod["censored"]
 						item["category_id"] = vod["category_id"]
