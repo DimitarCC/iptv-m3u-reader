@@ -399,7 +399,7 @@ def injectIntoNavigation(session):
 			NavigationInstance.instance.recordServiceExtensions.append(record_pipServiceExtension)
 		if record_pipServiceExtension not in PictureInPicture.playServiceExtensions:
 			PictureInPicture.playServiceExtensions.append(record_pipServiceExtension)
-		if QuadPiP and hasattr(QuadPiP, "playServiceQPiPExtension" ) and playServiceQPiPExtension not in QuadPiP.playServiceExtensions:
+		if QuadPiP and hasattr(QuadPiP, "playServiceExtensions" ) and playServiceQPiPExtension not in QuadPiP.playServiceExtensions:
 			QuadPiP.playServiceExtensions.append(playServiceQPiPExtension)
 
 	NavigationInstance.instance.playRealService = playRealService.__get__(NavigationInstance.instance, Navigation)
