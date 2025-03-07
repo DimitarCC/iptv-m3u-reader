@@ -8,7 +8,7 @@ from time import time
 from twisted.internet import threads
 import urllib, re
 from .IPTVProcessor import IPTVProcessor
-from .Variables import CATCHUP_DEFAULT, CATCHUP_TYPES
+from .Variables import CATCHUP_DEFAULT, CATCHUP_TYPES, USER_AGENTS
 
 db = eDVBDB.getInstance()
 
@@ -242,7 +242,7 @@ class M3UProvider(IPTVProcessor):
 		sRef = nref and ServiceReference(nref.toString())
 		origRef = ":".join(splittedRef[:10])
 		iptvInfoDataSplit = iptvinfodata.split("?")
-		channelForSearch = iptvInfoDataSplit[0].split(":")[0]
+		channelForSearch = iptvInfoDataSplit[0].split(":")[0].split("#")[0]
 		orig_name = sRef and sRef.getServiceName()
 		backup_ref = nref.toString()
 		try:
@@ -304,6 +304,8 @@ class M3UProvider(IPTVProcessor):
 						catchup_days = match.group(1)
 					iptv_url = line.replace(":", "%3a")
 					iptv_url = self.constructCatchupSuffix(catchup_days, iptv_url, CATCHUP_TYPES[self.catchup_type])
+					if self.custom_user_agent != "off":
+						iptv_url += f"#User-Agent={USER_AGENTS[self.custom_user_agent]}"
 					nref_new = origRef + ":" + iptv_url + ":" + orig_name + "•" + prov.iptv_service_provider
 					break
 			self.nnref = eServiceReference(nref_new)

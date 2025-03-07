@@ -52,6 +52,11 @@ from Tools.LoadPixmap import LoadPixmap
 from Navigation import Navigation
 
 try:
+	from Plugins.SystemPlugins.QuadPiP.qpip import QuadPiP
+except ImportError:
+	QuadPiP = None
+
+try:
 	from Screens.InfoBarGenerics import resumePointsInstance
 	saveResumePoints = resumePointsInstance.saveResumePoints
 	resumePointCache = resumePointsInstance.resumePointCache
@@ -394,6 +399,8 @@ def injectIntoNavigation(session):
 			NavigationInstance.instance.recordServiceExtensions.append(record_pipServiceExtension)
 		if record_pipServiceExtension not in PictureInPicture.playServiceExtensions:
 			PictureInPicture.playServiceExtensions.append(record_pipServiceExtension)
+		if QuadPiP and playServiceQPiPExtension not in QuadPiP.playServiceExtensions:
+			QuadPiP.playServiceExtensions.append(playServiceQPiPExtension)
 
 	NavigationInstance.instance.playRealService = playRealService.__get__(NavigationInstance.instance, Navigation)
 
@@ -430,7 +437,7 @@ def servicePinEntered(self, service, result=None):
 		try:
 			self.callback(ref=service, forceRestart=True)
 		except:
-			self.callback(service)
+			self.callback(ref=service)
 	elif result is False:
 		messageText = _("The pin code you entered is wrong.")
 		if self.session:
@@ -438,9 +445,13 @@ def servicePinEntered(self, service, result=None):
 		else:
 			AddPopup(messageText, MessageBox.TYPE_ERROR, timeout=3)
 
+def playServiceQPiPExtension(instance, playref):
+	return playServiceExtension(None, playref, None, None)
+
+
 def playServiceExtension(navigation_instance, playref, event, infoBar_instance):
 	if callable(processIPTVService):
-		result = processIPTVService(playref, navigation_instance.playRealService, event)
+		result = processIPTVService(playref, navigation_instance and navigation_instance.playRealService, event)
 		playref = result[0]
 		if infoBar_instance:
 			infoBar_instance.session.screen["Event_Now"].updateSource(playref)
