@@ -28,7 +28,6 @@ from Screens.Screen import Screen, ScreenSummary
 from Screens.InfoBar import InfoBar, MoviePlayer
 from Screens.InfoBarGenerics import streamrelay
 from Screens.PictureInPicture import PictureInPicture
-from Screens.ChannelSelection import ChannelSelection
 from Screens.Setup import Setup
 from Screens.Menu import Menu
 from Screens.MessageBox import MessageBox
@@ -44,10 +43,8 @@ from Components.Label import Label
 from Components.Sources.List import List
 from Components.Sources.Progress import Progress
 from Components.SystemInfo import BoxInfo
-from Components.ParentalControl import ParentalControl
 from Tools.Directories import fileExists, isPluginInstalled, resolveFilename, SCOPE_CURRENT_SKIN
 from Tools.BoundFunction import boundFunction
-from Tools.Notifications import AddPopup
 from Tools.LoadPixmap import LoadPixmap
 from Navigation import Navigation
 
@@ -408,8 +405,6 @@ def injectIntoNavigation(session):
 		NavigationInstance.instance.getCurrentServiceReferenceOriginal = getCurrentServiceReferenceOriginal.__get__(NavigationInstance.instance, Navigation)
 		NavigationInstance.instance.getCurrentlyPlayingServiceOrGroup = getCurrentlyPlayingServiceOrGroup.__get__(NavigationInstance.instance, Navigation)
 
-	ChannelSelection.saveChannel = saveChannel
-	ParentalControl.servicePinEntered = servicePinEntered
 	injectCatchupInEPG()
 	overwriteEPGImportEPGSourceInit()
 
@@ -420,30 +415,6 @@ def getCurrentlyPlayingServiceOrGroup(self):
 	if not self.currentlyPlayingServiceOrGroup:
 		return None
 	return self.originalPlayingServiceReference or self.currentlyPlayingServiceOrGroup
-
-def saveChannel(self, ref):
-		if ref is not None:
-			refstr = ref.toString()
-		else:
-			refstr = ""
-		if refstr != self.lastservice.value:
-			self.lastservice.value = refstr
-			self.lastservice.save()
-
-def servicePinEntered(self, service, result=None):
-	if result:
-		self.setSessionPinCached()
-		self.hideBlacklist()
-		try:
-			self.callback(ref=service, forceRestart=True)
-		except:
-			self.callback(ref=service)
-	elif result is False:
-		messageText = _("The pin code you entered is wrong.")
-		if self.session:
-			self.session.open(MessageBox, messageText, MessageBox.TYPE_INFO, timeout=3)
-		else:
-			AddPopup(messageText, MessageBox.TYPE_ERROR, timeout=3)
 
 def playServiceQPiPExtension(instance, playref):
 	return playServiceExtension(None, playref, None, None)

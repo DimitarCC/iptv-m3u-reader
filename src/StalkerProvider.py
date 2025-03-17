@@ -4,7 +4,6 @@ from enigma import eDVBDB, eServiceReference
 from ServiceReference import ServiceReference
 from Components.config import config
 from xml.dom import minidom
-from os import path
 import requests, time, re, math, json
 from zoneinfo import ZoneInfo
 from datetime import datetime
