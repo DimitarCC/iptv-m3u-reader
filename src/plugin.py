@@ -23,7 +23,7 @@ from .TVHeadendProvider import TVHeadendProvider
 from .IPTVProviders import providers, processService as processIPTVService
 from .IPTVCatchupPlayer import injectCatchupInEPG
 from .epgimport_helper import overwriteEPGImportEPGSourceInit
-from .Variables import USER_IPTV_PROVIDERS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_STALKER, CATCHUP_FLUSSONIC
+from .Variables import USER_IPTV_PROVIDERS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_STALKER, CATCHUP_FLUSSONIC, CATCHUP_VOD
 from Screens.Screen import Screen, ScreenSummary
 from Screens.InfoBar import InfoBar, MoviePlayer
 from Screens.InfoBarGenerics import streamrelay
@@ -166,6 +166,30 @@ def readProviders():
 				providerObj.ch_order_strategy = int(provider.find("ch_order_strategy").text) if provider.find("ch_order_strategy") is not None else 0
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
+
+				# media library nodes
+				providerObj.has_media_library = provider.find("has_media_library") is not None and provider.find("has_media_library").text == "on"
+				providerObj.media_library_type = provider.find("media_library_type").text if provider.find("media_library_type") is not None else "xc"
+				providerObj.media_library_url = provider.find("media_library_url").text if provider.find("media_library_url") is not None and provider.find("media_library_url").text is not None else ""
+				providerObj.media_library_username = provider.find("media_library_username").text if provider.find("media_library_username") is not None and provider.find("media_library_username").text is not None else ""
+				providerObj.media_library_password = provider.find("media_library_password").text if provider.find("media_library_password") is not None and provider.find("media_library_password").text is not None else ""
+				providerObj.media_library_token = provider.find("media_library_token").text if provider.find("media_library_token") is not None and provider.find("media_library_token").text is not None else ""
+
+				if providerObj.has_media_library:
+					providerObj.media_library_object = XtreemProvider()
+					providerObj.media_library_object.scheme = providerObj.scheme
+					providerObj.media_library_object.url = providerObj.media_library_url
+					providerObj.media_library_object.ignore_vod = False
+					providerObj.media_library_object.create_epg = False
+					if providerObj.media_library_type == "xc":
+						providerObj.media_library_object.username = providerObj.media_library_username
+						providerObj.media_library_object.password = providerObj.media_library_password
+					else:
+						providerObj.media_library_object.username = providerObj.media_library_token
+						providerObj.media_library_object.password = providerObj.media_library_token
+				
+				providerObj.loadMedialLibraryItems()
+
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("xtreemprovider"):
 				providerObj = XtreemProvider()
@@ -191,12 +215,7 @@ def readProviders():
 				providerObj.ch_order_strategy = int(provider.find("ch_order_strategy").text) if provider.find("ch_order_strategy") is not None else 0
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
-				if not providerObj.ignore_vod:
-					providerObj.loadInfoFromFile()
-					providerObj.loadMovieCategoriesFromFile()
-					providerObj.loadVoDMoviesFromFile()
-					providerObj.loadSeriesCategoriesFromFile()
-					providerObj.loadVoDSeriesFromFile()
+				providerObj.loadMedialLibraryItems()
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
 				providerObj.picon_gen_strategy = int(provider.find("picon_gen_strategy").text) if provider.find("picon_gen_strategy") is not None else 0
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
@@ -225,11 +244,7 @@ def readProviders():
 				providerObj.server_time_offset = provider.find("server_time_offset").text if provider.find("server_time_offset") is not None and provider.find("server_time_offset").text is not None else ""
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
-				if not providerObj.ignore_vod:
-					providerObj.loadMovieCategoriesFromFile()
-					providerObj.loadVoDMoviesFromFile()
-					providerObj.loadSeriesCategoriesFromFile()
-					providerObj.loadVoDSeriesFromFile()
+				providerObj.loadMedialLibraryItems()
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
 				providerObj.portal_entry_point_type = int(provider.find("portal_entry_point_type").text) if provider.find("portal_entry_point_type") is not None else 0
 				providers[providerObj.scheme] = providerObj
@@ -291,6 +306,15 @@ def writeProviders():
 			xml.append(f"\t\t<epg_match_strategy>{val.epg_match_strategy}</epg_match_strategy>\n")
 			xml.append(f"\t\t<custom_user_agent>{val.custom_user_agent}</custom_user_agent>\n")
 			xml.append(f"\t\t<ch_order_strategy>{val.ch_order_strategy}</ch_order_strategy>\n")
+
+			# media library nodes
+			xml.append(f"\t\t<has_media_library>{'on' if val.has_media_library else 'off'}</has_media_library>\n")
+			xml.append(f"\t\t<media_library_type>{val.media_library_type}</media_library_type>\n")
+			xml.append(f"\t\t<media_library_url><![CDATA[{val.media_library_url}]]></media_library_url>\n")
+			xml.append(f"\t\t<media_library_username><![CDATA[{val.media_library_username}]]></media_library_username>\n")
+			xml.append(f"\t\t<media_library_password><![CDATA[{val.media_library_password}]]></media_library_password>\n")
+			xml.append(f"\t\t<media_library_token><![CDATA[{val.media_library_token}]]></media_library_token>\n")
+
 			xml.append("\t</provider>\n")
 		elif isinstance(val, XtreemProvider):
 			xml.append("\t<xtreemprovider>\n")
@@ -1140,7 +1164,7 @@ class M3UIPTVManagerConfig(Screen):
 		self["key_red"] = StaticText(_("Close"))
 		self["key_green"] = StaticText(_("Add provider"))
 		self["key_yellow"] = StaticText(_("Generate bouquets"))
-		self["key_blue"] = StaticText(_("Clear bouquets"))
+		self["key_blue"] = StaticText(_("Clear all data"))
 		self["key_info"] = StaticText()
 		self["description"] = StaticText(_("Press OK to edit the currently selected provider"))
 		self.updateCallbacks()
@@ -1154,7 +1178,7 @@ class M3UIPTVManagerConfig(Screen):
 				"save": self.addProvider,  # KEY_GREEN
 				"ok": self.editProvider,
 				"yellow": self.keyYellow,
-				"blue": self.clearBouquets,
+				"blue": self.clearData,
 			}, -1)  # noqa: E123
 
 		self["infoActions"] = ActionMap(["M3UIPTVConfigActions",],
@@ -1233,6 +1257,7 @@ class M3UIPTVManagerConfig(Screen):
 			self.updateDescription(_("%s: bouquets generated successfully") % providerObj.iptv_service_provider)
 			self.session.open(MessageBox, _("\"%s\" bouquets have been generated successfully") % providerObj.iptv_service_provider, MessageBox.TYPE_INFO, timeout=5)
 		self["actions"].setEnabled(True)
+		self.onProgressChanged()
 
 	def updateDescription(self, desc):
 		try:
@@ -1240,12 +1265,15 @@ class M3UIPTVManagerConfig(Screen):
 		except KeyError:  # if MessageBox is open
 			pass
 
-	def clearBouquets(self):
+	def clearData(self):
 		if current := self["list"].getCurrent():
 			provider = current[0]
 			providerObj = providers[provider]
 			providerObj.removeBouquets()
-			self.updateDescription(_("%s: bouquets removed successfully") % providerObj.iptv_service_provider)
+			providerObj.removeEpgSources()
+			providerObj.removePicons()
+			providerObj.removeVoDData()
+			self.updateDescription(_("%s: data removed successfully") % providerObj.iptv_service_provider)
 
 	def selectionChanged(self):
 		if (current := self["list"].getCurrent()) and providers[current[0]].provider_info:
@@ -1329,12 +1357,20 @@ class M3UIPTVProviderEdit(Setup):
 		if isServiceAppInstalled:
 			catchup_play_system_choices.append(("5002", "Exteplayer3"))
 		self.play_system_catchup = ConfigSelection(default=providerObj.play_system_catchup, choices=catchup_play_system_choices)
-		catchup_type_choices = [(CATCHUP_DEFAULT, _("Standard")), (CATCHUP_APPEND, _("Append")), (CATCHUP_SHIFT, _("Shift")), (CATCHUP_XTREME, _("Xtreme Codes")), (CATCHUP_STALKER, _("Stalker")), (CATCHUP_FLUSSONIC, _("Flussonic"))]
+		catchup_type_choices = [(CATCHUP_DEFAULT, _("Standard")), (CATCHUP_APPEND, _("Append")), (CATCHUP_SHIFT, _("Shift")), (CATCHUP_XTREME, _("Xtreme Codes")), (CATCHUP_STALKER, _("Stalker")), (CATCHUP_FLUSSONIC, _("Flussonic")), (CATCHUP_VOD, _("VoD"))]
 		self.catchup_type = ConfigSelection(default=providerObj.catchup_type, choices=catchup_type_choices)
 		self.epg_url = ConfigText(default=providerObj.epg_url, fixed_size=False)
 		self.picons = ConfigYesNo(default=providerObj.picons)
 		self.create_bouquets_strategy = ConfigSelection(default=providerObj.create_bouquets_strategy, choices=[(0, _("Only bouquets for groups")), (1, _("Only bouquet for 'All Channels'")), (2, _("Bouquets for 'All Channels' and groups"))])
 		self.ch_order_strategy = ConfigSelection(default=providerObj.ch_order_strategy, choices=[(0, _("Use provider order")), (1, _("By channel number")), (2, _("Alphabetically"))])
+
+		# media library fields
+		self.has_media_library = ConfigYesNo(default=providerObj.has_media_library)
+		self.media_library_type = ConfigSelection(default=providerObj.media_library_type, choices=[("xc", _("Xtream Codes (Username/Password)")), ("xc-token", _("Xtream Codes (Token)"))])
+		self.media_library_url = ConfigText(default=providerObj.media_library_url, fixed_size=False)
+		self.media_library_username = ConfigText(default=providerObj.media_library_username, fixed_size=False)
+		self.media_library_password = ConfigText(default=providerObj.media_library_password, fixed_size=False)
+		self.media_library_token = ConfigText(default=providerObj.media_library_token, fixed_size=False)
 		Setup.__init__(self, session, None)
 		self.title = _("M3UIPTVManager") + " - " + (_("edit provider") if self.edit else _("add new provider"))
 		if self.edit:
@@ -1383,6 +1419,16 @@ class M3UIPTVProviderEdit(Setup):
 			configlist.append((_("Stream output format"), self.output_format, _("The format used to deliver the streams. Can be TS or HLS.\nNOTE: Setting playback system to DVB will make it impossible to use HLS as output format.")))
 		if self.type.value == "M3U":
 			configlist.append((_("Catchup Type"), self.catchup_type, _("The catchup API used.")))
+			configlist.append((_("Enable Media Library"), self.has_media_library, _("Specify is there media library available on separate url.")))
+			if self.has_media_library.value:
+				configlist.append((_("Media Library type"), self.media_library_type, _("Specify media library type.")))
+				configlist.append((_("Media Library URL"), self.media_library_url, _("Specify media library URL.")))
+				if self.media_library_type.value == "xc":
+					configlist.append((_("Media Library Username"), self.media_library_username, _("User name used for authenticating in the Media Library server.")))
+					configlist.append((_("Media Library Password"), self.media_library_password, _("Password used for authenticating in Media Library server.")))
+				else:
+					configlist.append((_("Media Library Access Token"), self.media_library_token, _("Access token used for authenticating in Media Library server.")))
+
 		configlist.append((_("Download picons"), self.picons, _("Download picons, if available from the provider, and install them. Picon download is done in the background after bouquet generation.")))
 		if self.picons.value:
 			configlist.append((_("Picons type"), self.picon_gen_strategy, _("Determine how the picons will be named - SNP or SRP.")))
@@ -1439,6 +1485,12 @@ class M3UIPTVProviderEdit(Setup):
 			providerObj.is_custom_xmltv = self.is_custom_xmltv.value
 			providerObj.custom_xmltv_url = self.custom_xmltv_url.value
 			providerObj.epg_match_strategy = self.epg_match_strategy.value
+			providerObj.has_media_library = self.has_media_library.value
+			providerObj.media_library_type = self.media_library_type.value
+			providerObj.media_library_url = self.media_library_url.value
+			providerObj.media_library_username = self.media_library_username.value
+			providerObj.media_library_password = self.media_library_password.value
+			providerObj.media_library_token = self.media_library_token.value
 		elif self.type.value == "Xtreeme" or self.type.value == "TVH":
 			providerObj.username = self.username.value
 			providerObj.password = self.password.value

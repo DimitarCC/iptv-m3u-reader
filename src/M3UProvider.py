@@ -8,6 +8,7 @@ from time import time
 from twisted.internet import threads
 import urllib, re
 from .IPTVProcessor import IPTVProcessor
+from .XtreemProvider import XtreemProvider
 from .Variables import CATCHUP_DEFAULT, CATCHUP_TYPES, USER_AGENTS
 
 db = eDVBDB.getInstance()
@@ -118,6 +119,8 @@ class M3UProvider(IPTVProcessor):
 					match = re.search(r"catchup-days=\"(\d+)\"", line, re.IGNORECASE)
 				if not match:
 					match = re.search(r"timeshift=\"(\d+)\"", line, re.IGNORECASE)
+				if not match:
+					match = re.search(r"tvrec-depth=(\d+)", line, re.IGNORECASE)
 				if match:
 					captchup_days = match.group(1)
 				if self.static_urls or self.isLocalPlaylist():
@@ -235,7 +238,30 @@ class M3UProvider(IPTVProcessor):
 		self.writeExampleBlacklist(examples)
 		self.piconsDownload()
 		self.generateEPGImportFiles(groups_for_epg)
+		self.generateMediaLibrary()
 		self.bouquetCreated(None)
+
+	def generateMediaLibrary(self):
+		if self.has_media_library:
+			if not self.media_library_object:
+				self.media_library_object = XtreemProvider()
+				self.media_library_object.scheme = self.scheme
+				self.media_library_object.url = self.media_library_url
+				self.media_library_object.ignore_vod = False
+				self.media_library_object.create_epg = False
+				if self.media_library_type == "xc":
+					self.media_library_object.username = self.media_library_username
+					self.media_library_object.password = self.media_library_password
+				else:
+					self.media_library_object.username = self.media_library_token
+					self.media_library_object.password = self.media_library_token
+			self.media_library_object.generateMediaLibrary()
+	
+	def loadMedialLibraryItems(self):
+		if self.has_media_library and self.media_library_object:
+			self.media_library_object.loadMedialLibraryItems()
+			self.vod_movies = self.media_library_object.vod_movies
+			self.vod_series = self.media_library_object.vod_series
 
 	def processService(self, nref, iptvinfodata, callback=None, event=None):
 		splittedRef = nref.toString().split(":")
@@ -320,3 +346,9 @@ class M3UProvider(IPTVProcessor):
 			self.isPlayBackup = True
 			self.nnref = eServiceReference(backup_ref + ":")
 			return self.nnref  # , nref
+	
+	def getSeriesById(self, series_id):
+		return self.media_library_object and self.media_library_object.getSeriesById(series_id)
+	
+	def getVoDPlayUrl(self, url, series):
+		return self.media_library_object and self.media_library_object.getVoDPlayUrl(url, series) or url

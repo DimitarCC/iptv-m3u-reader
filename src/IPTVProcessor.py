@@ -3,7 +3,9 @@ from . import _
 
 from twisted.internet import threads
 from .epgimport_helper import epgimport_helper
-from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, CATCHUP_FLUSSONIC_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_FOLDER, USER_AGENTS, USER_IPTV_PROVIDER_EPG_XML_FILE, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE, USER_IPTV_VOD_SERIES_FILE
+from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, \
+					   CATCHUP_FLUSSONIC_TEXT, CATCHUP_VOD_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_FOLDER, USER_AGENTS, USER_IPTV_PROVIDER_EPG_XML_FILE, \
+					   USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE, USER_IPTV_VOD_SERIES_FILE
 from .VoDItem import VoDItem
 from .picon import Fetcher
 from Components.config import config
@@ -34,6 +36,11 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 		sref_split = sref.split(":")
 		url = sref_split[10:][0]
 		return f"{url}?utc={str(stime)}&lutc={str(int(now))}&duration={str(int(duration))}"
+	elif catchup_type == CATCHUP_VOD_TEXT:
+		sref_split = sref.split(":")
+		url = sref_split[10:][0]
+		url = url.replace("/index.m3u8", f"/video-{str(stime)}-{str(int(duration))}.m3u8").replace("/mpegts", f"/video-{str(stime)}-{str(int(duration))}.m3u8")
+		return url
 	elif catchup_type == CATCHUP_SHIFT_TEXT:
 		sref_split = sref.split(":")
 		url = sref_split[10:][0].split("?")[0]
@@ -143,6 +150,15 @@ class IPTVProcessor():
 		self.server_time_offset = "" # Only for Stalker providers
 		self.portal_entry_point_type = 0 # Only for Stalker providers
 
+		# Fields for media library for M3U providers start here
+		self.has_media_library = False
+		self.media_library_type = "xc" # can be xml, xc (Xtream Codes) or xc-token (Xtream Codes with single token). For the moment only xc and xc-token are implemented
+		self.media_library_url = ""
+		self.media_library_username = ""
+		self.media_library_password = ""
+		self.media_library_token = ""
+		self.media_library_object = None
+
 	def checkForNetwrok(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
 		if is_check_network_val != "off":
@@ -174,10 +190,25 @@ class IPTVProcessor():
 	def storePlaylistAndGenBouquet(self):
 		pass
 
+	def generateMediaLibrary(self):
+		if not self.ignore_vod:
+			self.getMovieCategories()
+			self.getVoDMovies()
+			self.getSeriesCategories()
+			self.getVoDSeries()
+
+	def loadMedialLibraryItems(self):
+		if not self.ignore_vod:
+			self.loadInfoFromFile()
+			self.loadMovieCategoriesFromFile()
+			self.loadVoDMoviesFromFile()
+			self.loadSeriesCategoriesFromFile()
+			self.loadVoDSeriesFromFile()
+
 	def getVoDMovies(self):
 		pass
 
-	def getVoDPlayUrl(self, url):
+	def getVoDPlayUrl(self, url, series=0):
 		return url
 
 	def getMovieCategories(self):
@@ -200,13 +231,13 @@ class IPTVProcessor():
 		self.movie_categories = {}
 		if json_string:
 			for category in json.loads(json_string):
-				self.movie_categories[category["category_id"]] = category["category_name"]
+				self.movie_categories[str(category["category_id"])] = category["category_name"]
 
 	def makeSeriesCategoriesDictFromJson(self, json_string):
 		self.series_categories = {}
 		if json_string:
 			for category in json.loads(json_string):
-				self.series_categories[category["category_id"]] = category["category_name"]
+				self.series_categories[str(category["category_id"])] = category["category_name"]
 
 	def loadVoDMoviesFromFile(self):
 		pass
@@ -302,7 +333,7 @@ class IPTVProcessor():
 				ext = movie["container_extension"]
 				id = movie["stream_id"]
 				url = "%s/movie/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
-				vod_item = VoDItem(url, name, id, self, self.movie_categories.get(movie.get("category_id")), movie.get("plot"))
+				vod_item = VoDItem(url, name, id, self, self.movie_categories.get(str(movie.get("category_id"))), movie.get("plot"))
 				self.vod_movies.append(vod_item)
 
 	def processService(self, nref, iptvinfodata, callback=None, event=None):
@@ -345,6 +376,9 @@ class IPTVProcessor():
 
 	def constructCatchupSuffix(self, days, url, catchup_type):
 		if days.strip() and int(days) > 0:
+			days_int = int(days)
+			if days_int > 24:
+				days = str(days_int // 24)
 			captchup_addon = "%scatchuptype=%s&catchupdays=%s&catchupstype=%s" % ("&" if "?" in url else "?", catchup_type, days, self.play_system_catchup)
 			if catchup_type == CATCHUP_XTREME_TEXT and self.server_timezone_offset:
 				captchup_addon += "&tz_offset=%d" % self.server_timezone_offset

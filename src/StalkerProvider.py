@@ -161,14 +161,18 @@ class StalkerProvider(IPTVProcessor):
 			self.channels_callback(groups)
 			self.piconsDownload()
 			self.generateEPGImportFiles(groups)
-			if not self.ignore_vod:
-				vod_categories = self.getVODCategories(self.session, self.token)
-				for category in vod_categories:
-					self.movie_categories[category["category_id"]] = category["category_name"]
-				series_categories = self.getSeriesCategories(self.session, self.token)
-				for category in series_categories:
-					self.series_categories[category["category_id"]] = category["category_name"]
-				threads.deferToThread(self.get_vod).addCallback(self.store_vod)
+			self.generateMediaLibrary()
+			
+	def generateMediaLibrary(self):
+		if not self.ignore_vod:
+			vod_categories = self.getVODCategories(self.session, self.token)
+			for category in vod_categories:
+				self.movie_categories[category["category_id"]] = category["category_name"]
+			series_categories = self.getSeriesCategories(self.session, self.token)
+			for category in series_categories:
+				self.series_categories[category["category_id"]] = category["category_name"]
+			threads.deferToThread(self.get_vod).addCallback(self.store_vod)
+
 
 	def channels_callback(self, groups):
 		tsid = 1000

@@ -95,11 +95,7 @@ class XtreemProvider(IPTVProcessor):
 			if not self.use_provider_tsid:
 				tsid += 1
 
-		if not self.ignore_vod:
-			self.getMovieCategories()
-			self.getVoDMovies()
-			self.getSeriesCategories()
-			self.getVoDSeries()
+		self.generateMediaLibrary()
 
 		examples = []
 
@@ -159,6 +155,7 @@ class XtreemProvider(IPTVProcessor):
 		if json_string:
 			series = json.loads(json_string)
 			episodes = series.get("episodes")
+			main_info = series.get("info")
 			if episodes:
 				for season in episodes:
 					iter = episodes[season] if isinstance(episodes, dict) else season  # this workaround is because there are multiple json formats for series
@@ -166,25 +163,38 @@ class XtreemProvider(IPTVProcessor):
 						id = episode.get("id") and str(episode["id"])
 						title = episode.get("title") and str(episode["title"])
 						info = episode.get("info")
+						season_num = episode.get("season")
 						print("getSeriesById info", info)
 						marker = []
 						if info and info.get("season"):
-							marker.append(_("S%s") % str(info.get("season")))
-						episode_num = episode.get("episode_num") and str(episode["episode_num"])
+							season_num = info.get("season")
+							marker.append(_("S%s") % str(season_num))
+						elif season_num:
+							marker.append(_("S%s") % str(season_num))
+						episode_num = episode.get("episode_num") and episode["episode_num"]
 						if episode_num:
-							marker.append(_("Ep%s") % episode_num)
+							marker.append(_("Ep%s") % str(episode_num))
 						if marker:
 							marker = ["[%s]" % " ".join(marker)]
 						if info and (duration := info.get("duration")):
+							marker.insert(0, _("Duration: %s") % str(duration))
+						elif main_info and (duration := main_info.get("episode_run_time")):
 							marker.insert(0, _("Duration: %s") % str(duration))
 						if info and (date := info.get("release_date") or info.get("releasedate") or info.get("air_date")):
 							if date[:4].isdigit():
 								date = date[:4]
 							marker.insert(0, _("Released: %s") % str(date))
+						elif main_info and (date := main_info.get("releaseDate") or main_info.get("releasedate") or main_info.get("air_date")):
+							if date[:4].isdigit():
+								date = date[:4]
+							marker.insert(0, _("Released: %s") % str(date))
 						ext = episode.get("container_extension")
 						episode_url = "%s/series/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
-						if title and info and title not in titles:
-							ret.append((episode_url, title, info, self, ", ".join(marker), id.split(":")[0]))
+						se_num = f"S{season_num:02d}E{episode_num:02d}"
+						title = title.replace(se_num, "").replace("." + ext, "")
+						title = f"{se_num} - {title}"
+						if title and (info or main_info) and title not in titles:
+							ret.append((episode_url, title, info or main_info, self, ", ".join(marker), id.split(":")[0]))
 							titles.append(title)
 		return ret
 
