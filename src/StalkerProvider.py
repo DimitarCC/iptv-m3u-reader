@@ -6,7 +6,7 @@ from Components.config import config
 from xml.dom import minidom
 import requests, time, re, math, json
 from zoneinfo import ZoneInfo
-from datetime import datetime
+from datetime import datetime, timezone
 from twisted.internet import threads
 from .IPTVProcessor import IPTVProcessor
 from .VoDItem import VoDItem
@@ -324,7 +324,7 @@ class StalkerProvider(IPTVProcessor):
 			profile_data = response.json()["js"]
 			if profile_data:
 				zone = ZoneInfo(profile_data["default_timezone"])
-				server_timezone_offset = zone.utcoffset(datetime.now()).total_seconds()//3600
+				server_timezone_offset = (datetime.now(timezone.utc).astimezone().utcoffset().total_seconds() - zone.utcoffset(datetime.now()).total_seconds())//3600
 				server_timezone_offset_string = f"{server_timezone_offset :+03.0f}00"
 				if server_timezone_offset_string != self.server_timezone_offset:
 					self.server_timezone_offset = server_timezone_offset_string

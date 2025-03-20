@@ -1269,11 +1269,9 @@ class M3UIPTVManagerConfig(Screen):
 		if current := self["list"].getCurrent():
 			provider = current[0]
 			providerObj = providers[provider]
-			providerObj.removeBouquets()
-			providerObj.removeEpgSources()
-			providerObj.removePicons()
-			providerObj.removeVoDData()
+			providerObj.removeAllData()
 			self.updateDescription(_("%s: data removed successfully") % providerObj.iptv_service_provider)
+			self.onProgressChanged()
 
 	def selectionChanged(self):
 		if (current := self["list"].getCurrent()) and providers[current[0]].provider_info:

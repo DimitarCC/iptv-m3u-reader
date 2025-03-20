@@ -256,6 +256,7 @@ class M3UProvider(IPTVProcessor):
 					self.media_library_object.username = self.media_library_token
 					self.media_library_object.password = self.media_library_token
 			self.media_library_object.generateMediaLibrary()
+			self.loadMedialLibraryItems()
 	
 	def loadMedialLibraryItems(self):
 		if self.has_media_library and self.media_library_object:

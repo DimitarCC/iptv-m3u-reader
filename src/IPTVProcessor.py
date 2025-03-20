@@ -384,6 +384,12 @@ class IPTVProcessor():
 				captchup_addon += "&tz_offset=%d" % self.server_timezone_offset
 			return url + captchup_addon
 		return url
+	
+	def removeAllData(self):
+		self.removeBouquets()
+		self.removeEpgSources()
+		self.removePicons()
+		self.removeVoDData()
 
 	def removeBouquets(self):
 		from enigma import eDVBDB
@@ -398,6 +404,8 @@ class IPTVProcessor():
 		for file in listdir(USER_FOLDER):
 			if file.startswith(self.scheme):
 				remove_file(path.join(USER_FOLDER, file))
+		self.vod_movies = []
+		self.vod_series = {}
 
 	def removeEpgSources(self):
 		epghelper = epgimport_helper(self)
