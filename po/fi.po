@@ -8,13 +8,13 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-03-19 22:27+0200\n"
-"PO-Revision-Date: 2025-02-25 18:28+0200\n"
+"PO-Revision-Date: 2025-03-20 09:46+0200\n"
 "Last-Translator: Orlandox <huoltovalikko.com>\n"
 "Language-Team: Orlandox\n"
+"Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fi\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.5\n"
 
@@ -64,9 +64,9 @@ msgid "%s: bouquets generated successfully"
 msgstr "%s: suosikkilistat luotiin onnistuneesti"
 
 #: ../src/plugin.py:1276
-#, fuzzy, python-format
+#, python-format
 msgid "%s: data removed successfully"
-msgstr "%s: suosikkilistat poistettiin onnistuneesti"
+msgstr "%s: tiedot poistettiin onnistuneesti"
 
 #: ../src/plugin.py:1225
 #, python-format
@@ -79,9 +79,8 @@ msgid "%s: unable to create bouquet"
 msgstr "%s: suosikkilistaa ei saatu luotua"
 
 #: ../src/plugin.py:1430
-#, fuzzy
 msgid "Access token used for authenticating in Media Library server."
-msgstr "Salasana, jota käytetään todentamiseen striimaus-palvelimessa."
+msgstr "Käyttöoikeustunniste, jota käytetään todentamiseen Mediakirjastopalvelimessa."
 
 #: ../src/plugin.py:1296
 msgid "Account created"
@@ -195,7 +194,7 @@ msgstr "Tarkista verkko"
 
 #: ../src/plugin.py:1167
 msgid "Clear all data"
-msgstr ""
+msgstr "Tyhjennä kaikki tiedot"
 
 #: ../src/plugin.py:1164
 msgid "Close"
@@ -276,7 +275,7 @@ msgstr "Ota IPTV-hallinta käyttöön"
 
 #: ../src/plugin.py:1422
 msgid "Enable Media Library"
-msgstr ""
+msgstr "Ota Mediakirjasto käyttöön"
 
 #: ../src/plugin.py:1574
 msgid "Enable catchup/archive entries in EPG screens for period"
@@ -425,23 +424,23 @@ msgstr "Säikeiden enimmäismäärä piconien latausten aikana. Jos boksi palaut
 
 #: ../src/plugin.py:1430
 msgid "Media Library Access Token"
-msgstr ""
+msgstr "Mediakirjaston käyttöoikeustunniste"
 
 #: ../src/plugin.py:1428
 msgid "Media Library Password"
-msgstr ""
+msgstr "Mediakirjaston salasana"
 
 #: ../src/plugin.py:1425
 msgid "Media Library URL"
-msgstr ""
+msgstr "Mediakirjaston URL-osoite"
 
 #: ../src/plugin.py:1427
 msgid "Media Library Username"
-msgstr ""
+msgstr "Mediakirjaston käyttäjätunnus"
 
 #: ../src/plugin.py:1424
 msgid "Media Library type"
-msgstr ""
+msgstr "Mediakirjaston tyyppi"
 
 #: ../src/menu.xml
 msgid "Movies"
@@ -472,9 +471,8 @@ msgid "Password"
 msgstr "Salasana"
 
 #: ../src/plugin.py:1428
-#, fuzzy
 msgid "Password used for authenticating in Media Library server."
-msgstr "Salasana, jota käytetään todentamiseen striimaus-palvelimessa."
+msgstr "Mediakirjastopalvelimen todentamiseen käytetty salasana."
 
 #: ../src/plugin.py:1400
 msgid "Password used for authenticating in the streaming server."
@@ -727,16 +725,15 @@ msgstr "Määritä, kuinka xmltv-merkinnät yhdistetään kanaviin."
 
 #: ../src/plugin.py:1422
 msgid "Specify is there media library available on separate url."
-msgstr ""
+msgstr "Määritä, onko mediakirjasto saatavilla erillisessä url-osoitteessa."
 
 #: ../src/plugin.py:1425
 msgid "Specify media library URL."
-msgstr ""
+msgstr "Määritä mediakirjaston URL-osoite."
 
 #: ../src/plugin.py:1424
-#, fuzzy
 msgid "Specify media library type."
-msgstr "Määritä palveluntarjoajan tyyppi."
+msgstr "Määritä mediakirjaston tyyppi."
 
 #: ../src/plugin.py:1571
 msgid "Specify the character case used for bouquet names and titles."
@@ -927,9 +924,8 @@ msgid "Use your own XMLTV url for EPG importing."
 msgstr "Käytä omaa XMLTV-URL-osoitettasi EPG-tuontiin."
 
 #: ../src/plugin.py:1427
-#, fuzzy
 msgid "User name used for authenticating in the Media Library server."
-msgstr "Käyttäjätunnus, jota käytetään todentamiseen striimaus-palvelimessa."
+msgstr "Mediakirjastopalvelimen todentamiseen käytetty käyttäjätunnus."
 
 #: ../src/plugin.py:1399
 msgid "User name used for authenticating in the streaming server."
@@ -957,7 +953,7 @@ msgstr "Tilaus-TV (VoD)"
 
 #: ../src/plugin.py:1360
 msgid "VoD"
-msgstr ""
+msgstr "Tilaus-TV (VoD)"
 
 #: ../src/plugin.py:1073
 msgid "VoD Movie Categories"
@@ -1019,13 +1015,12 @@ msgid "When enabled, timeshift starts automatically in background after the spec
 msgstr "Kun tämä on käytössä, ajansiirto alkaa automaattisesti taustalla, määritetyn ajan kuluttua."
 
 #: ../src/plugin.py:1369
-#, fuzzy
 msgid "Xtream Codes (Token)"
-msgstr "Xtreme Codes"
+msgstr "Xtreme Codes (Käyttöoikeustunniste)"
 
 #: ../src/plugin.py:1369
 msgid "Xtream Codes (Username/Password)"
-msgstr ""
+msgstr "Xtreme Codes (Käyttäjätunnus/Salasana)"
 
 #: ../src/plugin.py:1327 ../src/plugin.py:1360
 msgid "Xtreme Codes"
