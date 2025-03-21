@@ -133,7 +133,7 @@ class M3UProvider(IPTVProcessor):
 								curr_group = next_line[8:].strip()
 								if curr_group not in groups and self.create_bouquets_strategy != 1:
 									groups[curr_group] = []
-							if next_line.startswith(("http://", "https://")):
+							if next_line.startswith(("http://", "https://", "YT-DLP://", "YT://")):
 								url = next_line.replace(":", "%3a")
 								url = self.constructCatchupSuffix(captchup_days if captchup_days else global_tvg_rec, url, CATCHUP_TYPES[self.catchup_type])
 								captchup_days = ""
