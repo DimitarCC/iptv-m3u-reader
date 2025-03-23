@@ -147,6 +147,15 @@ class M3UProvider(IPTVProcessor):
 					url = self.constructCatchupSuffix(captchup_days if captchup_days else global_tvg_rec, url, CATCHUP_TYPES[self.catchup_type])
 					captchup_days = ""
 				stype = "1"
+
+				if len(self.servicename_substitutions) > 0:
+					subst_name = self.servicename_substitutions["#EXTINF"] + self.servicename_substitutions["#URL"]
+					for subst in subst_name:
+						subst_condition = subst.search_regex
+						subst_match = re.search(subst_condition, line if subst.search_key == "#EXTINF" else url)
+						if subst_match and subst_match.group(1) in subst.substitions:
+							ch_name = subst.substitions[subst_match.group(1)]
+
 				if "UHD" in ch_name or "4K" in ch_name:
 					stype = "1F"
 				elif "HD" in ch_name:

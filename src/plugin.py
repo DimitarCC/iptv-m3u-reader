@@ -4,8 +4,6 @@ from . import _, PluginLanguageDomain
 from sys import modules
 from time import time, localtime, strftime
 from glob import glob
-import json
-import base64
 from urllib.error import HTTPError, URLError
 from twisted.web import server, resource
 from twisted.internet import threads, reactor
@@ -23,7 +21,7 @@ from .TVHeadendProvider import TVHeadendProvider
 from .IPTVProviders import providers, processService as processIPTVService
 from .IPTVCatchupPlayer import injectCatchupInEPG
 from .epgimport_helper import overwriteEPGImportEPGSourceInit
-from .Variables import USER_IPTV_PROVIDERS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_STALKER, CATCHUP_FLUSSONIC, CATCHUP_VOD
+from .Variables import PROVIDER_FOLDER, USER_IPTV_PROVIDERS_FILE, USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_STALKER, CATCHUP_FLUSSONIC, CATCHUP_VOD
 from Screens.Screen import Screen, ScreenSummary
 from Screens.InfoBar import InfoBar, MoviePlayer
 from Screens.InfoBarGenerics import streamrelay
@@ -73,11 +71,10 @@ except ImportError:
 		IMDB = None
 
 from os import path, fsync, rename, makedirs, remove
-import xml
 from xml.etree.cElementTree import iterparse
-import re
 
-import threading
+import json, base64, shutil, xml, re, threading
+
 write_lock = threading.Lock()
 
 config.plugins.m3uiptv = ConfigSubsection()
@@ -114,6 +111,12 @@ class StalkerEPG(resource.Resource):
 			return providers[provider].generateXMLTVFile()
 		except:
 			return None
+		
+class Substition():
+	def __init__(self, key, regex):
+		self.search_key = key
+		self.search_regex = regex
+		self.substitions = {}
 
 def tmdbScreenMovieHelper(VoDObj):
 	url = "%s/player_api.php?username=%s&password=%s&action=get_vod_info&vod_id=%s" % (VoDObj.providerObj.url, VoDObj.providerObj.username, VoDObj.providerObj.password, VoDObj.id)
@@ -132,6 +135,32 @@ def tmdbScreenMovieHelper(VoDObj):
 					url_backdrop = "http://image.tmdb.org/t/p/%s/%s" % (config.plugins.tmdb.themoviedb_coversize.value, backdrop)
 					tmdb.API_KEY = base64.b64decode('ZDQyZTZiODIwYTE1NDFjYzY5Y2U3ODk2NzFmZWJhMzk=')
 					return (VoDObj.name, "movie", tmdbTempDir + tmdb_id + ".jpg", tmdb_id, 2, url_backdrop), url_cover
+
+def readSubstitions(type, scheme): # type can be 0: servicename, 1: epg
+	if not fileExists(USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE % scheme):
+		return {}
+	if type == 0:
+		fd = open(USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE % scheme, 'rb')
+		result = {}
+		result["#EXTINF"] = []
+		result["#URL"] = []
+		for subst, elem in iterparse(fd):
+			if elem.tag == "substitutions":
+				for sname_subst in elem.findall("servicename"):
+					for sname_subst_elem in sname_subst.findall("substitution"):
+						subst_item = Substition(sname_subst_elem.get("search-line"), sname_subst_elem.get("search-regex"))
+						content = sname_subst_elem.text
+						content_lines = content.splitlines()
+						content_dict = {}
+						for line in content_lines:
+							line = line.rstrip(",").strip().replace("\t", "")
+							if line:
+								k,v = line.split(":")
+								content_dict[k] = v
+						subst_item.substitions = content_dict
+						result[subst_item.search_key].append(subst_item)
+		return result
+	return {}
 
 def readProviders():
 	if not fileExists(USER_IPTV_PROVIDERS_FILE):
@@ -189,6 +218,8 @@ def readProviders():
 						providerObj.media_library_object.password = providerObj.media_library_token
 				
 				providerObj.loadMedialLibraryItems()
+
+				providerObj.servicename_substitutions = readSubstitions(0, providerObj.scheme)
 
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("xtreemprovider"):
@@ -397,6 +428,7 @@ def writeProviders():
 			xml.append("\t</stalkerprovider>\n")
 	xml.append("</providers>\n")
 	makedirs(path.dirname(USER_IPTV_PROVIDERS_FILE), exist_ok=True)  # create config folder recursive if not exists
+	makedirs(PROVIDER_FOLDER, exist_ok=True) # create provider subfolder if not exists
 	with write_lock:
 		f = open(USER_IPTV_PROVIDERS_FILE + ".writing", 'w')
 		f.write("".join(xml))
@@ -1519,6 +1551,7 @@ class M3UIPTVProviderEdit(Setup):
 			providerObj.removePicons()
 			del providers[self.scheme.value]
 			writeProviders()
+			shutil.rmtree(PROVIDER_FOLDER % self.scheme.value, True)
 			self.close(True)
 
 	def keyBlacklist(self):

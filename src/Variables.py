@@ -4,14 +4,15 @@ from os import path
 # General variables
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"
 USER_FOLDER = path.realpath(resolveFilename(SCOPE_CONFIG)) + "/M3UIPTV"
+PROVIDER_FOLDER = USER_FOLDER + "/%s"
 USER_IPTV_PROVIDERS_FILE = USER_FOLDER + "/providers.xml"
-USER_IPTV_VOD_MOVIES_FILE = USER_FOLDER + "/%s-vod-movies.json"
-USER_IPTV_MOVIE_CATEGORIES_FILE = USER_FOLDER + "/%s-movie-categories.json"
-USER_IPTV_SERIES_CATEGORIES_FILE = USER_FOLDER + "/%s-series-categories.json"
-USER_IPTV_VOD_SERIES_FILE = USER_FOLDER + "/%s-vod-series.json"
-USER_IPTV_PROVIDER_INFO_FILE = USER_FOLDER + "/%s-provider-info.json"
-USER_IPTV_PROVIDER_BLACKLIST_FILE = USER_FOLDER + "/%s-blacklist"
-USER_IPTV_PROVIDER_EPG_XML_FILE = USER_FOLDER + "/epg.%s.xml"
+USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE = PROVIDER_FOLDER + "/substitutions.xml"
+USER_IPTV_VOD_MOVIES_FILE = PROVIDER_FOLDER + "/vod-movies.json"
+USER_IPTV_MOVIE_CATEGORIES_FILE = PROVIDER_FOLDER + "/movie-categories.json"
+USER_IPTV_SERIES_CATEGORIES_FILE = PROVIDER_FOLDER + "/series-categories.json"
+USER_IPTV_VOD_SERIES_FILE = PROVIDER_FOLDER + "/vod-series.json"
+USER_IPTV_PROVIDER_INFO_FILE = PROVIDER_FOLDER + "/provider-info.json"
+USER_IPTV_PROVIDER_BLACKLIST_FILE = PROVIDER_FOLDER + "/blacklist"
 
 # CatchUp types
 CATCHUP_DEFAULT = 1

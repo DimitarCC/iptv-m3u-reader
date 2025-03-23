@@ -4,7 +4,7 @@ from . import _
 from twisted.internet import threads
 from .epgimport_helper import epgimport_helper
 from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, \
-					   CATCHUP_FLUSSONIC_TEXT, CATCHUP_VOD_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_FOLDER, USER_AGENTS, USER_IPTV_PROVIDER_EPG_XML_FILE, \
+					   CATCHUP_FLUSSONIC_TEXT, CATCHUP_VOD_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_FOLDER, USER_AGENTS, \
 					   USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE, USER_IPTV_VOD_SERIES_FILE
 from .VoDItem import VoDItem
 from .picon import Fetcher
@@ -149,6 +149,10 @@ class IPTVProcessor():
 		self.epg_time_offset = 0 # Only for Stalker providers
 		self.server_time_offset = "" # Only for Stalker providers
 		self.portal_entry_point_type = 0 # Only for Stalker providers
+
+		# Fields for utilize substitutions if available
+		self.servicename_substitutions = {}
+		self.epg_substitions = {}
 
 		# Fields for media library for M3U providers start here
 		self.has_media_library = False
@@ -410,9 +414,6 @@ class IPTVProcessor():
 	def removeEpgSources(self):
 		epghelper = epgimport_helper(self)
 		epghelper.removeSources()
-		local_epg_filename = USER_IPTV_PROVIDER_EPG_XML_FILE % self.scheme
-		if path.isfile(local_epg_filename):
-			remove_file(local_epg_filename)
 
 	def cleanFilename(self, name):
 		return sanitizeFilename(name.replace(" ", "").replace("(", "").replace(")", "").replace("&", "").replace("'", "").replace('"', "").replace(',', "").replace(":", "").replace(";", "").replace('ы','и'))

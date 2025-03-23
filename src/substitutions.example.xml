@@ -1,0 +1,10 @@
+<substitutions>
+	<servicename>
+		<substitution search-line="#EXTINF" search-regex="tvg-id=\&quot;(.*?)\&quot;">
+		<![CDATA[
+			805:AAAA 1,
+            806:BBBB 1
+		]]>
+		</substitution>
+	</servicename>
+</substitutions>
