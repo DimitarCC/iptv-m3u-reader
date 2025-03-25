@@ -6,7 +6,7 @@ from time import sleep
 
 from Components.config import config
 
-from .Variables import USER_AGENT
+from .Variables import REQUEST_USER_AGENT
 
 
 def getPiconPath():
@@ -38,7 +38,7 @@ class Fetcher():
 			db = self.provider.picon_database if self.provider.picon_gen_strategy == 0 else self.provider.picon_sref_database
 			file = db[url][0] + ".png"
 			if not path.exists(piconname := path.join(self.pluginPiconDir, file)):
-				response = get(url, timeout=2.50, headers={"User-Agent": USER_AGENT})
+				response = get(url, timeout=2.50, headers={"User-Agent": REQUEST_USER_AGENT})
 				response.raise_for_status()
 				content_type = response.headers.get('content-type')
 				if content_type and content_type.lower() != 'image/png':

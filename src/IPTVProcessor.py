@@ -3,7 +3,7 @@ from . import _
 
 from twisted.internet import threads
 from .epgimport_helper import epgimport_helper
-from .Variables import USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, \
+from .Variables import REQUEST_USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, \
 					   CATCHUP_FLUSSONIC_TEXT, CATCHUP_VOD_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_FOLDER, USER_AGENTS, \
 					   USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE, USER_IPTV_VOD_SERIES_FILE
 from .VoDItem import VoDItem
@@ -170,7 +170,7 @@ class IPTVProcessor():
 			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
 
 	def constructRequest(self, url):
-		headers = {'User-Agent': USER_AGENT}
+		headers = {'User-Agent': REQUEST_USER_AGENT}
 		auth_match = re.search(r"\/\/(.*?)@", url)
 		if auth_match:
 			auth = auth_match.group(1)
@@ -286,7 +286,7 @@ class IPTVProcessor():
 			socket.setdefaulttimeout(int(is_check_network_val))
 			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
 		try:
-			req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT})
+			req = urllib.request.Request(url, headers={'User-Agent': REQUEST_USER_AGENT})
 			req_timeout_val = config.plugins.m3uiptv.req_timeout.value
 			if req_timeout_val != "off":
 				response = urllib.request.urlopen(req, timeout=int(req_timeout_val))

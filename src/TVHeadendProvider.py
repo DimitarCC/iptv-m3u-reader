@@ -4,7 +4,7 @@ from enigma import eDVBDB
 from Components.config import config
 import urllib, re, base64
 from .IPTVProcessor import IPTVProcessor
-from .Variables import CATCHUP_TYPES, USER_AGENT, CATCHUP_DEFAULT
+from .Variables import CATCHUP_TYPES, REQUEST_USER_AGENT, CATCHUP_DEFAULT
 
 db = eDVBDB.getInstance()
 
@@ -22,7 +22,7 @@ class TVHeadendProvider(IPTVProcessor):
 		self.play_system_catchup = "4097"
 
 	def constructRequest(self, url):
-		headers = {'User-Agent': USER_AGENT}
+		headers = {'User-Agent': REQUEST_USER_AGENT}
 		headers["Authorization"] = "Basic %s" % base64.b64encode(bytes("%s:%s" % (self.username, self.password), "ascii")).decode("utf-8")
 		if "http://" not in url and "https://" not in url:
 			url = "http://" + url

@@ -5,7 +5,7 @@ from enigma import eDVBDB
 from Components.config import config
 from os import path
 from .IPTVProcessor import IPTVProcessor
-from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_PROVIDER_INFO_FILE, USER_IPTV_VOD_SERIES_FILE, CATCHUP_XTREME, CATCHUP_XTREME_TEXT, USER_IPTV_SERIES_CATEGORIES_FILE
+from .Variables import USER_IPTV_VOD_MOVIES_FILE, REQUEST_USER_AGENT, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_PROVIDER_INFO_FILE, USER_IPTV_VOD_SERIES_FILE, CATCHUP_XTREME, CATCHUP_XTREME_TEXT, USER_IPTV_SERIES_CATEGORIES_FILE
 
 db = eDVBDB.getInstance()
 
@@ -29,7 +29,7 @@ class XtreemProvider(IPTVProcessor):
 		self.checkForNetwrok()
 		self.getServerTZoffset()
 		url = "%s/player_api.php?username=%s&password=%s&action=get_live_streams" % (self.url, self.username, self.password)
-		req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT})
+		req = urllib.request.Request(url, headers={'User-Agent': REQUEST_USER_AGENT})
 		req_timeout_val = config.plugins.m3uiptv.req_timeout.value
 		if req_timeout_val != "off":
 			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
@@ -42,7 +42,7 @@ class XtreemProvider(IPTVProcessor):
 		groups = {"ALL_CHANNELS": (_("All channels"), [])}  # add fake, user-optional, all-channels bouquet
 
 		url = "%s/player_api.php?username=%s&password=%s&action=get_live_categories" % (self.url, self.username, self.password)
-		req = urllib.request.Request(url, headers={'User-Agent': USER_AGENT})
+		req = urllib.request.Request(url, headers={'User-Agent': REQUEST_USER_AGENT})
 		if req_timeout_val != "off":
 			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
 		else:

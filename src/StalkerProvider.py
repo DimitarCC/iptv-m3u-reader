@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from twisted.internet import threads
 from .IPTVProcessor import IPTVProcessor
 from .VoDItem import VoDItem
-from .Variables import USER_IPTV_VOD_MOVIES_FILE, USER_AGENT, USER_AGENTS, CATCHUP_STALKER, CATCHUP_STALKER_TEXT, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE
+from .Variables import USER_IPTV_VOD_MOVIES_FILE, REQUEST_USER_AGENT, USER_AGENTS, CATCHUP_STALKER, CATCHUP_STALKER_TEXT, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE
 
 db = eDVBDB.getInstance()
 
@@ -84,7 +84,7 @@ class StalkerProvider(IPTVProcessor):
 				try:
 					url = f"{self.getPortalUrl()}?type=itv&action=get_epg_info&period=7&JsHttpRequest=1-xml"
 					cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
-					headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
+					headers = {"User-Agent": REQUEST_USER_AGENT, "Authorization": "Bearer " + token}
 					response = session.get(url, cookies=cookies, headers=headers)
 					epg_data = response.json()["js"]["data"]
 					if epg_data:
@@ -231,7 +231,7 @@ class StalkerProvider(IPTVProcessor):
 		try:
 			url = f"{self.getPortalUrl()}?type=stb&action=handshake&JsHttpRequest=1-xml"
 			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
-			headers = {"User-Agent": USER_AGENT}
+			headers = {"User-Agent": REQUEST_USER_AGENT}
 			response = session.get(url, cookies=cookies, headers=headers)
 			if response.status_code == 404:
 				self.portal_entry_point_type = 1
@@ -250,7 +250,7 @@ class StalkerProvider(IPTVProcessor):
 		try:
 			url = f"{self.getPortalUrl()}?type=itv&action=get_genres&JsHttpRequest=1-xml"
 			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
-			headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
+			headers = {"User-Agent": REQUEST_USER_AGENT, "Authorization": "Bearer " + token}
 			response = session.get(url, cookies=cookies, headers=headers)
 			genre_data = response.json()["js"]
 			if genre_data:
@@ -277,7 +277,7 @@ class StalkerProvider(IPTVProcessor):
 		try:
 			url = f"{self.getPortalUrl()}?type=vod&action=get_categories&JsHttpRequest=1-xml"
 			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
-			headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
+			headers = {"User-Agent": REQUEST_USER_AGENT, "Authorization": "Bearer " + token}
 			response = session.get(url, cookies=cookies, headers=headers)
 			genre_data = response.json()["js"]
 			if genre_data:
@@ -298,7 +298,7 @@ class StalkerProvider(IPTVProcessor):
 		try:
 			url = f"{self.getPortalUrl()}?type=series&action=get_categories&JsHttpRequest=1-xml"
 			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
-			headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
+			headers = {"User-Agent": REQUEST_USER_AGENT, "Authorization": "Bearer " + token}
 			response = session.get(url, cookies=cookies, headers=headers)
 			genre_data = response.json()["js"]
 			if genre_data:
@@ -319,7 +319,7 @@ class StalkerProvider(IPTVProcessor):
 		try:
 			url = f"{self.getPortalUrl()}?type=stb&action=get_profile&JsHttpRequest=1-xml"
 			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
-			headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
+			headers = {"User-Agent": REQUEST_USER_AGENT, "Authorization": "Bearer " + token}
 			response = session.get(url, cookies=cookies, headers=headers)
 			profile_data = response.json()["js"]
 			if profile_data:
@@ -389,7 +389,7 @@ class StalkerProvider(IPTVProcessor):
 				censored_groups.append(group["genre_id"])
 
 		cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
-		headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
+		headers = {"User-Agent": REQUEST_USER_AGENT, "Authorization": "Bearer " + token}
 		url = f"{self.getPortalUrl()}?type=itv&action=get_all_channels&JsHttpRequest=1-xml"
 		response = session.get(url, cookies=cookies, headers=headers)
 		channel_data = response.json()["js"]['data']
@@ -417,7 +417,7 @@ class StalkerProvider(IPTVProcessor):
 	
 	def get_stream_play_url(self, cmd, session, token):
 		cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
-		headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token}
+		headers = {"User-Agent": REQUEST_USER_AGENT, "Authorization": "Bearer " + token}
 		url = f"{self.getPortalUrl()}?type=itv&action=create_link&cmd={cmd}&series=&forced_storage=undefined&disable_ad=0&download=0&JsHttpRequest=1-xml"
 		response = session.get(url, cookies=cookies, headers=headers)
 		try:
@@ -432,7 +432,7 @@ class StalkerProvider(IPTVProcessor):
 		if not self.token:
 			self.token = self.get_token(self.session)
 		cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
-		headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + self.token}
+		headers = {"User-Agent": REQUEST_USER_AGENT, "Authorization": "Bearer " + self.token}
 		url = f"{self.getPortalUrl()}?type=vod&action=create_link&cmd={url.replace('ffmpeg ', '')}&JsHttpRequest=1-xml&series={str(series)}"
 		response = self.session.get(url, cookies=cookies, headers=headers)
 		try:
@@ -440,7 +440,7 @@ class StalkerProvider(IPTVProcessor):
 			return stream_data["cmd"].replace("ffmpeg ", "")
 		except: # probably token has expired
 			self.token = self.get_token(self.session)
-			headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + self.token}
+			headers = {"User-Agent": REQUEST_USER_AGENT, "Authorization": "Bearer " + self.token}
 			response = self.session.get(url, cookies=cookies, headers=headers)
 			try:
 				stream_data = response.json()["js"]
@@ -505,7 +505,7 @@ class StalkerProvider(IPTVProcessor):
 		if not self.token:
 			self.token = self.get_token(self.session)
 		cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
-		headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + self.token}
+		headers = {"User-Agent": REQUEST_USER_AGENT, "Authorization": "Bearer " + self.token}
 		page_number = 1
 		total_pages = 0
 		total_pages_series = 0
@@ -667,7 +667,7 @@ class StalkerProvider(IPTVProcessor):
 		if not self.token:
 			self.token = self.get_token(self.session)
 		cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
-		headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + self.token}
+		headers = {"User-Agent": REQUEST_USER_AGENT, "Authorization": "Bearer " + self.token}
 		ret = []
 		titles = []  # this is a temporary hack to avoid duplicates when there are multiple container extensions
 		#file = path.join(self.getTempDir(), series_id)
