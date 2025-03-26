@@ -216,9 +216,9 @@ def readProviders():
 					else:
 						providerObj.media_library_object.username = providerObj.media_library_token
 						providerObj.media_library_object.password = providerObj.media_library_token
-				
-				providerObj.loadMedialLibraryItems()
 
+				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True) # create provider subfolder if not exists
+				providerObj.loadMedialLibraryItems()
 				providerObj.servicename_substitutions = readSubstitions(0, providerObj.scheme)
 
 				providers[providerObj.scheme] = providerObj
@@ -246,6 +246,7 @@ def readProviders():
 				providerObj.ch_order_strategy = int(provider.find("ch_order_strategy").text) if provider.find("ch_order_strategy") is not None else 0
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
+				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True) # create provider subfolder if not exists
 				providerObj.loadMedialLibraryItems()
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
 				providerObj.picon_gen_strategy = int(provider.find("picon_gen_strategy").text) if provider.find("picon_gen_strategy") is not None else 0
@@ -275,6 +276,7 @@ def readProviders():
 				providerObj.server_time_offset = provider.find("server_time_offset").text if provider.find("server_time_offset") is not None and provider.find("server_time_offset").text is not None else ""
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
+				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True) # create provider subfolder if not exists
 				providerObj.loadMedialLibraryItems()
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
 				providerObj.portal_entry_point_type = int(provider.find("portal_entry_point_type").text) if provider.find("portal_entry_point_type") is not None else 0
@@ -304,6 +306,7 @@ def readProviders():
 				providerObj.ch_order_strategy = int(provider.find("ch_order_strategy").text) if provider.find("ch_order_strategy") is not None else 0
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
+				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True) # create provider subfolder if not exists
 				providers[providerObj.scheme] = providerObj
 	fd.close()
 
@@ -428,7 +431,7 @@ def writeProviders():
 			xml.append("\t</stalkerprovider>\n")
 	xml.append("</providers>\n")
 	makedirs(path.dirname(USER_IPTV_PROVIDERS_FILE), exist_ok=True)  # create config folder recursive if not exists
-	makedirs(PROVIDER_FOLDER, exist_ok=True) # create provider subfolder if not exists
+	makedirs(PROVIDER_FOLDER % val.scheme, exist_ok=True) # create provider subfolder if not exists
 	with write_lock:
 		f = open(USER_IPTV_PROVIDERS_FILE + ".writing", 'w')
 		f.write("".join(xml))
