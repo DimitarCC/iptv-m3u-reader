@@ -4,7 +4,7 @@ from . import _
 from twisted.internet import threads
 from .epgimport_helper import epgimport_helper
 from .Variables import REQUEST_USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, \
-					   CATCHUP_FLUSSONIC_TEXT, CATCHUP_VOD_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_FOLDER, USER_AGENTS, \
+					   CATCHUP_FLUSSONIC_TEXT, CATCHUP_VOD_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE, USER_AGENTS, \
 					   USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE, USER_IPTV_VOD_SERIES_FILE
 from .VoDItem import VoDItem
 from .picon import Fetcher
@@ -405,9 +405,10 @@ class IPTVProcessor():
 
 	def removeVoDData(self):
 		shutil.rmtree(self.getTempDir(), True)
-		for file in listdir(USER_FOLDER):
-			if file.startswith(self.scheme):
-				remove_file(path.join(USER_FOLDER, file))
+		remove_file(USER_IPTV_MOVIE_CATEGORIES_FILE % self.scheme)
+		remove_file(USER_IPTV_SERIES_CATEGORIES_FILE % self.scheme)
+		remove_file(USER_IPTV_VOD_MOVIES_FILE % self.scheme)
+		remove_file(USER_IPTV_VOD_SERIES_FILE % self.scheme)
 		self.vod_movies = []
 		self.vod_series = {}
 
