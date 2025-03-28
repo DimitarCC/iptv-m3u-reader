@@ -405,10 +405,15 @@ class IPTVProcessor():
 
 	def removeVoDData(self):
 		shutil.rmtree(self.getTempDir(), True)
-		remove_file(USER_IPTV_MOVIE_CATEGORIES_FILE % self.scheme)
-		remove_file(USER_IPTV_SERIES_CATEGORIES_FILE % self.scheme)
-		remove_file(USER_IPTV_VOD_MOVIES_FILE % self.scheme)
-		remove_file(USER_IPTV_VOD_SERIES_FILE % self.scheme)
+
+		if fileExists(USER_IPTV_MOVIE_CATEGORIES_FILE % self.scheme):
+			remove_file(USER_IPTV_MOVIE_CATEGORIES_FILE % self.scheme)
+		if fileExists(USER_IPTV_SERIES_CATEGORIES_FILE % self.scheme):
+			remove_file(USER_IPTV_SERIES_CATEGORIES_FILE % self.scheme)
+		if fileExists(USER_IPTV_VOD_MOVIES_FILE % self.scheme):
+			remove_file(USER_IPTV_VOD_MOVIES_FILE % self.scheme)
+		if fileExists(USER_IPTV_VOD_SERIES_FILE % self.scheme):
+			remove_file(USER_IPTV_VOD_SERIES_FILE % self.scheme)
 		self.vod_movies = []
 		self.vod_series = {}
 
