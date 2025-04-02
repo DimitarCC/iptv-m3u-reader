@@ -2,20 +2,22 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <spartak73@inbox.ru>, 2025.
-# 
+#
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-03-19 22:27+0200\n"
-"PO-Revision-Date: 2025-03-30 16:00+0200\n"
+"PO-Revision-Date: 2025-04-02 10:31+0300\n"
 "Last-Translator: kosmosspace@gmail.com\n"
 "Language-Team: airforce\n"
+"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"X-Generator: Poedit 3.6\n"
 
 #: ../src/plugin.py:1258
 #, python-format
@@ -516,7 +518,7 @@ msgstr "Нажмите OK, чтобы получить доступ к выбр�
 msgid "Press OK to edit the currently selected provider"
 msgstr "Нажмите OK, чтобы изменить выбранного провайдера"
 
-##: ../src/plugin.py:992 ../src/plugin.py:1070 ../src/plugin.py:1079
+# #: ../src/plugin.py:992 ../src/plugin.py:1070 ../src/plugin.py:1079
 msgid "Press OK to play selected movie"
 msgstr "Нажмите OK, чтобы воспроизвести выбранный фильм"
 
@@ -691,7 +693,7 @@ msgstr "Пропустить записи VOD в плейлисте"
 #: ../src/plugin.py:1604
 msgid "Skip jumping to live TV while timeshifting with plugins"
 msgstr "Пропустить переход к live TV при функции таймшифта с помощью плагинов"
-         
+
 #: ../src/plugin.py:1602
 msgid "Skip jumping to live while timeshifting with plugins"
 msgstr "Пропустить переход к прямому эфиру при использовании плагинов"
