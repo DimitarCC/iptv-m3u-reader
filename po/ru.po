@@ -48,7 +48,7 @@ msgstr[2] "%d секунд"
 #: ../src/plugin.py:1533
 #, python-format
 msgid "%s: Blacklist Bouquets"
-msgstr "%s: Черный список букетов"
+msgstr "%s: Бан-лист "
 
 #: ../src/plugin.py:1241 ../src/plugin.py:1242
 #, python-format
@@ -226,7 +226,7 @@ msgstr "Удалить \"%s\""
 
 #: ../src/plugin.py:1434
 msgid "Determine how the picons will be named - SNP or SRP."
-msgstr "Укажите, как будут называться пиконы — SNP или SRP."
+msgstr "Тип пиконов для скачивания — SNP-(по названию канала) или SRP-(по референсу канала)."
 
 #: ../src/plugin.py:1566
 msgid "Do a check is network available before try to retrieve the iptv playlist. If no network try backup services."
@@ -480,11 +480,11 @@ msgstr "Макс кол-во потоков для пиконов"
 
 #: ../src/plugin.py:1345
 msgid "Picons by name (SNP)"
-msgstr "Пиконы по имени (SNP)"
+msgstr "Пиконы по имени канала (SNP)"
 
 #: ../src/plugin.py:1345
 msgid "Picons by service reference (SRP)"
-msgstr "Пиконы по сервисной ссылке (SRP)"
+msgstr "Пиконы по референсу канала (SRP)"
 
 #: ../src/plugin.py:1434
 msgid "Picons type"
