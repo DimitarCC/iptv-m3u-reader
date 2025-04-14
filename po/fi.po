@@ -279,7 +279,7 @@ msgstr "Ota Mediakirjasto käyttöön"
 
 #: ../src/plugin.py:1574
 msgid "Enable catchup/archive entries in EPG screens for period"
-msgstr "Ota alusta aloittamisen-/arkistomerkinnät käyttöön EPG-näytöissä ajanjaksolle"
+msgstr "Alusta aloittamisen-/arkistomerkintöjen ajanjakso EPG-näytöissä"
 
 #: ../src/plugin.py:1579
 msgid "Enable new GStreamer playback"
