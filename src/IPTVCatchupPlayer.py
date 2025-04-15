@@ -32,15 +32,15 @@ try:
 except ImportError:
 	from Screens.InfoBarGenerics import saveResumePoints, resumePointCache
 try:
-	from Screens.EpgSelectionGrid import EPGSelectionGrid as EPGSelectionGrid
+	from Screens.EpgSelectionGrid import EPGSelectionGrid
 except ImportError:
 	EPGSelectionGrid = None
 try:
-	from Screens.EpgSelectionSingle import EPGSelectionSingle as EPGSelectionSingle
+	from Screens.EpgSelectionSingle import EPGSelectionSingle
 except ImportError:
 	EPGSelectionSingle = None
 try:
-	from Plugins.Extensions.GraphMultiEPG.GraphMultiEpg import EPGList as EPGList, GraphMultiEPG as GraphMultiEPG
+	from Plugins.Extensions.GraphMultiEPG.GraphMultiEpg import EPGList, GraphMultiEPG
 except ImportError:
 	EPGList = None
 	GraphMultiEPG = None

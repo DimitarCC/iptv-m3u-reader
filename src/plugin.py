@@ -443,24 +443,26 @@ def writeProviders():
 # Function for overwrite/extend some functions from Navigation.py so to inject own code
 def injectIntoNavigation(session):
 	import NavigationInstance
-	if distro in type2_distros:
+
+	if hasattr(NavigationInstance.instance, "playServiceExtensions") and playServiceExtension not in NavigationInstance.instance.playServiceExtensions:
+		NavigationInstance.instance.playServiceExtensions.append(playServiceExtension)
+	elif not hasattr(NavigationInstance.instance, "playServiceExtensions"):
 		Navigation.originalPlayingServiceReference = None
 		NavigationInstance.instance.playService = playServiceWithIPTVATV.__get__(NavigationInstance.instance, Navigation)
-		PictureInPicture.playService = playServiceWithIPTVPiPATV
+	if hasattr(NavigationInstance.instance, "recordServiceExtensions") and record_pipServiceExtension not in NavigationInstance.instance.recordServiceExtensions:
+		NavigationInstance.instance.recordServiceExtensions.append(record_pipServiceExtension)
+	elif not hasattr(NavigationInstance.instance, "recordServiceExtensions"):
 		NavigationInstance.instance.recordService = recordServiceWithIPTVATV.__get__(NavigationInstance.instance, Navigation)
-	else:
-		if playServiceExtension not in NavigationInstance.instance.playServiceExtensions:
-			NavigationInstance.instance.playServiceExtensions.append(playServiceExtension)
-		if record_pipServiceExtension not in NavigationInstance.instance.recordServiceExtensions:
-			NavigationInstance.instance.recordServiceExtensions.append(record_pipServiceExtension)
-		if record_pipServiceExtension not in PictureInPicture.playServiceExtensions:
-			PictureInPicture.playServiceExtensions.append(record_pipServiceExtension)
-		if QuadPiP and hasattr(QuadPiP, "playServiceExtensions" ) and playServiceQPiPExtension not in QuadPiP.playServiceExtensions:
-			QuadPiP.playServiceExtensions.append(playServiceQPiPExtension)
+	if hasattr(PictureInPicture, "playServiceExtensions") and record_pipServiceExtension not in PictureInPicture.playServiceExtensions:
+		PictureInPicture.playServiceExtensions.append(record_pipServiceExtension)
+	elif not hasattr(PictureInPicture, "playServiceExtensions"):
+		PictureInPicture.playService = playServiceWithIPTVPiPATV
+	if QuadPiP and hasattr(QuadPiP, "playServiceExtensions" ) and playServiceQPiPExtension not in QuadPiP.playServiceExtensions:
+		QuadPiP.playServiceExtensions.append(playServiceQPiPExtension)
 
 	NavigationInstance.instance.playRealService = playRealService.__get__(NavigationInstance.instance, Navigation)
 
-	if distro not in type0_distros:
+	if not hasattr(NavigationInstance.instance, "getCurrentServiceReferenceOriginal"):
 		NavigationInstance.instance.getCurrentServiceReferenceOriginal = getCurrentServiceReferenceOriginal.__get__(NavigationInstance.instance, Navigation)
 		NavigationInstance.instance.getCurrentlyPlayingServiceOrGroup = getCurrentlyPlayingServiceOrGroup.__get__(NavigationInstance.instance, Navigation)
 
