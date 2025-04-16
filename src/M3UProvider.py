@@ -45,10 +45,12 @@ class M3UProvider(IPTVProcessor):
 	
 	def searchForXMLTV(self, line, isCustomUrl=False):
 		epg_match = None
-		if line.startswith("#EXTM3U") and not isCustomUrl:
+		if "#EXTM3U" in line and not isCustomUrl:
 			if "tvg-url" in line:
+				print("[M3UIPTV] tvg-url found.")
 				epg_match = re.search(r"x-tvg-url=\"(.*?)\"", line, re.IGNORECASE) or re.search(r"tvg-url=\"(.*?)\"", line, re.IGNORECASE)
 			elif "url-tvg" in line:
+				print("[M3UIPTV] url-tvg found.")
 				epg_match = re.search(r"url-tvg=\"(.*?)\"", line, re.IGNORECASE)
 		return epg_match
 
@@ -79,16 +81,18 @@ class M3UProvider(IPTVProcessor):
 		curr_group = None
 		blacklist = self.readBlacklist()
 		for line in playlist_splitted:
-			if line.startswith("#EXTM3U") and (m := re.search(r"catchup-time=\"(\d+)\"", line, re.IGNORECASE)):
-				tvg_rec = int(m.group(1))
-				if tvg_rec >= 24*60*60:
-					global_tvg_rec = str(tvg_rec//86400)
+			if "#EXTM3U" in line:
+				if (m := re.search(r"catchup-time=\"(\d+)\"", line, re.IGNORECASE)):
+					tvg_rec = int(m.group(1))
+					if tvg_rec >= 24*60*60:
+						global_tvg_rec = str(tvg_rec//86400)
+				epg_match = self.searchForXMLTV(line, self.is_custom_xmltv)
+				if epg_match:
+					self.epg_url = epg_match.group(1)
+					self.is_dynamic_epg = not self.static_urls
+				continue
 			if self.ignore_vod and "group-title=\"VOD" in line:
 				continue
-			epg_match = self.searchForXMLTV(line, self.is_custom_xmltv)
-			if epg_match:
-				self.epg_url = epg_match.group(1)
-				self.is_dynamic_epg = not self.static_urls
 			if line.startswith("#EXTINF:"):
 				gr_match = re.search(r"group-title=\"(.*?)\"", line)
 				if gr_match:

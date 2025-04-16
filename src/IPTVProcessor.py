@@ -367,7 +367,9 @@ class IPTVProcessor():
 		epghelper.createChannelsFile(groups)
 
 	def generateEPGImportFiles(self, groups):
+		print("[M3UIPTV] Generating epg started.")
 		if not self.create_epg or not self.getEpgUrl():
+			print("[M3UIPTV] Generating epg aboreted. Seem no epg url or epg generation disabled.")
 			return
 		epghelper = epgimport_helper(self)
 		epghelper.createSourcesFile()
