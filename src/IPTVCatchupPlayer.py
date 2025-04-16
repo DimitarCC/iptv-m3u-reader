@@ -45,6 +45,12 @@ except ImportError:
 	EPGList = None
 	GraphMultiEPG = None
 
+# openATV
+try:
+	from Screens.EpgSelection import EPGSelection
+except ImportError:
+	EPGSelection = None
+
 
 def injectCatchupInEPG():
 	if EPGSelectionGrid:
@@ -52,6 +58,9 @@ def injectCatchupInEPG():
 
 	if EPGSelectionSingle:
 		EPGSelectionSingle.catchupPlayerFunc = playM3UIPTVArchiveEntry
+
+	if EPGSelection:
+		EPGSelection.catchupPlayerFunc = playM3UIPTVArchiveEntry
 
 	if EPGList:
 		if injectCatchupIconGMEPG not in EPGList.buildEntryExtensionFunctions:
@@ -105,7 +114,6 @@ def injectCatchupIconGMEPG(res, obj, service, service_name, events, picon, servi
 									png=obj.catchUpIcon,
 									flags=0))
 
-	
 
 def playM3UIPTVArchiveEntry(self, event, service):
 	stime = event.getBeginTime()
@@ -120,6 +128,7 @@ def playM3UIPTVArchiveEntry(self, event, service):
 	if infobar:
 		LastService = infobar.session.nav.getCurrentServiceReferenceOriginal()
 		infobar.session.open(CatchupPlayer, playref, sref_ret=sref, slist=infobar.servicelist, lastservice=LastService, event=event, orig_url=url, start_orig=stime, end_org=stime + duration, duration=duration, catchup_ref_type=catchup_ref_type, orig_sref=service.toString())
+
 
 def constructCompleteCatchupSref(catchup_service_type, sref, url_play, stime, etime, duration):
 	url = constructCatchUpUrl(sref, url_play, stime, etime, duration)
@@ -445,6 +454,7 @@ class CatchupPlayerSummary(Screen):
 			<convert type="ClockToText">Default</convert>
 		</widget>
 	</screen>"""
+
 
 def playArchiveEntry(self):
 	now = time()
