@@ -2,7 +2,7 @@
 from . import _, PluginLanguageDomain
 
 from sys import modules
-from time import time, localtime, strftime
+from time import time, localtime, mktime, strftime
 from glob import glob
 from urllib.error import HTTPError, URLError
 from twisted.web import server, resource
@@ -33,7 +33,7 @@ from Screens.TextBox import TextBox
 from Screens.VirtualKeyBoard import VirtualKeyBoard
 from Components.ServiceEventTracker import ServiceEventTracker
 from Components.ActionMap import ActionMap, HelpableActionMap
-from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigText, ConfigPassword, ConfigSelectionNumber, ConfigNumber
+from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigText, ConfigPassword, ConfigSelectionNumber, ConfigNumber, ConfigClock, ConfigSubDict, ConfigEnableDisable
 from Components.ParentalControl import parentalControl
 from Components.SelectionList import SelectionList, SelectionEntryComponent
 from Components.Sources.StaticText import StaticText
@@ -91,6 +91,13 @@ vod_play_system_choices = [("4097", "HiSilicon" if BoxInfo.getItem("mediaservice
 if isPluginInstalled("ServiceApp"):
 	vod_play_system_choices.append(("5002", "Exteplayer3"))
 config.plugins.m3uiptv.vod_play_system = ConfigSelection(default="4097", choices=vod_play_system_choices)
+
+# for AutoScheduleTimer
+config.plugins.m3uiptv.schedule = ConfigYesNo(default=False)
+config.plugins.m3uiptv.scheduletime = ConfigClock(default=0)  # 1:00
+config.plugins.m3uiptv.days = ConfigSubDict()
+for i in range(7):
+	config.plugins.m3uiptv.days[i] = ConfigEnableDisable(default=True)
 
 distro = BoxInfo.getItem("distro")
 
@@ -1593,8 +1600,10 @@ class BouquetBlacklist(Screen):
 
 class IPTVPluginConfig(Setup):
 	def __init__(self, session):
+		self.dayscreen = ConfigSelection(choices=[("1", _("Press OK"))], default="1")
 		Setup.__init__(self, session, None)
 		self.title = _("IPTV Settings")
+		self.addSaveNotifier(self.updateSchedule)
 
 	def createSetup(self):
 		configlist = []
@@ -1643,7 +1652,51 @@ class IPTVPluginConfig(Setup):
 			configlist.append((_("Enigma2 playback system"), config.plugins.serviceapp.servicemp3.replace, _("Change the playback system to one of the players available in ServiceApp plugin.")))
 			if config.plugins.serviceapp.servicemp3.replace.value:
 				configlist.append((_("Select the player which will be used for Enigma2 playback."), config.plugins.serviceapp.servicemp3.player, _("Select a player to be in use.")))
+		configlist.append(("---",))
+		configlist.append((_("Schedule update"), config.plugins.m3uiptv.schedule, _("Select 'yes' for automated updates of providers.")))
+		if config.plugins.m3uiptv.schedule.value:
+			configlist.append(("  " + _("Schedule time of day"), config.plugins.m3uiptv.scheduletime, _("Set the time of day to perform the update.")))
+			configlist.append(("  " + _("Schedule days of the week"), self.dayscreen, _("Press OK to select which days of the week to perform the update.")))
 		self["config"].list = configlist
+
+	def keySelect(self):
+		current = self["config"].getCurrent()
+		if current and len(current) > 1 and current[1] is self.dayscreen:
+			self.session.open(DaysScreen)
+		else:
+			Setup.keySelect(self)
+
+	def updateSchedule(self):
+		if autoScheduleTimer is not None:
+			if config.plugins.m3uiptv.enabled.isChanged() or config.plugins.m3uiptv.schedule.isChanged() or config.plugins.m3uiptv.enabled.scheduletime():
+				autoScheduleTimer.setSchedule()
+
+
+class DaysScreen(Setup):
+	def __init__(self, session):
+		self.config = config.plugins.m3uiptv
+		Setup.__init__(self, session, None)
+		self.title = _("M3UIPTV schedule") + " - " + _("Select days")
+		self.addSaveNotifier(self.updateSchedule)
+		
+	def createSetup(self):
+		configlist = []
+		days = (_("Monday"), _("Tuesday"), _("Wednesday"), _("Thursday"), _("Friday"), _("Saturday"), _("Sunday"))
+		for i in sorted(list(self.config.days.keys())):
+			configlist.append((days[i], self.config.days[i]))
+		self["config"].list = configlist
+
+	def keySave(self):
+		if not any([self.config.days[i].value for i in self.config.days]):
+			info = self.session.open(MessageBox, _("At least one day of the week must be selected"), MessageBox.TYPE_ERROR, timeout=30)
+			info.setTitle(_("M3UIPTV schedule") + " - " + _("Select days"))
+			return
+		Setup.keySave(self)
+
+	def updateSchedule(self):
+		if autoScheduleTimer is not None:
+			if any([self.config.days[i].isChanged() for i in self.config.days.keys()]):
+				autoScheduleTimer.setSchedule()
 
 class ShowText(TextBox):
 	def __init__(self, session, text, title):
@@ -1718,12 +1771,68 @@ def startVoDSetup(menuid):
 		return []
 	return [(_("Video on Demand"), M3UIPTVVoDMenu, "iptv_vod_menu", 100)]
 
+
+autoScheduleTimer = None
+
+
 def sessionstart(reason, session, **kwargs):
+	global autoScheduleTimer
 	if config.plugins.m3uiptv.enabled.value:
 		injectIntoNavigation(session)
 		readProviders()
 		threads.deferToThread(startingCustomEPGExternal).addCallback(lambda ignore: finishedCustomEPGExternal())
-		
+		if autoScheduleTimer is None:
+			autoScheduleTimer = AutoScheduleTimer()
+
+
+class AutoScheduleTimer():
+	def __init__(self):
+		self.config = config.plugins.m3uiptv
+		self.scheduletimer = eTimer()
+		self.scheduletimer.timeout.get().append(self.doUpdate)
+		self.setSchedule()
+
+	def setSchedule(self):
+		self.scheduletimer.stop()  # this is here because maybe the call came from the Notifier
+		if self.config.enabled.value and self.config.schedule.value:
+			now = int(time())
+			if now < 1735689600:  # Wednesday, January 1, 2025 12:00:00 AM ... if clock is not set give up
+				print("[M3UIPTV][setSchedule] System clock not set")
+				return
+			scheduleTime = self.getScheduleTime()
+			if scheduleTime + 86400 > now:  # sanity, this should always be True
+				if scheduleTime < now or not self.config.days[self.getToday()].value:
+					scheduleTime += 86400 * self.getScheduleDayOfWeek()
+				self.scheduletimer.startLongTimer(scheduleTime - now)
+				print("[M3UIPTV][setSchedule] Next scheduled update set to", strftime("%c", localtime(scheduleTime)), strftime("(now=%c)", localtime(now)))
+		else:
+			print("[M3UIPTV][setSchedule] Scheduled updates disabled")
+
+	def getScheduleTime(self):
+		now = localtime(time())
+		return int(mktime((now.tm_year, now.tm_mon, now.tm_mday, self.config.scheduletime.value[0], self.config.scheduletime.value[1], 0, now.tm_wday, now.tm_yday, now.tm_isdst)))
+
+	def getScheduleDayOfWeek(self):
+		today = self.getToday()
+		for i in range(1, 8):
+			if self.config.days[(today + i) % 7].value:
+				return i
+
+	def getToday(self):
+		return localtime(time()).tm_wday
+
+	def doUpdate(self):
+		self.scheduletimer.stop()
+		for provider in providers:
+			providerObj = providers[provider]
+			try:
+				providerObj.getPlaylistAndGenBouquet()
+				print(f"[M3UIPTV] Auto updating provider '{providerObj.iptv_service_provider}' succeeded")
+			except Exception as err:
+				print(f"[M3UIPTV] Auto updating provider '{providerObj.iptv_service_provider}' failed with error: {str(err)}")
+		self.setSchedule()
+
+
 def startingCustomEPGExternal():
 	port = config.plugins.m3uiptv.epg_loc_port.value
 	site = server.Site(StalkerEPG())
