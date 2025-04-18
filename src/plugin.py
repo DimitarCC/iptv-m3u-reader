@@ -202,6 +202,7 @@ def readProviders():
 				providerObj.ch_order_strategy = int(provider.find("ch_order_strategy").text) if provider.find("ch_order_strategy") is not None else 0
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
+				providerObj.auto_updates = provider.find("auto_updates") is not None and provider.find("auto_updates").text == "on"
 
 				# media library nodes
 				providerObj.has_media_library = provider.find("has_media_library") is not None and provider.find("has_media_library").text == "on"
@@ -258,6 +259,7 @@ def readProviders():
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
 				providerObj.picon_gen_strategy = int(provider.find("picon_gen_strategy").text) if provider.find("picon_gen_strategy") is not None else 0
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
+				providerObj.auto_updates = provider.find("auto_updates") is not None and provider.find("auto_updates").text == "on"
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("stalkerprovider"):
 				providerObj = StalkerProvider()
@@ -287,6 +289,7 @@ def readProviders():
 				providerObj.loadMedialLibraryItems()
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
 				providerObj.portal_entry_point_type = int(provider.find("portal_entry_point_type").text) if provider.find("portal_entry_point_type") is not None else 0
+				providerObj.auto_updates = provider.find("auto_updates") is not None and provider.find("auto_updates").text == "on"
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("tvhprovider"):
 				providerObj = TVHeadendProvider()
@@ -313,6 +316,7 @@ def readProviders():
 				providerObj.ch_order_strategy = int(provider.find("ch_order_strategy").text) if provider.find("ch_order_strategy") is not None else 0
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
+				providerObj.auto_updates = provider.find("auto_updates") is not None and provider.find("auto_updates").text == "on"
 				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True) # create provider subfolder if not exists
 				providers[providerObj.scheme] = providerObj
 	fd.close()
@@ -347,6 +351,7 @@ def writeProviders():
 			xml.append(f"\t\t<epg_match_strategy>{val.epg_match_strategy}</epg_match_strategy>\n")
 			xml.append(f"\t\t<custom_user_agent>{val.custom_user_agent}</custom_user_agent>\n")
 			xml.append(f"\t\t<ch_order_strategy>{val.ch_order_strategy}</ch_order_strategy>\n")
+			xml.append(f"\t\t<auto_updates>{'on' if val.auto_updates else 'off'}</auto_updates>\n")
 
 			# media library nodes
 			xml.append(f"\t\t<has_media_library>{'on' if val.has_media_library else 'off'}</has_media_library>\n")
@@ -383,6 +388,7 @@ def writeProviders():
 			xml.append(f"\t\t<custom_user_agent>{val.custom_user_agent}</custom_user_agent>\n")
 			xml.append(f"\t\t<output_format>{val.output_format}</output_format>\n")
 			xml.append(f"\t\t<ch_order_strategy>{val.ch_order_strategy}</ch_order_strategy>\n")
+			xml.append(f"\t\t<auto_updates>{'on' if val.auto_updates else 'off'}</auto_updates>\n")
 			xml.append("\t</xtreemprovider>\n")
 		elif isinstance(val, TVHeadendProvider):
 			xml.append("\t<tvhprovider>\n")
@@ -409,6 +415,7 @@ def writeProviders():
 			xml.append(f"\t\t<provider_tsid_search_criteria>{val.provider_tsid_search_criteria}</provider_tsid_search_criteria>\n")
 			xml.append(f"\t\t<custom_user_agent>{val.custom_user_agent}</custom_user_agent>\n")
 			xml.append(f"\t\t<ch_order_strategy>{val.ch_order_strategy}</ch_order_strategy>\n")
+			xml.append(f"\t\t<auto_updates>{'on' if val.auto_updates else 'off'}</auto_updates>\n")
 			xml.append("\t</tvhprovider>\n")
 		else:
 			xml.append("\t<stalkerprovider>\n")
@@ -435,6 +442,7 @@ def writeProviders():
 			xml.append(f"\t\t<ch_order_strategy>{val.ch_order_strategy}</ch_order_strategy>\n")
 			xml.append(f"\t\t<server_time_offset>{val.server_timezone_offset}</server_time_offset>\n")
 			xml.append(f"\t\t<portal_entry_point_type>{val.portal_entry_point_type}</portal_entry_point_type>\n")
+			xml.append(f"\t\t<auto_updates>{'on' if val.auto_updates else 'off'}</auto_updates>\n")
 			xml.append("\t</stalkerprovider>\n")
 	xml.append("</providers>\n")
 	makedirs(path.dirname(USER_IPTV_PROVIDERS_FILE), exist_ok=True)  # create config folder recursive if not exists
@@ -1405,6 +1413,7 @@ class M3UIPTVProviderEdit(Setup):
 		self.picons = ConfigYesNo(default=providerObj.picons)
 		self.create_bouquets_strategy = ConfigSelection(default=providerObj.create_bouquets_strategy, choices=[(0, _("Only bouquets for groups")), (1, _("Only bouquet for 'All Channels'")), (2, _("Bouquets for 'All Channels' and groups"))])
 		self.ch_order_strategy = ConfigSelection(default=providerObj.ch_order_strategy, choices=[(0, _("Use provider order")), (1, _("By channel number")), (2, _("Alphabetically"))])
+		self.auto_updates = ConfigYesNo(default=providerObj.auto_updates)
 
 		# media library fields
 		self.has_media_library = ConfigYesNo(default=providerObj.has_media_library)
@@ -1483,6 +1492,8 @@ class M3UIPTVProviderEdit(Setup):
 		if not self.user_provider_ch_num.value or not self.use_provider_tsid.value:
 			configlist.append((_("Channel ordering criteria"), self.ch_order_strategy, _("Specify how channels will be ordered in bouquets.")))
 		configlist.append((_("Custom User-Agent"), self.custom_user_agent, _("Sets custom User-Agent for use with services that requires specific one.")))
+		if config.plugins.m3uiptv.schedule.value:
+			configlist.append((_("Auto updates"), self.auto_updates, _("Include this provider when the global update schedule runs.") + " " + _("Requires the scheduler to be set up in the settings screen.")))
 
 		self["config"].list = configlist
 
@@ -1518,6 +1529,7 @@ class M3UIPTVProviderEdit(Setup):
 		providerObj.provider_tsid_search_criteria = self.provider_tsid_search_criteria.value
 		providerObj.custom_user_agent = self.custom_user_agent.value
 		providerObj.ch_order_strategy = self.ch_order_strategy.value
+		providerObj.auto_updates = self.auto_updates.value
 		if self.type.value == "M3U":
 			providerObj.refresh_interval = self.refresh_interval.value
 			providerObj.static_urls = self.staticurl.value
@@ -1653,7 +1665,7 @@ class IPTVPluginConfig(Setup):
 			if config.plugins.serviceapp.servicemp3.replace.value:
 				configlist.append((_("Select the player which will be used for Enigma2 playback."), config.plugins.serviceapp.servicemp3.player, _("Select a player to be in use.")))
 		configlist.append(("---",))
-		configlist.append((_("Schedule update"), config.plugins.m3uiptv.schedule, _("Select 'yes' for automated updates of providers.")))
+		configlist.append((_("Schedule update"), config.plugins.m3uiptv.schedule, _("Select 'yes' for automated updates of providers.") + " " + _("Also requires enabling in each individual provider that is to be updated.")))
 		if config.plugins.m3uiptv.schedule.value:
 			configlist.append(("  " + _("Schedule time of day"), config.plugins.m3uiptv.scheduletime, _("Set the time of day to perform the update.")))
 			configlist.append(("  " + _("Schedule days of the week"), self.dayscreen, _("Press OK to select which days of the week to perform the update.")))
@@ -1668,7 +1680,7 @@ class IPTVPluginConfig(Setup):
 
 	def updateSchedule(self):
 		if autoScheduleTimer is not None:
-			if config.plugins.m3uiptv.enabled.isChanged() or config.plugins.m3uiptv.schedule.isChanged() or config.plugins.m3uiptv.enabled.scheduletime():
+			if config.plugins.m3uiptv.enabled.isChanged() or config.plugins.m3uiptv.schedule.isChanged() or config.plugins.m3uiptv.scheduletime.isChanged():
 				autoScheduleTimer.setSchedule()
 
 
@@ -1825,11 +1837,12 @@ class AutoScheduleTimer():
 		self.scheduletimer.stop()
 		for provider in providers:
 			providerObj = providers[provider]
-			try:
-				providerObj.getPlaylistAndGenBouquet()
-				print(f"[M3UIPTV] Auto updating provider '{providerObj.iptv_service_provider}' succeeded")
-			except Exception as err:
-				print(f"[M3UIPTV] Auto updating provider '{providerObj.iptv_service_provider}' failed with error: {str(err)}")
+			if providerObj.auto_updates:
+				try:
+					providerObj.getPlaylistAndGenBouquet()
+					print(f"[M3UIPTV] Auto updating provider '{providerObj.iptv_service_provider}' succeeded")
+				except Exception as err:
+					print(f"[M3UIPTV] Auto updating provider '{providerObj.iptv_service_provider}' failed with error: {str(err)}")
 		self.setSchedule()
 
 
