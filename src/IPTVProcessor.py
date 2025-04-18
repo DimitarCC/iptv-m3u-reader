@@ -162,6 +162,7 @@ class IPTVProcessor():
 		self.media_library_password = ""
 		self.media_library_token = ""
 		self.media_library_object = None
+		self.auto_updates = False
 
 	def checkForNetwrok(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
