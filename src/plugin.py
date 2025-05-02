@@ -332,6 +332,7 @@ def readProviders():
 				providerObj.onid = int(provider.find("onid").text)
 				providerObj.auto_updates = provider.find("auto_updates") is not None and provider.find("auto_updates").text == "on"
 				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True) # create provider subfolder if not exists
+				providerObj.loadMedialLibraryItems()
 				providers[providerObj.scheme] = providerObj
 	fd.close()
 
