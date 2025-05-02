@@ -547,7 +547,8 @@ class StalkerProvider(IPTVProcessor):
 						item["stream_type"] = "movie" if vod["is_movie"] == 1 else "series"
 						item["stream_id"] = vod["id"]
 						item["stream_icon"] = vod["screenshot_uri"]
-						item["rating"] = vod["rating_imdb"] if "raating_imdb" in vod else vod["rating_kinopoisk"]
+						item["cover"] = vod["screenshot_uri"]
+						item["rating"] = vod["rating_imdb"] if "rating_imdb" in vod else vod["rating_kinopoisk"]
 						item["added"] = vod["added"]
 						item["is_adult"] = vod["censored"]
 						item["category_id"] = vod["category_id"]
@@ -652,7 +653,7 @@ class StalkerProvider(IPTVProcessor):
 				#ext = movie["container_extension"]
 				id = int(movie["stream_id"])
 				url = movie["play_url"]
-				vod_item = VoDItem(url, name, id, self, self.movie_categories.get(str(movie.get("category_id"))), movie.get("plot"))
+				vod_item = VoDItem(url, name, id, self, self.movie_categories.get(str(movie.get("category_id"))), movie.get("plot"), movie.get("stream_icon"))
 				self.vod_movies.append(vod_item)	
 
 	def loadVoDMoviesFromFile(self):

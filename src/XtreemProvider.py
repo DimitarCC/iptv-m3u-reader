@@ -146,6 +146,17 @@ class XtreemProvider(IPTVProcessor):
 		json_string = self.getUrlToFile(url, dest_file)
 		self.makeVodSeriesDictFromJson(json_string)
 
+	def getMovieById(self, movie_id):
+		ret = {}
+		url = "%s/player_api.php?username=%s&password=%s&action=get_vod_info&vod_id=%s" % (self.url, self.username, self.password, movie_id)
+		file = path.join(self.getTempDir(), "m_" + str(movie_id))
+		json_string = self.loadFromFile(file) or self.getUrlToFile(url, file)
+		if json_string:
+			movie_info = json.loads(json_string)
+			info = movie_info.get("info")
+			ret["plot"] = info.get("plot")
+		return ret
+
 	def getSeriesById(self, series_id):
 		ret = []
 		titles = []  # this is a temporary hack to avoid duplicates when there are multiple container extensions
@@ -172,6 +183,7 @@ class XtreemProvider(IPTVProcessor):
 						elif season_num:
 							marker.append(_("S%s") % str(season_num))
 						episode_num = episode.get("episode_num") and episode["episode_num"]
+						episode_image = episode.get("movie_image") and episode["movie_image"]
 						if episode_num:
 							marker.append(_("Ep%s") % str(episode_num))
 						if marker:
@@ -194,7 +206,7 @@ class XtreemProvider(IPTVProcessor):
 						title = title.replace(se_num, "").replace("." + ext, "")
 						title = f"{se_num} - {title}"
 						if title and (info or main_info) and title not in titles:
-							ret.append((episode_url, title, info or main_info, self, ", ".join(marker), id.split(":")[0]))
+							ret.append((episode_url, title, info or main_info, self, ", ".join(marker), id.split(":")[0], episode_image))
 							titles.append(title)
 		return ret
 

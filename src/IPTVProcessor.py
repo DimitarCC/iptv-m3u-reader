@@ -149,6 +149,7 @@ class IPTVProcessor():
 		self.epg_time_offset = 0 # Only for Stalker providers
 		self.server_time_offset = "" # Only for Stalker providers
 		self.portal_entry_point_type = 0 # Only for Stalker providers
+		self.playlist_type = "m3u" # Only for VOD providers
 
 		# Fields for utilize substitutions if available
 		self.servicename_substitutions = {}
@@ -272,13 +273,19 @@ class IPTVProcessor():
 				category = "UNCATEGORIZED" if not category_id or category_id not in self.series_categories else self.series_categories[category_id]
 				name = x.get("title") or x.get("name")
 				series_id = x.get("series_id") and str(x["series_id"])
+				cover_url = x.get("cover")
+				plot = x.get("plot")
 				if name and series_id:
 					if category not in self.vod_series:
 						self.vod_series[category] = []
-					self.vod_series[category].append((series_id, name))
+					self.vod_series[category].append((series_id, name, plot, cover_url))
 
 	def getSeriesById(self, series_id):
 		ret = []
+		return ret
+	
+	def getMovieById(self, movie_id):
+		ret = {}
 		return ret
 
 	def getUrl(self, url):
@@ -338,7 +345,7 @@ class IPTVProcessor():
 				ext = movie["container_extension"]
 				id = movie["stream_id"]
 				url = "%s/movie/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
-				vod_item = VoDItem(url, name, id, self, self.movie_categories.get(str(movie.get("category_id"))), movie.get("plot"))
+				vod_item = VoDItem(url, name, id, self, self.movie_categories.get(str(movie.get("category_id"))), movie.get("plot"), movie.get("stream_icon"))
 				self.vod_movies.append(vod_item)
 
 	def processService(self, nref, iptvinfodata, callback=None, event=None):

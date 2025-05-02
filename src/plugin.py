@@ -7,7 +7,7 @@ from glob import glob
 from urllib.error import HTTPError, URLError
 from twisted.web import server, resource
 from twisted.internet import threads, reactor
-from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, iPlayableService
+from enigma import eServiceCenter, eServiceReference, eTimer, getBestPlayableServiceReference, iPlayableService, ePicLoad
 try:
 	from enigma import pNavigation
 except ImportError:
@@ -18,6 +18,7 @@ from .IPTVProcessor import IPTVProcessor
 from .XtreemProvider import XtreemProvider
 from .StalkerProvider import StalkerProvider
 from .TVHeadendProvider import TVHeadendProvider
+from .VODProvider import VODProvider
 from .IPTVProviders import providers, processService as processIPTVService
 from .IPTVCatchupPlayer import injectCatchupInEPG
 from .epgimport_helper import overwriteEPGImportEPGSourceInit
@@ -38,6 +39,7 @@ from Components.ParentalControl import parentalControl
 from Components.SelectionList import SelectionList, SelectionEntryComponent
 from Components.Sources.StaticText import StaticText
 from Components.Label import Label
+from Components.Pixmap import Pixmap
 from Components.Sources.List import List
 from Components.Sources.Progress import Progress
 from Components.SystemInfo import BoxInfo
@@ -73,7 +75,7 @@ except ImportError:
 from os import path, fsync, rename, makedirs, remove
 from xml.etree.cElementTree import iterparse
 
-import json, base64, shutil, xml, re, threading
+import json, base64, shutil, xml, re, threading, urllib, os
 
 write_lock = threading.Lock()
 
@@ -319,6 +321,18 @@ def readProviders():
 				providerObj.auto_updates = provider.find("auto_updates") is not None and provider.find("auto_updates").text == "on"
 				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True) # create provider subfolder if not exists
 				providers[providerObj.scheme] = providerObj
+			for provider in elem.findall("vodprovider"):
+				providerObj = VODProvider()
+				providerObj.type = "VOD"
+				providerObj.playlist_type = provider.find("playlist_type").text if provider.find("playlist_type") is not None and provider.find("playlist_type").text is not None else providerObj.playlist_type
+				providerObj.scheme = provider.find("scheme").text
+				providerObj.iptv_service_provider = provider.find("servicename").text
+				providerObj.url = provider.find("url").text
+				providerObj.ignore_vod = False
+				providerObj.onid = int(provider.find("onid").text)
+				providerObj.auto_updates = provider.find("auto_updates") is not None and provider.find("auto_updates").text == "on"
+				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True) # create provider subfolder if not exists
+				providers[providerObj.scheme] = providerObj
 	fd.close()
 
 def writeProviders():
@@ -417,7 +431,7 @@ def writeProviders():
 			xml.append(f"\t\t<ch_order_strategy>{val.ch_order_strategy}</ch_order_strategy>\n")
 			xml.append(f"\t\t<auto_updates>{'on' if val.auto_updates else 'off'}</auto_updates>\n")
 			xml.append("\t</tvhprovider>\n")
-		else:
+		elif isinstance(val, StalkerProvider):
 			xml.append("\t<stalkerprovider>\n")
 			xml.append(f"\t\t<servicename>{val.iptv_service_provider}</servicename>\n")
 			xml.append(f"\t\t<url><![CDATA[{val.url}]]></url>\n")
@@ -444,6 +458,16 @@ def writeProviders():
 			xml.append(f"\t\t<portal_entry_point_type>{val.portal_entry_point_type}</portal_entry_point_type>\n")
 			xml.append(f"\t\t<auto_updates>{'on' if val.auto_updates else 'off'}</auto_updates>\n")
 			xml.append("\t</stalkerprovider>\n")
+		else:
+			xml.append("\t<vodprovider>\n")
+			xml.append(f"\t\t<servicename>{val.iptv_service_provider}</servicename>\n")
+			xml.append(f"\t\t<playlist_type>{val.playlist_type}</playlist_type>\n")
+			xml.append(f"\t\t<url><![CDATA[{val.url}]]></url>\n")
+			xml.append(f"\t\t<novod>{'on' if val.ignore_vod else 'off'}</novod>\n")
+			xml.append(f"\t\t<scheme><![CDATA[{val.scheme}]]></scheme>\n")
+			xml.append(f"\t\t<onid>{val.onid}</onid>\n")
+			xml.append(f"\t\t<auto_updates>{'on' if val.auto_updates else 'off'}</auto_updates>\n")
+			xml.append("\t</vodprovider>\n")
 	xml.append("</providers>\n")
 	makedirs(path.dirname(USER_IPTV_PROVIDERS_FILE), exist_ok=True)  # create config folder recursive if not exists
 	makedirs(PROVIDER_FOLDER % val.scheme, exist_ok=True) # create provider subfolder if not exists
@@ -754,14 +778,16 @@ class M3UIPTVVoDSeries(Screen):
 					}
 				</convert>
 			</widget>
+		 	<widget name="poster" position="%d,%d" size="%d,%d"/>
 			<widget source="description" render="Label" position="%d,%d" zPosition="10" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1" />
 		</screen>""",
 			980, 600,  # screen
 			15, 60, 950, 430, 22,  # overlay
-			15, 60, 950, 430,  # Listbox
+			15, 60, 640, 430,  # Listbox
 			2, 0, 630, 26,  # template
 			22,  # fonts
 			26,  # ItemHeight
+			665, 60, 300, 430,  # Poster
 			5, 500, 940, 50, 22,  # description
 			]  # noqa: E124
 
@@ -772,6 +798,9 @@ class M3UIPTVVoDSeries(Screen):
 		self["description"] = StaticText()
 		self["overlay"] = Label(_("Please wait! Loading data from server."))
 		self["overlay"].hide()
+		self.picload = ePicLoad()
+		self.picload.PictureData.get().append(self.showPic)
+		self["poster"] = Pixmap()
 		self.mode = self.MODE_GENRE
 		self.allseries = {}
 		allEpisodes = []
@@ -781,10 +810,10 @@ class M3UIPTVVoDSeries(Screen):
 			for genre in series:
 				if genre not in self.allseries:
 					self.allseries[genre] = []
-				for series_id, name in series[genre]:
+				for series_id, name, plot, poster in series[genre]:
 					if name:
-						self.allseries[genre].append((series_id, name, provider))
-						allEpisodes.append((series_id, name, provider))
+						self.allseries[genre].append((series_id, name, provider, plot, poster))
+						allEpisodes.append((series_id, name, provider, plot, poster))
 		self.categories = list(sorted(self.allseries.keys()))
 		self.allseries[self.all] = allEpisodes  # insert after the sort so it does not affect the sort
 		self.categories.insert(0, self.all)  # insert "All" category at the start of the list
@@ -794,6 +823,8 @@ class M3UIPTVVoDSeries(Screen):
 		self.episodesHistory = [self.episodes]
 		self.searchTexts = []
 		self.searchTerms = []
+		self.processing_cover = False
+		self.deferred_cover_url = None
 
 		if self.selectionChanged not in self["list"].onSelectionChanged:
 			self["list"].onSelectionChanged.append(self.selectionChanged)
@@ -815,12 +846,62 @@ class M3UIPTVVoDSeries(Screen):
 		self.buildList()
 		# self.onClose.append(self.mdbCleanup)
 
+	def showPic(self, picInfo=""):
+		ptr = self.picload.getData()
+		if ptr is not None:
+			if not self.deferred_cover_url:
+				self["poster"].instance.setPixmap(ptr.__deref__())
+		self.processing_cover = False
+		if self.deferred_cover_url:
+			cover_url = self.deferred_cover_url
+			self.deferred_cover_url = None
+			threads.deferToThread(self.downloadCover, cover_url)
+
+	def downloadCover(self, current_cover_url):
+		if self.processing_cover:
+			self.deferred_cover_url = current_cover_url
+			return
+		if not current_cover_url:
+			self["poster"].instance.setPixmap(None)
+			return
+		self.processing_cover = True
+		if not self.deferred_cover_url:
+			req = urllib.request.Request(current_cover_url)
+			response = urllib.request.urlopen(req, timeout=5)
+			with open('/tmp/M3UIPTV/poster.png', 'wb') as handler:
+				handler.write(response.read())
+			
+			piconsize = self["poster"].instance.size()
+			self.picload.setPara((piconsize.width(), piconsize.height(), 1, 1, 1, 1, '#FF111111'))
+			
+			if path.exists('/tmp/M3UIPTV/poster.png'):
+				self.picload.startDecode('/tmp/M3UIPTV/poster.png')
+			else:
+				self["poster"].instance.setPixmap(None)
+
 	def selectionChanged(self):
-		if self.mode == self.MODE_EPISODE:
+		if self.mode == self.MODE_GENRE:
+			current_cover_url = None
+			self["poster"].instance.setPixmap(None)
+			self.processing_cover = False
+		elif self.mode == self.MODE_EPISODE:
 			if (current := self["list"].getCurrent()) and ((info := current[2]) is not None and (plot := info.get("plot")) is not None or current[4]):
 				self["description"].text = (plot + " " if plot else "") + ("%s" % current[4] if current[4] else "")
+				current_cover_url = current[6] or info.get("cover")
 			else:
 				self["description"].text = _("Press OK to access selected item")
+				current_cover_url = None
+				self["poster"].instance.setPixmap(None)
+		elif self.mode == self.MODE_SERIES:
+			if (current := self["list"].getCurrent()) and (plot := current[3]):
+				self["description"].text = plot
+				current_cover_url = current[4]
+			else:
+				self["description"].text = _("Press OK to select a series")
+				current_cover_url = None
+				self["poster"].instance.setPixmap(None)
+		if self.mode != self.MODE_GENRE:
+			threads.deferToThread(self.downloadCover, current_cover_url)
 
 	def keyCancel(self):
 		lastmode, lastindex = self.popStack()
@@ -864,6 +945,7 @@ class M3UIPTVVoDSeries(Screen):
 		if not state:
 			self["overlay"].hide()
 			self["list"].master.master.show()
+			self["list"].index = 0
 			return
 		if current := self["list"].getCurrent():
 			self["overlay"].hide()
@@ -907,6 +989,9 @@ class M3UIPTVVoDSeries(Screen):
 	def buildList(self):
 		if not self.categories:
 			return
+		if path.exists('/tmp/M3UIPTV/poster.png'):
+			os.remove('/tmp/M3UIPTV/poster.png')
+		self.processing_cover = False
 		if len(self.allseries) == 1 and self.mode == self.MODE_GENRE:  # go straight into series mode if no categories are available
 			self.mode = self.MODE_SERIES
 			self.pushStack()
@@ -914,6 +999,7 @@ class M3UIPTVVoDSeries(Screen):
 			self.title = _("VoD Series Categories")
 			self["description"].text = _("Press OK to select a category")
 			self["list"].setList([(x, x) for x in self.categories])
+			self["poster"].instance and self["poster"].instance.setPixmap(None)
 		elif self.mode == self.MODE_SERIES:
 			self.title = _("VoD Series Category: %s") % self.category
 			self["description"].text = _("Press OK to select a series")
@@ -978,6 +1064,7 @@ class M3UIPTVVoDMovies(Screen):
 	skin = ["""
 		<screen name="M3UIPTVVoDMovies" position="center,center" size="%d,%d">
 			<panel name="__DynamicColorButtonTemplate__"/>
+		 	<widget name="overlay" position="%d,%d" zPosition="12" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1"/>
 			<widget source="list" render="Listbox" position="%d,%d" size="%d,%d" scrollbarMode="showOnDemand">
 				<convert type="TemplatedMultiContent">
 					{"template": [
@@ -988,13 +1075,16 @@ class M3UIPTVVoDMovies(Screen):
 					}
 				</convert>
 			</widget>
+		 	<widget name="poster" position="%d,%d" size="%d,%d"/>
 			<widget source="description" render="Label" position="%d,%d" zPosition="10" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1" />
 		</screen>""",
 			980, 600,  # screen
-			15, 60, 950, 430,  # Listbox
+			15, 60, 950, 430, 22,  # overlay
+			15, 60, 640, 430,  # Listbox
 			2, 0, 630, 26,  # template
 			22,  # fonts
 			26,  # ItemHeight
+			665, 60, 300, 430,  # Poster
 			5, 500, 940, 50, 22,  # description
 			]  # noqa: E124
 
@@ -1002,6 +1092,9 @@ class M3UIPTVVoDMovies(Screen):
 		Screen.__init__(self, session)
 		self["list"] = List([])
 		self["description"] = StaticText()
+		self.picload = ePicLoad()
+		self.picload.PictureData.get().append(self.showPic)
+		self["poster"] = Pixmap()
 		self.mode = self.MODE_CATEGORY
 		self.allmovies = []
 		for provider in providers:
@@ -1035,13 +1128,60 @@ class M3UIPTVVoDMovies(Screen):
 			}, -1)  # noqa: E123
 		self.buildList()
 		self.onClose.append(self.mdbCleanup)
+		self.processing_cover = False
+		self.deferred_cover_url = None
+
+	def showPic(self, picInfo=""):
+		ptr = self.picload.getData()
+		if ptr is not None:
+			if not self.deferred_cover_url:
+				self["poster"].instance.setPixmap(ptr.__deref__())
+		self.processing_cover = False
+		if self.deferred_cover_url:
+			cover_url = self.deferred_cover_url
+			self.deferred_cover_url = None
+			threads.deferToThread(self.downloadCover, cover_url)
+
+	def downloadCover(self, current_cover_url):
+		if self.processing_cover:
+			self.deferred_cover_url = current_cover_url
+			return
+		if not current_cover_url:
+			self["poster"].instance.setPixmap(None)
+			return
+		self.processing_cover = True
+		if not self.deferred_cover_url:
+			req = urllib.request.Request(current_cover_url)
+			response = urllib.request.urlopen(req, timeout=5)
+			with open('/tmp/M3UIPTV/poster.png', 'wb') as handler:
+				handler.write(response.read())
+			
+			piconsize = self["poster"].instance.size()
+			self.picload.setPara((piconsize.width(), piconsize.height(), 1, 1, 1, 1, '#FF111111'))
+			
+			if path.exists('/tmp/M3UIPTV/poster.png'):
+				self.picload.startDecode('/tmp/M3UIPTV/poster.png')
+			else:
+				self["poster"].instance.setPixmap(None)
+
+	def getExtraMovieInfo(self, obj):
+		info_obj = obj.providerObj.getMovieById(obj.id)
+		if plot := info_obj.get("plot"):
+			self["description"].text = plot
+		else:
+			self["description"].text = _("Press OK to play selected movie")
 
 	def selectionChanged(self):
+		current_cover_url = None
 		if self.mode in (self.MODE_MOVIE, self.MODE_SEARCH):
 			if (current := self["list"].getCurrent()) and (plot := current[0].plot) is not None:
 				self["description"].text = plot
-			else:
-				self["description"].text = _("Press OK to play selected movie")
+			elif not plot:
+				threads.deferToThread(self.getExtraMovieInfo, current[0])
+			if current[0].poster_url:
+				current_cover_url = current[0].poster_url
+		if self.mode != self.MODE_CATEGORY:
+			threads.deferToThread(self.downloadCover, current_cover_url)
 
 	def mdb(self):
 		if self.mode in (self.MODE_MOVIE, self.MODE_SEARCH) and (current := self["list"].getCurrent()):
@@ -1115,6 +1255,9 @@ class M3UIPTVVoDMovies(Screen):
 		return count
 
 	def buildList(self):
+		if path.exists('/tmp/M3UIPTV/poster.png'):
+			os.remove('/tmp/M3UIPTV/poster.png')
+		self.processing_cover = False
 		if len(self.categories) == 1 and self.mode == self.MODE_CATEGORY:  # go straight into movie mode if no categories are available
 			self.mode = self.MODE_MOVIE
 		if self.mode == self.MODE_SEARCH:
@@ -1126,6 +1269,7 @@ class M3UIPTVVoDMovies(Screen):
 			self["description"].text = _("Press OK to select a category")
 			self["list"].setList([(x, x) for x in self.categories])
 			self["list"].index = self.categories.index(self.category)
+			self["poster"].instance and self["poster"].instance.setPixmap(None)
 		else:
 			self.title = _("VoD Movie Category: %s") % self.category
 			self["description"].text = _("Press OK to play selected movie")
@@ -1203,11 +1347,15 @@ class M3UIPTVManagerConfig(Screen):
 		tvh_ico = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "icons/tvheadend.png"))
 		if not tvh_ico:
 			tvh_ico = LoadPixmap("%s/tvheadend.png" % plugin_dir)
+		vod_ico = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "icons/vod_p.png"))
+		if not vod_ico:
+			vod_ico = LoadPixmap("%s/vod_p.png" % plugin_dir)
 		self.logos = {}
 		self.logos["M3U"] = m3u_ico
 		self.logos["Xtreeme"] = xtream_ico
 		self.logos["Stalker"] = stalker_ico
 		self.logos["TVH"] = tvh_ico
+		self.logos["VOD"] = vod_ico
 		self.generate_timer = eTimer()
 		self.generate_timer.callback.append(self.generateBouquets)
 		self.buildList()
@@ -1374,7 +1522,8 @@ class M3UIPTVProviderEdit(Setup):
 		providerObj = providers.get(provider, IPTVProcessor())
 		blacklist = self.edit and bool(providerObj.readExampleBlacklist())
 		self.providerObj = providerObj
-		self.type = ConfigSelection(default=providerObj.type, choices=[("M3U", _("M3U/M3U8")), ("Xtreeme", _("Xtreme Codes")), ("Stalker", _("Stalker portal")), ("TVH", _("TVHeadend server"))])
+		self.type = ConfigSelection(default=providerObj.type, choices=[("M3U", _("M3U/M3U8")), ("Xtreeme", _("Xtreme Codes")), ("Stalker", _("Stalker portal")), ("TVH", _("TVHeadend server")), ("VOD", _("Video on Demand"))])
+		self.playlist_type = ConfigSelection(default=providerObj.playlist_type, choices=[("m3u", _("M3U/M3U8")), ("txt", _("TXT"))])
 		self.iptv_service_provider = ConfigText(default=providerObj.iptv_service_provider, fixed_size=False)
 		self.url = ConfigText(default=providerObj.url, fixed_size=False)
 		refresh_interval_choices = [(-1, _("off")), (0, _("on"))] + [(i, ngettext("%d hour", "%d hours", i) % i) for i in [1, 2, 3, 4, 5, 6, 12, 24]]  # noqa: F821
@@ -1441,6 +1590,8 @@ class M3UIPTVProviderEdit(Setup):
 			configlist.append((_("Provider Type"), self.type, _("Specify the provider type.")))
 		configlist.append((_("Provider name"), self.iptv_service_provider, _("Specify the provider user friendly name that will be used for the bouquet name and for displaying in the infobar.")))
 		configlist.append((_("URL"), self.url, _("The playlist URL (*.m3u; *.m3u8) or streaming server URL. Including the port if differs from 80.") + " " + _("If the playlist is already stored on a local device you can use the local file path in this field, e.g. /tmp/myplaylist.m3u")))
+		if self.type.value == "VOD":
+			configlist.append((_("VOD playlist format"), self.playlist_type, _("The format of the VOD playlist (m3u; m3u8; txt)")))
 		if self.type.value == "M3U":
 			configlist.append((_("Use static URLs"), self.staticurl, _("If enabled URL will be static and not aliases. That means if the URL of a service changes in the playlist bouquet entry will stop working.")))
 			if not self.staticurl.value:
@@ -1449,49 +1600,50 @@ class M3UIPTVProviderEdit(Setup):
 		elif self.type.value == "Xtreeme" or self.type.value == "TVH":
 			configlist.append((_("Username"), self.username, _("User name used for authenticating in the streaming server.")))
 			configlist.append((_("Password"), self.password, _("Password used for authenticating in the streaming server.")))
-		else:
+		elif self.type.value == "Stalker":
 			configlist.append((_("MAC address"), self.mac, _("MAC address used for authenticating in Stalker portal.")))
 		if self.type.value == "Xtreeme" or self.type.value == "Stalker":
 			configlist.append((_("Skip VOD entries"), self.novod, _("Skip VOD entries in the playlist")))
-		configlist.append((_("Generate EPG files for EPGImport plugin"), self.create_epg, _("Creates files needed for importing EPG via EPGImport plugin")))
-		if self.create_epg.value:
-			if self.type.value == "M3U":
-				configlist.append((_("EPG matching condition"), self.epg_match_strategy, _("Specify how xmltv entries will be matched to channels.")))
-			configlist.append((_("Use custom XMLTV URL"), self.is_custom_xmltv, _("Use your own XMLTV url for EPG importing.")))
-			if self.is_custom_xmltv.value:
-				configlist.append((_("Custom XMLTV URL"), self.custom_xmltv_url, _("The URL where EPG data for this provider can be downloaded.")))
-			#if self.type.value == "Stalker" and self.create_epg.value and not self.is_custom_xmltv.value:
-			#	configlist.append((_("EPG entry GMT offset"), self.epg_time_offset, _("Set time offset in hours towards GMT.")))
-
+		if self.type.value != "VOD":
+			configlist.append((_("Generate EPG files for EPGImport plugin"), self.create_epg, _("Creates files needed for importing EPG via EPGImport plugin")))
+			if self.create_epg.value:
+				if self.type.value == "M3U":
+					configlist.append((_("EPG matching condition"), self.epg_match_strategy, _("Specify how xmltv entries will be matched to channels.")))
+				configlist.append((_("Use custom XMLTV URL"), self.is_custom_xmltv, _("Use your own XMLTV url for EPG importing.")))
+				if self.is_custom_xmltv.value:
+					configlist.append((_("Custom XMLTV URL"), self.custom_xmltv_url, _("The URL where EPG data for this provider can be downloaded.")))
+				#if self.type.value == "Stalker" and self.create_epg.value and not self.is_custom_xmltv.value:
+				#	configlist.append((_("EPG entry GMT offset"), self.epg_time_offset, _("Set time offset in hours towards GMT.")))
 		configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
-		configlist.append((_("Playback system"), self.play_system, _("The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3")))
-		configlist.append((_("Playback system for Catchup/Archive"), self.play_system_catchup, _("The player used for playing Catchup/Archive. Can be GStreamer/HiSilicon, Extplayer3")))
-		if self.type.value in ("Xtreeme", "Stalker"):
-			configlist.append((_("Stream output format"), self.output_format, _("The format used to deliver the streams. Can be TS or HLS.\nNOTE: Setting playback system to DVB will make it impossible to use HLS as output format.")))
-		if self.type.value == "M3U":
-			configlist.append((_("Catchup Type"), self.catchup_type, _("The catchup API used.")))
-			configlist.append((_("Enable Media Library"), self.has_media_library, _("Specify is there media library available on separate url.")))
-			if self.has_media_library.value:
-				configlist.append((_("Media Library type"), self.media_library_type, _("Specify media library type.")))
-				configlist.append((_("Media Library URL"), self.media_library_url, _("Specify media library URL.")))
-				if self.media_library_type.value == "xc":
-					configlist.append((_("Media Library Username"), self.media_library_username, _("User name used for authenticating in the Media Library server.")))
-					configlist.append((_("Media Library Password"), self.media_library_password, _("Password used for authenticating in Media Library server.")))
-				else:
-					configlist.append((_("Media Library Access Token"), self.media_library_token, _("Access token used for authenticating in Media Library server.")))
+		if self.type.value != "VOD":
+			configlist.append((_("Playback system"), self.play_system, _("The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3")))
+			configlist.append((_("Playback system for Catchup/Archive"), self.play_system_catchup, _("The player used for playing Catchup/Archive. Can be GStreamer/HiSilicon, Extplayer3")))
+			if self.type.value in ("Xtreeme", "Stalker"):
+				configlist.append((_("Stream output format"), self.output_format, _("The format used to deliver the streams. Can be TS or HLS.\nNOTE: Setting playback system to DVB will make it impossible to use HLS as output format.")))
+			if self.type.value == "M3U":
+				configlist.append((_("Catchup Type"), self.catchup_type, _("The catchup API used.")))
+				configlist.append((_("Enable Media Library"), self.has_media_library, _("Specify is there media library available on separate url.")))
+				if self.has_media_library.value:
+					configlist.append((_("Media Library type"), self.media_library_type, _("Specify media library type.")))
+					configlist.append((_("Media Library URL"), self.media_library_url, _("Specify media library URL.")))
+					if self.media_library_type.value == "xc":
+						configlist.append((_("Media Library Username"), self.media_library_username, _("User name used for authenticating in the Media Library server.")))
+						configlist.append((_("Media Library Password"), self.media_library_password, _("Password used for authenticating in Media Library server.")))
+					else:
+						configlist.append((_("Media Library Access Token"), self.media_library_token, _("Access token used for authenticating in Media Library server.")))
 
-		configlist.append((_("Download picons"), self.picons, _("Download picons, if available from the provider, and install them. Picon download is done in the background after bouquet generation.")))
-		if self.picons.value:
-			configlist.append((_("Picons type"), self.picon_gen_strategy, _("Determine how the picons will be named - SNP or SRP.")))
-		configlist.append((_("Bouquet creation strategy"), self.create_bouquets_strategy, _("Configure what type of bouquets should be created.")))
-		configlist.append((_("Use provider TSID"), self.use_provider_tsid, _("Use the TSID provided from the IPTV provider (if available).\nUseful when want to always have same service references for EPG.")))
-		if self.use_provider_tsid.value:
-			configlist.append((_("Use channel numbers from provider"), self.user_provider_ch_num, _("Use channel numbers and ordering provided by the IPTV provider.\nIt will work only for 'ALL' bouquets.\nIf is configured global numbering the channel numbers may be offset depending on how many bouquets are before that one.")))
-			if self.type.value in ("M3U", "TVH"):
-				configlist.append((_("Provider TSID retrival condition"), self.provider_tsid_search_criteria, _("Search condition to get TSID provided from IPTV provider.\nUseful when want to always have same service references for EPG.")))
-		if not self.user_provider_ch_num.value or not self.use_provider_tsid.value:
-			configlist.append((_("Channel ordering criteria"), self.ch_order_strategy, _("Specify how channels will be ordered in bouquets.")))
-		configlist.append((_("Custom User-Agent"), self.custom_user_agent, _("Sets custom User-Agent for use with services that requires specific one.")))
+			configlist.append((_("Download picons"), self.picons, _("Download picons, if available from the provider, and install them. Picon download is done in the background after bouquet generation.")))
+			if self.picons.value:
+				configlist.append((_("Picons type"), self.picon_gen_strategy, _("Determine how the picons will be named - SNP or SRP.")))
+			configlist.append((_("Bouquet creation strategy"), self.create_bouquets_strategy, _("Configure what type of bouquets should be created.")))
+			configlist.append((_("Use provider TSID"), self.use_provider_tsid, _("Use the TSID provided from the IPTV provider (if available).\nUseful when want to always have same service references for EPG.")))
+			if self.use_provider_tsid.value:
+				configlist.append((_("Use channel numbers from provider"), self.user_provider_ch_num, _("Use channel numbers and ordering provided by the IPTV provider.\nIt will work only for 'ALL' bouquets.\nIf is configured global numbering the channel numbers may be offset depending on how many bouquets are before that one.")))
+				if self.type.value in ("M3U", "TVH"):
+					configlist.append((_("Provider TSID retrival condition"), self.provider_tsid_search_criteria, _("Search condition to get TSID provided from IPTV provider.\nUseful when want to always have same service references for EPG.")))
+			if not self.user_provider_ch_num.value or not self.use_provider_tsid.value:
+				configlist.append((_("Channel ordering criteria"), self.ch_order_strategy, _("Specify how channels will be ordered in bouquets.")))
+			configlist.append((_("Custom User-Agent"), self.custom_user_agent, _("Sets custom User-Agent for use with services that requires specific one.")))
 		if config.plugins.m3uiptv.schedule.value:
 			configlist.append((_("Auto updates"), self.auto_updates, _("Include this provider when the global update schedule runs.") + " " + _("Requires the scheduler to be set up in the settings screen.")))
 
@@ -1510,52 +1662,57 @@ class M3UIPTVProviderEdit(Setup):
 			providerObj = self.providerObj if isinstance(self.providerObj, XtreemProvider) else XtreemProvider()
 		elif self.type.value == "TVH":
 			providerObj = self.providerObj if isinstance(self.providerObj, TVHeadendProvider) else TVHeadendProvider()
-		else:
+		elif self.type.value == "Stalker":
 			providerObj = self.providerObj if isinstance(self.providerObj, StalkerProvider) else StalkerProvider()
+		else:
+			providerObj = self.providerObj if isinstance(self.providerObj, VODProvider) else VODProvider()
 		providerObj.iptv_service_provider = self.iptv_service_provider.value
 		providerObj.url = self.url.value
 		providerObj.iptv_service_provider = self.iptv_service_provider.value
 		if not self.edit:  # Only show when adding a provider. scheme is the key so must not be edited.
 			providerObj.scheme = self.scheme.value
-		providerObj.play_system = self.play_system.value
 		providerObj.ignore_vod = self.novod.value
-		providerObj.play_system_catchup = self.play_system_catchup.value
-		providerObj.create_epg = self.create_epg.value
-		providerObj.picons = self.picons.value
-		providerObj.picon_gen_strategy = self.picon_gen_strategy.value
-		providerObj.create_bouquets_strategy = self.create_bouquets_strategy.value
-		providerObj.use_provider_tsid = self.use_provider_tsid.value
-		providerObj.user_provider_ch_num = self.user_provider_ch_num.value
-		providerObj.provider_tsid_search_criteria = self.provider_tsid_search_criteria.value
-		providerObj.custom_user_agent = self.custom_user_agent.value
-		providerObj.ch_order_strategy = self.ch_order_strategy.value
 		providerObj.auto_updates = self.auto_updates.value
-		if self.type.value == "M3U":
-			providerObj.refresh_interval = self.refresh_interval.value
-			providerObj.static_urls = self.staticurl.value
-			providerObj.search_criteria = self.search_criteria.value
-			providerObj.catchup_type = self.catchup_type.value
-			providerObj.epg_url = self.epg_url.value
-			providerObj.is_custom_xmltv = self.is_custom_xmltv.value
-			providerObj.custom_xmltv_url = self.custom_xmltv_url.value
-			providerObj.epg_match_strategy = self.epg_match_strategy.value
-			providerObj.has_media_library = self.has_media_library.value
-			providerObj.media_library_type = self.media_library_type.value
-			providerObj.media_library_url = self.media_library_url.value
-			providerObj.media_library_username = self.media_library_username.value
-			providerObj.media_library_password = self.media_library_password.value
-			providerObj.media_library_token = self.media_library_token.value
-		elif self.type.value == "Xtreeme" or self.type.value == "TVH":
-			providerObj.username = self.username.value
-			providerObj.password = self.password.value
-			providerObj.is_custom_xmltv = self.is_custom_xmltv.value
-			providerObj.custom_xmltv_url = self.custom_xmltv_url.value
-			if self.type.value == "Xtreeme":
+		if self.type.value != "VOD":
+			providerObj.play_system = self.play_system.value
+			providerObj.play_system_catchup = self.play_system_catchup.value
+			providerObj.create_epg = self.create_epg.value
+			providerObj.picons = self.picons.value
+			providerObj.picon_gen_strategy = self.picon_gen_strategy.value
+			providerObj.create_bouquets_strategy = self.create_bouquets_strategy.value
+			providerObj.use_provider_tsid = self.use_provider_tsid.value
+			providerObj.user_provider_ch_num = self.user_provider_ch_num.value
+			providerObj.provider_tsid_search_criteria = self.provider_tsid_search_criteria.value
+			providerObj.custom_user_agent = self.custom_user_agent.value
+			providerObj.ch_order_strategy = self.ch_order_strategy.value
+			if self.type.value == "M3U":
+				providerObj.refresh_interval = self.refresh_interval.value
+				providerObj.static_urls = self.staticurl.value
+				providerObj.search_criteria = self.search_criteria.value
+				providerObj.catchup_type = self.catchup_type.value
+				providerObj.epg_url = self.epg_url.value
+				providerObj.is_custom_xmltv = self.is_custom_xmltv.value
+				providerObj.custom_xmltv_url = self.custom_xmltv_url.value
+				providerObj.epg_match_strategy = self.epg_match_strategy.value
+				providerObj.has_media_library = self.has_media_library.value
+				providerObj.media_library_type = self.media_library_type.value
+				providerObj.media_library_url = self.media_library_url.value
+				providerObj.media_library_username = self.media_library_username.value
+				providerObj.media_library_password = self.media_library_password.value
+				providerObj.media_library_token = self.media_library_token.value
+			elif self.type.value == "Xtreeme" or self.type.value == "TVH":
+				providerObj.username = self.username.value
+				providerObj.password = self.password.value
+				providerObj.is_custom_xmltv = self.is_custom_xmltv.value
+				providerObj.custom_xmltv_url = self.custom_xmltv_url.value
+				if self.type.value == "Xtreeme":
+					providerObj.output_format = self.output_format.value
+			else:
+				providerObj.mac = self.mac.value
 				providerObj.output_format = self.output_format.value
+				providerObj.epg_time_offset = self.epg_time_offset.value
 		else:
-			providerObj.mac = self.mac.value
-			providerObj.output_format = self.output_format.value
-			providerObj.epg_time_offset = self.epg_time_offset.value
+			providerObj.playlist_type = self.playlist_type.value
 
 		if getattr(providerObj, "onid", None) is None:
 			providerObj.onid = min(set(range(1, len(L := [x.onid for x in providers.values() if hasattr(x, "onid")]) + 2)) - set(L))
