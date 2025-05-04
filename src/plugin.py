@@ -875,6 +875,7 @@ class M3UIPTVVoDSeries(Screen):
 					self.deferred_cover_url = None
 					self["poster"].instance.setPixmap(None)
 					return
+				makedirs('/tmp/M3UIPTV', exist_ok=True)
 				with open('/tmp/M3UIPTV/poster.png', 'wb') as handler:
 					handler.write(response.read())
 				
@@ -1075,7 +1076,6 @@ class M3UIPTVVoDMovies(Screen):
 	skin = ["""
 		<screen name="M3UIPTVVoDMovies" position="center,center" size="%d,%d">
 			<panel name="__DynamicColorButtonTemplate__"/>
-		 	<widget name="overlay" position="%d,%d" zPosition="12" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1"/>
 			<widget source="list" render="Listbox" position="%d,%d" size="%d,%d" scrollbarMode="showOnDemand">
 				<convert type="TemplatedMultiContent">
 					{"template": [
@@ -1090,7 +1090,6 @@ class M3UIPTVVoDMovies(Screen):
 			<widget source="description" render="Label" position="%d,%d" zPosition="10" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1" />
 		</screen>""",
 			980, 600,  # screen
-			15, 60, 950, 430, 22,  # overlay
 			15, 60, 640, 430,  # Listbox
 			2, 0, 630, 26,  # template
 			22,  # fonts
@@ -1170,6 +1169,7 @@ class M3UIPTVVoDMovies(Screen):
 					self.deferred_cover_url = None
 					self["poster"].instance.setPixmap(None)
 					return
+				makedirs('/tmp/M3UIPTV', exist_ok=True)
 				with open('/tmp/M3UIPTV/poster.png', 'wb') as handler:
 					handler.write(response.read())
 				
