@@ -867,17 +867,27 @@ class M3UIPTVVoDSeries(Screen):
 			return
 		self.processing_cover = True
 		if not self.deferred_cover_url:
-			req = urllib.request.Request(current_cover_url)
-			response = urllib.request.urlopen(req, timeout=5)
-			with open('/tmp/M3UIPTV/poster.png', 'wb') as handler:
-				handler.write(response.read())
-			
-			piconsize = self["poster"].instance.size()
-			self.picload.setPara((piconsize.width(), piconsize.height(), 1, 1, 1, 1, '#FF111111'))
-			
-			if path.exists('/tmp/M3UIPTV/poster.png'):
-				self.picload.startDecode('/tmp/M3UIPTV/poster.png')
-			else:
+			try:
+				req = urllib.request.Request(current_cover_url)
+				response = urllib.request.urlopen(req, timeout=5)
+				if response.status != 200:
+					self.processing_cover = False
+					self.deferred_cover_url = None
+					self["poster"].instance.setPixmap(None)
+					return
+				with open('/tmp/M3UIPTV/poster.png', 'wb') as handler:
+					handler.write(response.read())
+				
+				piconsize = self["poster"].instance.size()
+				self.picload.setPara((piconsize.width(), piconsize.height(), 1, 1, 1, 1, '#FF111111'))
+				
+				if path.exists('/tmp/M3UIPTV/poster.png'):
+					self.picload.startDecode('/tmp/M3UIPTV/poster.png')
+				else:
+					self["poster"].instance.setPixmap(None)
+			except:
+				self.processing_cover = False
+				self.deferred_cover_url = None
 				self["poster"].instance.setPixmap(None)
 
 	def selectionChanged(self):
@@ -1152,17 +1162,27 @@ class M3UIPTVVoDMovies(Screen):
 			return
 		self.processing_cover = True
 		if not self.deferred_cover_url:
-			req = urllib.request.Request(current_cover_url)
-			response = urllib.request.urlopen(req, timeout=5)
-			with open('/tmp/M3UIPTV/poster.png', 'wb') as handler:
-				handler.write(response.read())
-			
-			piconsize = self["poster"].instance.size()
-			self.picload.setPara((piconsize.width(), piconsize.height(), 1, 1, 1, 1, '#FF111111'))
-			
-			if path.exists('/tmp/M3UIPTV/poster.png'):
-				self.picload.startDecode('/tmp/M3UIPTV/poster.png')
-			else:
+			try:
+				req = urllib.request.Request(current_cover_url)
+				response = urllib.request.urlopen(req, timeout=5)
+				if response.status != 200:
+					self.processing_cover = False
+					self.deferred_cover_url = None
+					self["poster"].instance.setPixmap(None)
+					return
+				with open('/tmp/M3UIPTV/poster.png', 'wb') as handler:
+					handler.write(response.read())
+				
+				piconsize = self["poster"].instance.size()
+				self.picload.setPara((piconsize.width(), piconsize.height(), 1, 1, 1, 1, '#FF111111'))
+				
+				if path.exists('/tmp/M3UIPTV/poster.png'):
+					self.picload.startDecode('/tmp/M3UIPTV/poster.png')
+				else:
+					self["poster"].instance.setPixmap(None)
+			except:
+				self.processing_cover = False
+				self.deferred_cover_url = None
 				self["poster"].instance.setPixmap(None)
 
 	def getExtraMovieInfo(self, obj):
