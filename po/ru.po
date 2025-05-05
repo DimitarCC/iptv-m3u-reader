@@ -8,28 +8,28 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-19 22:27+0200\n"
+"POT-Creation-Date: 2025-05-05 15:55+0300\n"
 "PO-Revision-Date: 2025-04-02 10:31+0300\n"
 "Last-Translator: kosmosspace@gmail.com\n"
 "Language-Team: airforce\n"
-"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: ru\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 "X-Generator: Poedit 3.6\n"
 
-#: ../src/plugin.py:1258
+#: ../src/plugin.py:1480
 #, python-format
 msgid "\"%s\" bouquets have been generated successfully"
 msgstr "\"%s\" букетов были успешно созданы"
 
-#: ../src/IPTVProcessor.py:431
+#: ../src/IPTVProcessor.py:456
 #, python-format
 msgid "# only leave the groups you want to remove in blacklist below and then rename the file to %s and regenerate the bouquets"
 msgstr "# оставьте только те группы, которые вы хотите удалить, в черном списке ниже, а затем переименуйте файл в %s и заново создайте букеты"
 
-#: ../src/plugin.py:1330 ../src/plugin.py:1349
+#: ../src/plugin.py:1551 ../src/plugin.py:1570
 #, python-format
 msgid "%d hour"
 msgid_plural "%d hours"
@@ -37,7 +37,7 @@ msgstr[0] "%d час"
 msgstr[1] "%d часа"
 msgstr[2] "%d часов"
 
-#: ../src/plugin.py:85
+#: ../src/plugin.py:84
 #, python-format
 msgid "%d second"
 msgid_plural "%d seconds"
@@ -45,12 +45,12 @@ msgstr[0] "%d секунда"
 msgstr[1] "%d секунды"
 msgstr[2] "%d секунд"
 
-#: ../src/plugin.py:1533
+#: ../src/plugin.py:1767
 #, python-format
 msgid "%s: Blacklist Bouquets"
 msgstr "%s: Бан-лист "
 
-#: ../src/plugin.py:1241 ../src/plugin.py:1242
+#: ../src/plugin.py:1463 ../src/plugin.py:1464
 #, python-format
 msgid ""
 "%s: an error occured during bouquet creation\n"
@@ -61,190 +61,206 @@ msgstr ""
 "\n"
 "Тип ошибки: %s"
 
-#: ../src/plugin.py:1257
+#: ../src/plugin.py:1479
 #, python-format
 msgid "%s: bouquets generated successfully"
 msgstr "%s: букеты успешно сгенерированы"
 
-#: ../src/plugin.py:1276
-#, python-format
-msgid "%s: bouquets removed successfully"
+#: ../src/plugin.py:1495
+#, fuzzy, python-format
+msgid "%s: data removed successfully"
 msgstr "%s: букеты успешно удалены"
 
-#: ../src/plugin.py:1225
+#: ../src/plugin.py:1447
 #, python-format
 msgid "%s: starting bouquet creation"
 msgstr "%s: начало создания букета"
 
-#: ../src/plugin.py:1254
+#: ../src/plugin.py:1476
 #, python-format
 msgid "%s: unable to create bouquet"
 msgstr "%s: невозможно создать букет"
 
-#: ../src/plugin.py:1430
+#: ../src/plugin.py:1655
 msgid "Access token used for authenticating in Media Library server."
 msgstr "Токен, используемый для аутентификации на сервере медиабиблиотеки."
 
-#: ../src/plugin.py:1296
+#: ../src/plugin.py:1516
 msgid "Account created"
 msgstr "Аккаунт создан"
 
-#: ../src/plugin.py:1298
+#: ../src/plugin.py:1518
 msgid "Account expires"
 msgstr "Срок действия аккаунта истекает"
 
-#: ../src/plugin.py:1294
+#: ../src/plugin.py:1514
 msgid "Account status"
 msgstr "Статус аккаунта"
 
-#: ../src/plugin.py:1165
+#: ../src/plugin.py:1387
 msgid "Add provider"
 msgstr "Добавить провайдера"
 
-#: ../src/plugin.py:726 ../src/plugin.py:957
+#: ../src/plugin.py:809 ../src/plugin.py:1113
 msgid "All"
 msgstr "Все"
 
-#: ../src/M3UProvider.py:201 ../src/M3UProvider.py:219
+#: ../src/M3UProvider.py:214 ../src/M3UProvider.py:232
 #: ../src/StalkerProvider.py:259 ../src/XtreemProvider.py:42
 msgid "All channels"
 msgstr "Все каналы"
 
-#: ../src/plugin.py:1450
+#: ../src/plugin.py:1677
 msgid "All fields must be filled in."
 msgstr "Все поля должны быть заполнены."
 
-#: ../src/plugin.py:1570
+#: ../src/plugin.py:1806
 msgid "Allow showing of 'Video on Demand' entry in the extensions (BLUE button) menu."
 msgstr "Включает отображение пункта 'Видео по запросу' в меню дополнений (СИНЯЯ кнопка)."
 
-#: ../src/plugin.py:1569
+#: ../src/plugin.py:1805
 msgid "Allow showing of 'Video on Demand' menu entry in Main Menu."
 msgstr "Включает отображение пункта 'Видео по запросу' в Главном меню."
 
-#: ../src/plugin.py:1365
+#: ../src/plugin.py:1586
 msgid "Alphabetically"
 msgstr "По алфавиту"
 
-#: ../src/plugin.py:1360
+#: ../src/plugin.py:1848
+msgid "Also requires enabling in each individual provider that is to be updated."
+msgstr ""
+
+#: ../src/plugin.py:1581
 msgid "Append"
 msgstr "Добавить"
 
-#: ../src/plugin.py:1513
+#: ../src/plugin.py:1746
 #, python-format
 msgid "Are you sure you want to permanently remove provider \"%s\" from your configuration?"
 msgstr "Вы уверены, что хотите навсегда удалить провайдера \"%s\" из вашей конфигурации?"
 
-#: ../src/plugin.py:1585
+#: ../src/plugin.py:1883
+msgid "At least one day of the week must be selected"
+msgstr ""
+
+#: ../src/plugin.py:1670
+msgid "Auto updates"
+msgstr ""
+
+#: ../src/plugin.py:1822
 msgid "Automatically start time shift after"
 msgstr "Автоматически запускать сдвиг времени после"
 
-#: ../src/plugin.py:1583
+#: ../src/plugin.py:1820
 msgid "Automatically start timeshift after"
 msgstr "Автоматически запускать таймшифт после"
 
-#: ../src/plugin.py:1382
+#: ../src/plugin.py:1604
 msgid "Bouquet blacklist"
 msgstr "Черный список букета"
 
-#: ../src/plugin.py:1435
+#: ../src/plugin.py:1660
 msgid "Bouquet creation strategy"
 msgstr "Стратегия создания букета"
 
-#: ../src/plugin.py:1571
+#: ../src/plugin.py:1807
 msgid "Bouquet name character case"
 msgstr "Имя букета с учетом регистра символов"
 
-#: ../src/plugin.py:1364
+#: ../src/plugin.py:1585
 msgid "Bouquets for 'All Channels' and groups"
 msgstr "Букеты для «Всех каналов» и групп"
 
-#: ../src/plugin.py:1346
+#: ../src/plugin.py:1567
 msgid "By channel name"
 msgstr "По названию канала"
 
-#: ../src/plugin.py:1365
+#: ../src/plugin.py:1586
 msgid "By channel number"
 msgstr "По номеру канала"
 
-#: ../src/plugin.py:1346
+#: ../src/plugin.py:1567
 msgid "By tvg-id"
 msgstr "По tvg-id"
 
-#: ../src/plugin.py:749 ../src/plugin.py:970 ../src/plugin.py:1536
+#: ../src/plugin.py:834 ../src/plugin.py:1126 ../src/plugin.py:1770
 msgid "Cancel"
 msgstr "Отменить"
 
-#: ../src/plugin.py:1421
+#: ../src/plugin.py:1646
 msgid "Catchup Type"
 msgstr "Тип Catchup"
 
-#: ../src/IPTVCatchupPlayer.py:96 ../src/IPTVCatchupPlayer.py:111
-msgid "Catchup player commands"
-msgstr "Catchup команды плеера"
-
-#: ../src/plugin.py:1607
+#: ../src/plugin.py:1844
 msgid "Change the playback system to one of the players available in ServiceApp plugin."
 msgstr "Измените систему воспроизведения на один из плееров, доступных в плагине ServiceApp."
 
-#: ../src/plugin.py:1442
+#: ../src/plugin.py:1667
 msgid "Channel ordering criteria"
 msgstr "Критерии сортировки каналов"
 
-#: ../src/plugin.py:1566
+#: ../src/plugin.py:1802
 msgid "Check for Network"
 msgstr "Проверьте наличие сети"
 
-#: ../src/plugin.py:1167
+#: ../src/plugin.py:1389
 msgid "Clear all data"
 msgstr "Очистить все данные"
 
-#: ../src/plugin.py:1164
+#: ../src/plugin.py:1386
 msgid "Close"
 msgstr "Закрыть"
 
-#: ../src/plugin.py:1435
+#: ../src/plugin.py:1660
 msgid "Configure what type of bouquets should be created."
 msgstr "Настройте, какой тип букетов следует создать"
 
-#: ../src/plugin.py:1405
+#: ../src/plugin.py:1630
 msgid "Creates files needed for importing EPG via EPGImport plugin"
 msgstr "Создает файлы, необходимые для импорта EPG через плагин EPGImport"
 
-#: ../src/plugin.py:1443
+#: ../src/plugin.py:1668
 msgid "Custom User-Agent"
 msgstr "Пользовательский User-Agent"
 
-#: ../src/plugin.py:1411
+#: ../src/plugin.py:1636
 msgid "Custom XMLTV URL"
 msgstr "Пользовательский XMLTV URL"
 
-#: ../src/plugin.py:1377
+#: ../src/plugin.py:1599
 #, python-format
 msgid "Delete \"%s\""
 msgstr "Удалить \"%s\""
 
-#: ../src/plugin.py:1434
+#: ../src/plugin.py:1659
 msgid "Determine how the picons will be named - SNP or SRP."
 msgstr "Тип пиконов для скачивания — SNP-(по названию канала) или SRP-(по референсу канала)."
 
-#: ../src/plugin.py:1566
+#: ../src/plugin.py:1802
 msgid "Do a check is network available before try to retrieve the iptv playlist. If no network try backup services."
 msgstr "Проверьте, доступна ли сеть, прежде чем пытаться получить плейлист iptv. Если сети нет, воспользуйтесь услугой резервного копирования."
 
-#: ../src/IPTVCatchupPlayer.py:417
+#: ../src/IPTVCatchupPlayer.py:313
 msgid "Do you want to resume playback?"
 msgstr "Хотите возобновить воспроизведение?"
 
-#: ../src/plugin.py:1432
+#: ../src/plugin.py:1809
+msgid "Download and display posters for VoD items"
+msgstr ""
+
+#: ../src/plugin.py:1809
+msgid "Download and display posters for VoD items if available."
+msgstr ""
+
+#: ../src/plugin.py:1657
 msgid "Download picons"
 msgstr "Загрузить пиконы"
 
-#: ../src/plugin.py:1432
+#: ../src/plugin.py:1657
 msgid "Download picons, if available from the provider, and install them. Picon download is done in the background after bouquet generation."
 msgstr "Загрузите пиконы, если они доступны у провайдера, и установите их. Загрузка пиконов происходит в фоновом режиме после генерации букета."
 
-#: ../src/XtreemProvider.py:180 ../src/XtreemProvider.py:182
+#: ../src/XtreemProvider.py:192 ../src/XtreemProvider.py:194
 #, python-format
 msgid "Duration: %s"
 msgstr "Продолжительность: %s"
@@ -259,193 +275,222 @@ msgstr "Импорт EPG: Импорт %s %s событий"
 msgid "EPG Import: Importing events for %s completed"
 msgstr "Импорт EPG: Импорт событий для %s завершен"
 
-#: ../src/plugin.py:1408
+#: ../src/plugin.py:1633
 msgid "EPG matching condition"
 msgstr "Условие соответствия EPG"
 
-#: ../src/plugin.py:1384
+#: ../src/plugin.py:1606
 #, python-format
 msgid "Edit bouquet blacklist for provider \"%s\"."
 msgstr "Редактировать черный список букетов для провайдера \"%s\"."
 
-#: ../src/plugin.py:1565
+#: ../src/plugin.py:1801
 msgid "Enable IPTV functionality and managment."
 msgstr "Включает функционал и управление IPTV."
 
-#: ../src/plugin.py:1565
+#: ../src/plugin.py:1801
 msgid "Enable IPTV manager"
 msgstr "Включить менеджер IPTV"
 
-#: ../src/plugin.py:1422
+#: ../src/plugin.py:1647
 msgid "Enable Media Library"
 msgstr "Включить медиатеку"
 
-#: ../src/plugin.py:1574
+#: ../src/plugin.py:1811
 msgid "Enable catchup/archive entries in EPG screens for period"
 msgstr "Включить отображение архивов на экране EPG за период"
 
-#: ../src/plugin.py:1579
+#: ../src/plugin.py:1816
 msgid "Enable new GStreamer playback"
 msgstr "Включить новое воспроизведение GStreamer"
 
-#: ../src/plugin.py:1574 ../src/plugin.py:1575
+#: ../src/plugin.py:1811 ../src/plugin.py:1812
 msgid "Enables possibility to return back in epg screens so to use old entries for invoke catchup/archive/timeshift."
 msgstr "Дает возможность вернуться назад, чтобы использовать старые записи для вызова catchup/archive/timeshift."
 
-#: ../src/plugin.py:1607
+#: ../src/plugin.py:1844
 msgid "Enigma2 playback system"
 msgstr "Система воспроизведения Enigma2"
 
-#: ../src/StalkerProvider.py:694 ../src/XtreemProvider.py:176
+#: ../src/StalkerProvider.py:695 ../src/XtreemProvider.py:188
 #, python-format
 msgid "Ep%s"
 msgstr "Ep%s"
 
-#: ../src/plugin.py:1207 ../src/plugin.py:1246
+#: ../src/plugin.py:1429 ../src/plugin.py:1468
 msgid "Fetching VoD items"
 msgstr "Извлечение элементов VoD "
 
-#: ../src/plugin.py:1397
+#: ../src/plugin.py:1621
 msgid "Filter"
 msgstr "Фильтр"
 
-#: ../src/plugin.py:1360
+#: ../src/plugin.py:1581
 msgid "Flussonic"
 msgstr "Flussonic"
 
-#: ../src/plugin.py:1405
+#: ../src/plugin.py:1876
+msgid "Friday"
+msgstr ""
+
+#: ../src/menu.xml
+msgid "General settings for IPTV subsystem."
+msgstr "Общие настройки в подсистеме IPTV."
+
+#: ../src/plugin.py:1630
 msgid "Generate EPG files for EPGImport plugin"
 msgstr "Генерация файлов EPG для плагина EPGImport"
 
-#: ../src/plugin.py:1166
+#: ../src/plugin.py:1388
 msgid "Generate bouquets"
 msgstr "Сгенерировать букеты"
 
-#: ../src/plugin.py:1348
+#: ../src/plugin.py:1569
 msgid "HLS (M3U8)"
 msgstr ""
 
-#: ../src/plugin.py:907 ../src/plugin.py:1016
+#: ../src/plugin.py:1058 ../src/plugin.py:1230
 msgid "IMDb search"
 msgstr "Поиск IMDb"
 
-#: ../src/plugin.py:1281
+#: ../src/plugin.py:1501
 msgid "INFO"
 msgstr "ИНФОРМАЦИЯ"
 
-#: ../src/plugin.py:1678 ../src/menu.xml
+#: ../src/plugin.py:1959 ../src/menu.xml
 msgid "IPTV"
 msgstr "IPTV"
 
-#: ../src/plugin.py:1561
+#: ../src/plugin.py:1796
 msgid "IPTV Settings"
 msgstr "Настройки IPTV"
 
-#: ../src/plugin.py:1708
+#: ../src/plugin.py:2046
 msgid "IPTV manager Plugin"
 msgstr "Плагин IPTV-менеджера"
 
-#: ../src/plugin.py:1394
+#: ../src/plugin.py:1618
 msgid "If enabled URL will be static and not aliases. That means if the URL of a service changes in the playlist bouquet entry will stop working."
 msgstr "Если включено, URL будет статическим, а не псевдонимами. Это означает, что если URL сервиса изменится в плейлисте, запись букета перестанет работать."
 
-#: ../src/plugin.py:1579
+#: ../src/plugin.py:1816
 msgid "If enabled, the new GStreamer playback engine will be used."
 msgstr "Если включено, будет использоваться новый движок воспроизведения GStreamer."
 
-#: ../src/plugin.py:1598
+#: ../src/plugin.py:1835
 msgid "If set to 'yes', allows you to use the seekbar to jump to a point within the event."
 msgstr "Если установлено значение 'да', позволяет использовать полосу поиска для перехода к нужной точке события."
 
-#: ../src/plugin.py:1602 ../src/plugin.py:1604
+#: ../src/plugin.py:1839 ../src/plugin.py:1841
 msgid "If set to 'yes', allows you to use timeshift with alternative audio plugins."
 msgstr "Если установлено значение 'да', позволяет использовать таймшифт с альтернативными аудиоплагинами."
 
-#: ../src/plugin.py:1392
+#: ../src/plugin.py:1614
 msgid "If the playlist is already stored on a local device you can use the local file path in this field, e.g. /tmp/myplaylist.m3u"
 msgstr "Если плейлист уже сохранен на локальном устройстве, вы можете использовать в этом поле путь к локальному файлу, например, /tmp/myplaylist.m3u"
 
-#: ../src/plugin.py:594
+#: ../src/plugin.py:1670
+msgid "Include this provider when the global update schedule runs."
+msgstr ""
+
+#: ../src/plugin.py:672
 msgid "Incorrect type service for PiP!"
 msgstr "Некорректный тип сервиса для PiP!"
 
-#: ../src/plugin.py:1396
+#: ../src/plugin.py:1620
 msgid "Interval in which the playlist will be automatically updated"
 msgstr "Интервал, через который плейлист будет автоматически обновляться"
 
-#: ../src/plugin.py:1300
+#: ../src/plugin.py:1520
 msgid "Is trial"
 msgstr "Пробная версия"
 
-#: ../src/plugin.py:1575
+#: ../src/plugin.py:1812
 msgid "Local EPG server listening port"
 msgstr "Порт для прослушивания локального сервера EPG"
 
-#: ../src/plugin.py:1136
+#: ../src/plugin.py:1354
 msgid "M3U IPTV Manager - providers"
 msgstr "M3U IPTV Manager - провайдеры"
 
-#: ../src/plugin.py:1290
+#: ../src/plugin.py:1510
 msgid "M3U IPTV Provider Info"
 msgstr "Информация о провайдере M3U IPTV "
 
-#: ../src/plugin.py:1327
+#: ../src/plugin.py:1547 ../src/plugin.py:1548
 msgid "M3U/M3U8"
 msgstr "M3U/M3U8"
 
-#: ../src/plugin.py:1708 ../src/menu.xml
+#: ../src/plugin.py:2046 ../src/menu.xml
 msgid "M3UIPTV"
 msgstr "M3UIPTV"
 
-#: ../src/plugin.py:1375
+#: ../src/plugin.py:1871 ../src/plugin.py:1884
+#, fuzzy
+msgid "M3UIPTV schedule"
+msgstr "M3UIPTV"
+
+#: ../src/plugin.py:1597
 msgid "M3UIPTVManager"
 msgstr "M3UIPTV менеджер"
 
-#: ../src/plugin.py:1402
+#: ../src/plugin.py:1626
 msgid "MAC address"
 msgstr "MAC адрес"
 
-#: ../src/plugin.py:1402
+#: ../src/plugin.py:1626
 msgid "MAC address used for authenticating in Stalker portal."
 msgstr "MAC-адрес, используемый для авторизации на портале Stalker."
 
-#: ../src/plugin.py:1302
+#: ../src/menu.xml
+msgid "Manage M3U/Xtreme Codes playlist IPTV providers and adds support for playing IPTV services from autogenerated bouquets."
+msgstr "Настройки управления плейлистами M3U/Xtreme Codes от поставщиков услуг IPTV и поддержки воспроизведения генерируемые в букеты."
+
+#: ../src/plugin.py:1522
 msgid "Maximum connections"
 msgstr "Максимальное количество подключений"
 
-#: ../src/plugin.py:1568
+#: ../src/plugin.py:1804
 msgid "Maximum number of threads during picon downloads. If the box returns errors or fails to download some picons, set a lower number."
 msgstr "Максимальное количество потоков во время загрузки пиконов. Если возникает ошибка или не загружаются некоторые пиконы, установите меньшее число"
 
-#: ../src/plugin.py:1430
+#: ../src/plugin.py:1655
 msgid "Media Library Access Token"
 msgstr "Токен доступа к медиатеке"
 
-#: ../src/plugin.py:1428
+#: ../src/plugin.py:1653
 msgid "Media Library Password"
 msgstr "Пароль к медиатеке"
 
-#: ../src/plugin.py:1425
+#: ../src/plugin.py:1650
 msgid "Media Library URL"
 msgstr "URL-адрес медиатеки"
 
-#: ../src/plugin.py:1427
+#: ../src/plugin.py:1652
 msgid "Media Library Username"
 msgstr "Имя пользователя медиатеки"
 
-#: ../src/plugin.py:1424
+#: ../src/plugin.py:1649
 msgid "Media Library type"
 msgstr "Тип медиатеки"
 
-#: ../src/plugin.py:579
+#: ../src/plugin.py:1876
+msgid "Monday"
+msgstr ""
+
+#: ../src/menu.xml
+msgid "Movies"
+msgstr "Фильмы"
+
+#: ../src/plugin.py:657
 msgid "No free tuner!"
 msgstr "Нет бесплатного тюнера!"
 
-#: ../src/plugin.py:1364
+#: ../src/plugin.py:1585
 msgid "Only bouquet for 'All Channels'"
 msgstr "Только букет «Все каналы»"
 
-#: ../src/plugin.py:1364
+#: ../src/plugin.py:1585
 msgid "Only bouquets for groups"
 msgstr "Только букеты для групп"
 
@@ -453,152 +498,177 @@ msgstr "Только букеты для групп"
 msgid "Original case"
 msgstr "Оригинальный регистр"
 
-#: ../src/IPTVCatchupPlayer.py:147
-msgid "PLAY"
-msgstr "ВОСПРОИЗВЕДЕНИЕ"
-
-#: ../src/plugin.py:1400
+#: ../src/plugin.py:1624
 msgid "Password"
 msgstr "Пароль"
 
-#: ../src/plugin.py:1428
+#: ../src/plugin.py:1653
 msgid "Password used for authenticating in Media Library server."
 msgstr "Пароль, используемый для авторизации на сервере медиатеки."
 
-#: ../src/plugin.py:1400
+#: ../src/plugin.py:1624
 msgid "Password used for authenticating in the streaming server."
 msgstr "Пароль, используемый для авторизации на потоковом сервере."
 
-#: ../src/plugin.py:1379
+#: ../src/plugin.py:1601
 #, python-format
 msgid "Permanently remove provider \"%s\" from your configuration."
 msgstr "Навсегда удалить провайдера \"%s\" из вашей конфигурации."
 
-#: ../src/plugin.py:1568
+#: ../src/plugin.py:1804
 msgid "Picon max threads"
 msgstr "Макс кол-во потоков для пиконов"
 
-#: ../src/plugin.py:1345
+#: ../src/plugin.py:1566
 msgid "Picons by name (SNP)"
 msgstr "Пиконы по имени канала (SNP)"
 
-#: ../src/plugin.py:1345
+#: ../src/plugin.py:1566
 msgid "Picons by service reference (SRP)"
 msgstr "Пиконы по референсу канала (SRP)"
 
-#: ../src/plugin.py:1434
+#: ../src/plugin.py:1659
 msgid "Picons type"
 msgstr "Тип пиконов"
 
-#: ../src/IPTVCatchupPlayer.py:135
+#: ../src/IPTVCatchupPlayer.py:85
 msgid "Play Archive"
 msgstr "Воспроизвести Архив"
 
-#: ../src/IPTVCatchupPlayer.py:95 ../src/IPTVCatchupPlayer.py:110
-msgid "Play archive"
-msgstr "Воспроизведение архива"
-
-#: ../src/plugin.py:1416
+#: ../src/plugin.py:1641
 msgid "Playback system"
 msgstr "Система воспроизведения"
 
-#: ../src/plugin.py:1417
+#: ../src/plugin.py:1642
 msgid "Playback system for Catchup/Archive"
 msgstr "Система воспроизведения для Catchup/Архива"
 
-#: ../src/plugin.py:721
+#: ../src/menu.xml
+msgid "Playlist manager"
+msgstr "Менеджер плей-листов"
+
+#: ../src/plugin.py:801
 msgid "Please wait! Loading data from server."
 msgstr "Пожалуйста, подождите! Загрузка данных с сервера."
 
-#: ../src/plugin.py:771
+#: ../src/plugin.py:1794
+msgid "Press OK"
+msgstr ""
+
+#: ../src/plugin.py:905
 msgid "Press OK to access selected item"
 msgstr "Нажмите OK, чтобы получить доступ к выбранному элементу"
 
-#: ../src/plugin.py:1169
+#: ../src/plugin.py:1391
 msgid "Press OK to edit the currently selected provider"
 msgstr "Нажмите OK, чтобы изменить выбранного провайдера"
 
 # #: ../src/plugin.py:992 ../src/plugin.py:1070 ../src/plugin.py:1079
+#: ../src/plugin.py:1194 ../src/plugin.py:1287 ../src/plugin.py:1297
 msgid "Press OK to play selected movie"
 msgstr "Нажмите OK, чтобы воспроизвести выбранный фильм"
 
-#: ../src/plugin.py:871
+#: ../src/plugin.py:1022
 msgid "Press OK to play selected show"
 msgstr "Нажмите OK, чтобы воспроизвести выбранную программу"
 
-#: ../src/plugin.py:863 ../src/plugin.py:1074
+#: ../src/plugin.py:1013 ../src/plugin.py:1291
 msgid "Press OK to select a category"
 msgstr "Нажмите ОК для выбора категории"
 
-#: ../src/plugin.py:867
+#: ../src/plugin.py:913 ../src/plugin.py:1018
 msgid "Press OK to select a series"
 msgstr "Нажмите OK, чтобы выбрать сериалы"
 
-#: ../src/plugin.py:867
+#: ../src/plugin.py:1026
 msgid "Press OK to select the current item"
 msgstr "Нажмите OK, чтобы выбрать текущий пункт"
 
-#: ../src/plugin.py:1440
+#: ../src/plugin.py:1851
+msgid "Press OK to select which days of the week to perform the update."
+msgstr ""
+
+#: ../src/plugin.py:1665
 msgid "Provider TSID retrival condition"
 msgstr "Условие поиска TSID поставщика"
 
-#: ../src/plugin.py:1390
+#: ../src/plugin.py:1612
 msgid "Provider Type"
 msgstr "Тип провайдера"
 
-#: ../src/plugin.py:1391
+#: ../src/plugin.py:1613
 msgid "Provider name"
 msgstr "Название провайдера"
 
-#: ../src/plugin.py:1578
+#: ../src/plugin.py:1815
 msgid "Recording 4097, 5001 and 5002 streams not possible with external players, so convert recordings to servicetype 1."
 msgstr "Запись потоков 4097, 5001 и 5002 невозможна с помощью внешних проигрывателей, поэтому преобразуйте записи в servicetype 1."
 
-#: ../src/plugin.py:1578
+#: ../src/plugin.py:1815
 msgid "Recordings - convert IPTV servicetypes to  1"
 msgstr "Записи - конвертировать IPTV в servicetypes 1"
 
-#: ../src/plugin.py:1396
+#: ../src/plugin.py:1620
 msgid "Refresh interval"
 msgstr "Интервал обновления"
 
-#: ../src/XtreemProvider.py:186 ../src/XtreemProvider.py:190
+#: ../src/XtreemProvider.py:198 ../src/XtreemProvider.py:202
 #, python-format
 msgid "Released: %s"
 msgstr "Выпущено: %s"
 
-#: ../src/plugin.py:1567
+#: ../src/plugin.py:1803
 msgid "Request timeout"
 msgstr "Запрос времени ожидания"
 
-#: ../src/IPTVCatchupPlayer.py:417
+#: ../src/plugin.py:1670
+msgid "Requires the scheduler to be set up in the settings screen."
+msgstr ""
+
+#: ../src/IPTVCatchupPlayer.py:313
 #, python-format
 msgid "Resume position at %s"
 msgstr "Возобновить с позиции %s"
 
-#: ../src/XtreemProvider.py:171 ../src/XtreemProvider.py:173
+#: ../src/XtreemProvider.py:182 ../src/XtreemProvider.py:184
 #, python-format
 msgid "S%s"
 msgstr "S%s"
 
-#: ../src/plugin.py:1537
+#: ../src/plugin.py:1876
+msgid "Saturday"
+msgstr ""
+
+#: ../src/plugin.py:1771
 msgid "Save"
 msgstr "Сохранить"
 
-#: ../src/plugin.py:1415
+#: ../src/plugin.py:1851
+msgid "Schedule days of the week"
+msgstr ""
+
+#: ../src/plugin.py:1850
+msgid "Schedule time of day"
+msgstr ""
+
+#: ../src/plugin.py:1848
+msgid "Schedule update"
+msgstr ""
+
+#: ../src/plugin.py:1639
 msgid "Scheme"
 msgstr "Схема"
 
-#: ../src/plugin.py:1450
+#: ../src/plugin.py:1677
 #, python-format
 msgid "Scheme must be unique. \"%s\" is already in use. Please update this field."
 msgstr "Схема должна быть уникальной. \"%s\" уже используется. Пожалуйста, обновите это поле."
 
-#: ../src/plugin.py:750 ../src/plugin.py:971
+#: ../src/plugin.py:835 ../src/plugin.py:1127
 msgid "Search"
 msgstr "Поиск"
 
-#: ../src/plugin.py:1440
+#: ../src/plugin.py:1665
 msgid ""
 "Search condition to get TSID provided from IPTV provider.\n"
 "Useful when want to always have same service references for EPG."
@@ -606,135 +676,151 @@ msgstr ""
 "Условие поиска для получения TSID, предоставленного провайдером IPTV.\n"
 "Задействуйте, когда вы хотите всегда иметь одни и те же ссылки на услуги для EPG."
 
-#: ../src/IPTVCatchupPlayer.py:536
+#: ../src/IPTVCatchupPlayer.py:432
 msgid "Seek back"
 msgstr "Искать назад"
 
-#: ../src/IPTVCatchupPlayer.py:532
+#: ../src/IPTVCatchupPlayer.py:428
 msgid "Seek forwards"
 msgstr "Искать вперед"
 
-#: ../src/plugin.py:1600
+#: ../src/plugin.py:1837
 msgid "Select 'Yes' to allow use of the seek bar to jump to a selected point within the event."
 msgstr "Выберите 'Да', чтобы разрешить использование строки поиска для перехода к выбранной точке события."
 
-#: ../src/plugin.py:1609
+#: ../src/plugin.py:1848
+msgid "Select 'yes' for automated updates of providers."
+msgstr ""
+
+#: ../src/plugin.py:1846
 msgid "Select a player to be in use."
 msgstr "Выберите плеер, который будет использоваться."
 
-#: ../src/plugin.py:1592
+#: ../src/plugin.py:1871 ../src/plugin.py:1884
+msgid "Select days"
+msgstr ""
+
+#: ../src/plugin.py:1829
 msgid "Select if timeshift should continue when set to record."
 msgstr "Выберите, следует ли продолжать функцию таймшифта при настройке на запись."
 
-#: ../src/plugin.py:1539
+#: ../src/plugin.py:1773
 msgid "Select the bouquets you want to blacklist and press ok. Blacklisted bouquets will be removed and not regenerated on rebuild. To reactive a bouquet, deselect it and regenerate bouquets."
 msgstr "Выберите букеты, которые вы хотите добавить в черный список, и нажмите ok. Букеты из черного списка будут удалены и не будут восстановлены при генерации. Чтобы реактивировать букет, снимите с него выбор и восстановите букеты."
 
-#: ../src/plugin.py:1609
+#: ../src/plugin.py:1846
 msgid "Select the player which will be used for Enigma2 playback."
 msgstr "Выберите плеер, который будет использоваться для воспроизведения Enigma2."
 
-#: ../src/plugin.py:1309
+#: ../src/plugin.py:1529
 msgid "Server https port"
 msgstr "Порт сервера https"
 
-#: ../src/plugin.py:1307
+#: ../src/plugin.py:1527
 msgid "Server port"
 msgstr "Порт сервера"
 
-#: ../src/plugin.py:1313
+#: ../src/plugin.py:1533
 msgid "Server protocol"
 msgstr "Протокол сервера"
 
-#: ../src/plugin.py:1311
+#: ../src/plugin.py:1531
 msgid "Server rtmp port"
 msgstr "Порт rtmp сервера"
 
-#: ../src/plugin.py:1315
+#: ../src/plugin.py:1535
 msgid "Server timezone"
 msgstr "Часовой пояс сервера"
 
-#: ../src/plugin.py:1305
+#: ../src/plugin.py:1525
 msgid "Server url"
 msgstr "Url-адрес сервера"
 
-#: ../src/plugin.py:1443
+#: ../src/plugin.py:1850
+msgid "Set the time of day to perform the update."
+msgstr ""
+
+#: ../src/plugin.py:1668
 msgid "Sets custom User-Agent for use with services that requires specific one."
 msgstr "Установите пользовательский User-Agent для использования со службами, которым требуется определенный агент"
 
-#: ../src/plugin.py:1360
+#: ../src/menu.xml
+msgid "Settings"
+msgstr "Настройки"
+
+#: ../src/plugin.py:1581
 msgid "Shift"
 msgstr "Сдвиг"
 
-#: ../src/plugin.py:1570
+#: ../src/plugin.py:1806
 msgid "Show 'Video on Demand' extensions entry"
 msgstr "Показать 'Видео по запросу' в меню дополнений"
 
-#: ../src/plugin.py:1569
+#: ../src/plugin.py:1805
 msgid "Show 'Video on Demand' menu entry"
 msgstr "Показать пункт 'Видео по запросу' в Главном меню"
 
-#: ../src/plugin.py:1587
+#: ../src/plugin.py:1824
 msgid "Show warning when time shift is stopped"
 msgstr "Показывать предупреждение при остановке сдвига во времени"
 
-#: ../src/plugin.py:1589
+#: ../src/plugin.py:1826
 msgid "Show warning when timeshift is stopped"
 msgstr "Показывать предупреждение об остановке смещения времени"
 
-#: ../src/plugin.py:1404
+#: ../src/plugin.py:1628
 msgid "Skip VOD entries"
 msgstr "Пропустить записи VOD"
 
-#: ../src/plugin.py:1404
+#: ../src/plugin.py:1628
 msgid "Skip VOD entries in the playlist"
 msgstr "Пропустить записи VOD в плейлисте"
 
-#: ../src/plugin.py:1604
+#: ../src/plugin.py:1841
 msgid "Skip jumping to live TV while timeshifting with plugins"
 msgstr "Пропустить переход к live TV при функции таймшифта с помощью плагинов"
 
-#: ../src/plugin.py:1602
+#: ../src/plugin.py:1839
 msgid "Skip jumping to live while timeshifting with plugins"
 msgstr "Пропустить переход к прямому эфиру при использовании плагинов"
 
-#: ../src/plugin.py:1442
+#: ../src/plugin.py:1667
 msgid "Specify how channels will be ordered in bouquets."
 msgstr "Определяет, как каналы будут упорядочены в букетах."
 
-#: ../src/plugin.py:1408
+#: ../src/plugin.py:1633
 msgid "Specify how xmltv entries will be matched to channels."
 msgstr "Укажите, как записи xmltv будут сопоставляться с каналами"
 
-#: ../src/plugin.py:1422
+#: ../src/plugin.py:1647
 msgid "Specify is there media library available on separate url."
 msgstr "Укажите, доступна ли медиатека по отдельному URL-адресу."
 
-#: ../src/plugin.py:1425
+#: ../src/plugin.py:1650
 msgid "Specify media library URL."
 msgstr "Укажите URL-адрес медиатеки."
 
-#: ../src/plugin.py:1424
+#: ../src/plugin.py:1649
 msgid "Specify media library type."
 msgstr "Укажите тип медиатеки."
 
-#: ../src/plugin.py:1571
+#: ../src/plugin.py:1807
 msgid "Specify the character case used for bouquet names and titles."
 msgstr "Укажите регистр символов, используемый в названиях и заголовках букетов."
 
-#: ../src/plugin.py:1390
+#: ../src/plugin.py:1612
 msgid "Specify the provider type."
 msgstr "Укажите тип провайдера."
 
-#: ../src/plugin.py:1391
+#: ../src/plugin.py:1613
 msgid "Specify the provider user friendly name that will be used for the bouquet name and for displaying in the infobar."
 msgstr "Укажите удобное для пользователя имя провайдера, которое будет использоваться для букета и для отображения на инфопанели."
 
-#: ../src/plugin.py:1572
+#: ../src/plugin.py:1808
 msgid "Specify the type of services that will be generated for VoD items."
 msgstr "Укажите тип услуг, которые будут созданы для элементов VoD."
 
-#: ../src/plugin.py:1415
+#: ../src/plugin.py:1639
 msgid ""
 "Specifying the URL scheme that unicly identify the provider.\n"
 "Can be anything you like without spaces and special characters."
@@ -742,55 +828,71 @@ msgstr ""
 "Указание схемы URL, которая однозначно идентифицирует провайдера.\n"
 "Может быть любым, без пробелов и специальных символов."
 
-#: ../src/plugin.py:1360
+#: ../src/plugin.py:1581
 msgid "Stalker"
 msgstr "Stalker"
 
-#: ../src/plugin.py:1327
+#: ../src/plugin.py:1547
 msgid "Stalker portal"
 msgstr "Stalker портал"
 
-#: ../src/plugin.py:1360
+#: ../src/plugin.py:1581
 msgid "Standard"
 msgstr "Стандартный"
 
-#: ../src/plugin.py:1596
+#: ../src/plugin.py:1833
 msgid "Stop time shift while recording"
 msgstr "Остановить сдвиг времени во время записи"
 
-#: ../src/plugin.py:1594
+#: ../src/plugin.py:1831
 msgid "Stop timeshift while recording?"
 msgstr "Остановить таймшифт во время записи?"
 
-#: ../src/plugin.py:1596
+#: ../src/plugin.py:1833
 msgid "Stops time shift being used if a recording is in progress. (Advisable for USB sticks.)"
 msgstr "Останавливает сдвиг времени, если идет запись. (Рекомендуется для USB-накопителей.)"
 
-#: ../src/plugin.py:1594
+#: ../src/plugin.py:1831
 msgid "Stops timeshift being used if a recording is in progress. (Advisable for USB sticks)"
 msgstr "Останавливает использование таймшифта, если идет запись. (Рекомендуется для USB-накопителей)"
 
-#: ../src/plugin.py:1419
+#: ../src/plugin.py:1644
 msgid "Stream output format"
 msgstr "Формат выходного потока"
 
-#: ../src/plugin.py:905 ../src/plugin.py:1014
+#: ../src/plugin.py:1876
+msgid "Sunday"
+msgstr ""
+
+#: ../src/plugin.py:1056 ../src/plugin.py:1228
 msgid "TMDb search"
 msgstr "Поиск TMDb"
 
-#: ../src/plugin.py:1327
+#: ../src/menu.xml
+msgid "TV Shows"
+msgstr "Телепередачи"
+
+#: ../src/plugin.py:1547
 msgid "TVHeadend server"
 msgstr "TVHeadend сервер"
 
-#: ../src/plugin.py:1411
+#: ../src/plugin.py:1548
+msgid "TXT"
+msgstr ""
+
+#: ../src/plugin.py:1636
 msgid "The URL where EPG data for this provider can be downloaded."
 msgstr "URL-адрес, по которому можно загрузить данные EPG для этого провайдера."
 
-#: ../src/plugin.py:1421
+#: ../src/plugin.py:1646
 msgid "The catchup API used."
 msgstr "Используемый catchup API."
 
-#: ../src/plugin.py:1419
+#: ../src/plugin.py:1616
+msgid "The format of the VOD playlist (m3u; m3u8; txt)"
+msgstr ""
+
+#: ../src/plugin.py:1644
 msgid ""
 "The format used to deliver the streams. Can be TS or HLS.\n"
 "NOTE: Setting playback system to DVB will make it impossible to use HLS as output format."
@@ -798,40 +900,48 @@ msgstr ""
 "Формат, используемый для доставки потоков. Может быть TS или HLS.\n"
 "ПРИМЕЧАНИЕ. Установка на DVB сделает невозможным использование HLS в качестве выходного формата."
 
-#: ../src/plugin.py:1417
+#: ../src/plugin.py:1642
 msgid "The player used for playing Catchup/Archive. Can be GStreamer/HiSilicon, Extplayer3"
 msgstr "Плеер, используемый для воспроизведения Catchup/Archive. Может быть GStreamer, HiSilicon, Extplayer3"
 
-#: ../src/plugin.py:1416
+#: ../src/plugin.py:1641
 msgid "The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3"
 msgstr "Используемый плеер. Может быть DVB, GStreamer, HiSilicon, Extplayer3"
 
-#: ../src/plugin.py:1392
+#: ../src/plugin.py:1614
 msgid "The playlist URL (*.m3u; *.m3u8) or streaming server URL. Including the port if differs from 80."
 msgstr "URL плейлиста (*.m3u; *.m3u8) или URL сервера потоковой передачи. Включая порт, если он отличается от 80."
 
-#: ../src/plugin.py:1397
+#: ../src/plugin.py:1621
 msgid "The search criteria by which the service will be searched in the playlist file."
 msgstr "Критерии поиска, по которым будет осуществляться поиск сервиса в файле плейлиста."
 
-#: ../src/plugin.py:1567
+#: ../src/plugin.py:1876
+msgid "Thursday"
+msgstr ""
+
+#: ../src/plugin.py:1803
 msgid "Timeout in seconds for the requests of getting playlist."
 msgstr "Тайм-аут в секундах для запросов на получение плейлиста."
 
-#: ../src/plugin.py:1592
+#: ../src/plugin.py:1829
 msgid "Timeshift-save action on zap"
 msgstr "Таймшифт — действие при переключении"
 
-#: ../src/plugin.py:1538
+#: ../src/plugin.py:1772
 msgid "Toggle all"
 msgstr "Переключить все"
 
-#: ../src/plugin.py:1348
+#: ../src/plugin.py:1569
 msgid "Transport stream (TS)"
 msgstr "Транспортный поток (TS)"
 
+#: ../src/plugin.py:1876
+msgid "Tuesday"
+msgstr ""
+
 #: ../src/StalkerProvider.py:260 ../src/StalkerProvider.py:261
-#: ../src/XtreemProvider.py:58
+#: ../src/VODProvider.py:103 ../src/XtreemProvider.py:58
 msgid "UNCATEGORIZED"
 msgstr "БЕЗ КАТЕГОРИЗАЦИИ"
 
@@ -839,11 +949,11 @@ msgstr "БЕЗ КАТЕГОРИЗАЦИИ"
 msgid "UPPER case"
 msgstr "ВЕРХНИЙ регистр"
 
-#: ../src/plugin.py:1392
+#: ../src/plugin.py:1614
 msgid "URL"
 msgstr "URL"
 
-#: ../src/plugin.py:1255
+#: ../src/plugin.py:1477
 #, python-format
 msgid ""
 "Unable to create bouquet \"%s\"!\n"
@@ -852,7 +962,7 @@ msgstr ""
 "Невозможно создать букет \"%s\"!\n"
 "Возможная причина — отсутствие сети."
 
-#: ../src/plugin.py:1438
+#: ../src/plugin.py:1663
 msgid ""
 "Use channel numbers and ordering provided by the IPTV provider.\n"
 "It will work only for 'ALL' bouquets.\n"
@@ -862,27 +972,27 @@ msgstr ""
 "Это будет работать только для 'ВСЕХ' букетов.\n"
 "Если настроена глобальная нумерация, номера каналов могут быть смещены в зависимости от того, сколько букетов находится перед этим."
 
-#: ../src/plugin.py:1438
+#: ../src/plugin.py:1663
 msgid "Use channel numbers from provider"
 msgstr "Использовать номера каналов от провайдера"
 
-#: ../src/plugin.py:1409
+#: ../src/plugin.py:1634
 msgid "Use custom XMLTV URL"
 msgstr "Использовать пользовательский URL XMLTV"
 
-#: ../src/plugin.py:1436
+#: ../src/plugin.py:1661
 msgid "Use provider TSID"
 msgstr "Использовать TSID провайдера"
 
-#: ../src/plugin.py:1365
+#: ../src/plugin.py:1586
 msgid "Use provider order"
 msgstr "Использовать сортировку провайдера"
 
-#: ../src/plugin.py:1394
+#: ../src/plugin.py:1618
 msgid "Use static URLs"
 msgstr "Использовать статические URL-адреса"
 
-#: ../src/plugin.py:1436
+#: ../src/plugin.py:1661
 msgid ""
 "Use the TSID provided from the IPTV provider (if available).\n"
 "Useful when want to always have same service references for EPG."
@@ -890,118 +1000,134 @@ msgstr ""
 "Используйте TSID, предоставленный провайдером IPTV (если доступен).\n"
 "Задействуйте, когда вы хотите всегда иметь одни и те же ссылки на услуги для EPG."
 
-#: ../src/plugin.py:1600
+#: ../src/plugin.py:1837
 msgid "Use time shift SeekBar while time shifting"
 msgstr "Используйте панель поиска сдвига времени во время сдвига времени"
 
-#: ../src/plugin.py:1598
+#: ../src/plugin.py:1835
 msgid "Use timeshift seekbar while timeshifting?"
 msgstr "Использовать панель поиска таймшифта во время таймшифта?"
 
-#: ../src/plugin.py:1409
+#: ../src/plugin.py:1634
 msgid "Use your own XMLTV url for EPG importing."
 msgstr "Используйте собственный URL-адрес XMLTV для импорта EPG."
 
-#: ../src/plugin.py:1427
+#: ../src/plugin.py:1652
 msgid "User name used for authenticating in the Media Library server."
 msgstr "Имя пользователя, используемое для авторизации на сервере медиатеки."
 
-#: ../src/plugin.py:1399
+#: ../src/plugin.py:1623
 msgid "User name used for authenticating in the streaming server."
 msgstr "Имя пользователя, используемое для авторизации на потоковом сервере."
 
-#: ../src/plugin.py:1399
+#: ../src/plugin.py:1623
 msgid "Username"
 msgstr "Имя пользователя"
 
-#: ../src/plugin.py:1713 ../src/menu.xml
+#: ../src/plugin.py:1616
+msgid "VOD playlist format"
+msgstr ""
+
+#: ../src/plugin.py:2051 ../src/menu.xml
 msgid "Video On Demand"
 msgstr "Видео по запросу"
 
-#: ../src/plugin.py:1683
+#: ../src/menu.xml
+msgid "Video On Demand Movies listing."
+msgstr "Список фильмов «Видео по запросу»."
+
+#: ../src/menu.xml
+msgid "Video On Demand TV Shows listing."
+msgstr "Список телепередач «Телепередачи по запросу»."
+
+#: ../src/plugin.py:1547 ../src/plugin.py:1964
 msgid "Video on Demand"
 msgstr "Видео по запросу"
 
-#: ../src/plugin.py:1360
+#: ../src/plugin.py:1581
 msgid "VoD"
 msgstr "VoD"
 
-#: ../src/plugin.py:1073
+#: ../src/plugin.py:1290
 msgid "VoD Movie Categories"
 msgstr "Категории фильмов VoD"
 
-#: ../src/plugin.py:1078
+#: ../src/plugin.py:1296
 #, python-format
 msgid "VoD Movie Category: %s"
 msgstr "Категория фильма VoD: %s"
 
-#: ../src/plugin.py:1069
+#: ../src/plugin.py:1286
 msgid "VoD Movie Search"
 msgstr "Поиск фильмов VoD"
 
-#: ../src/plugin.py:1044
+#: ../src/plugin.py:1258
 msgid "VoD Movie: enter search terms"
 msgstr "VoD фильмы: введите условия поиска"
 
-#: ../src/plugin.py:862
+#: ../src/plugin.py:1012
 msgid "VoD Series Categories"
 msgstr "Категории сериалов VoD"
 
-#: ../src/plugin.py:866
+#: ../src/plugin.py:1017
 #, python-format
 msgid "VoD Series Category: %s"
 msgstr "Категория сериалов VoD: %s"
 
-#: ../src/plugin.py:874
+#: ../src/plugin.py:1025
 msgid "VoD Series Search"
 msgstr "Поиск сериалов VoD"
 
-#: ../src/plugin.py:870
+#: ../src/plugin.py:1021
 #, python-format
 msgid "VoD Series: %s"
 msgstr "Сериалы VoD: %s"
 
-#: ../src/plugin.py:833
+#: ../src/plugin.py:980
 msgid "VoD Series: enter search terms"
 msgstr "VoD Сериалы: введите условия поиска"
 
-#: ../src/plugin.py:1572
+#: ../src/plugin.py:1808
 msgid "VoD playback system"
 msgstr "Система воспроизведения VoD"
 
-#: ../src/plugin.py:1587
+#: ../src/plugin.py:1876
+msgid "Wednesday"
+msgstr ""
+
+#: ../src/plugin.py:1824
 msgid "When enabled, a warning will be displayed and the user will get an option to stop or to continue the time shift."
 msgstr "При включении этой функции будет предупреждение и пользователь получит возможность остановить или продолжить сдвиг по времени."
 
-#: ../src/plugin.py:1589
+#: ../src/plugin.py:1826
 msgid "When enabled, a warning will be displayed and the user will get an option to stop or to continue the timeshift."
 msgstr "При включении этой функции будет предупреждение и пользователь получит возможность остановить или продолжить таймшифт."
 
-#: ../src/plugin.py:1585
+#: ../src/plugin.py:1822
 msgid "When enabled, time shift starts automatically in background after specified time."
 msgstr "При включении, сдвиг во времени запускается автоматически в фоновом режиме по истечении указанного времени."
 
-#: ../src/plugin.py:1583
+#: ../src/plugin.py:1820
 msgid "When enabled, timeshift starts automatically in background after the specified time."
 msgstr "При включении, таймшифт запускается автоматически в фоновом режиме по истечении указанного времени."
 
-#: ../src/plugin.py:1369
+#: ../src/plugin.py:1591
 msgid "Xtream Codes (Token)"
 msgstr "Xtream Codes (Токен)"
 
-#: ../src/plugin.py:1369
+#: ../src/plugin.py:1591
 msgid "Xtream Codes (Username/Password)"
 msgstr "Xtream Codes (Имя пользователя/Пароль)"
 
-#: ../src/plugin.py:1327 ../src/plugin.py:1360
+#: ../src/plugin.py:1547 ../src/plugin.py:1581
 msgid "Xtreme Codes"
 msgstr "Xtreme Codes"
 
-#: ../src/plugin.py:1375
+#: ../src/plugin.py:1597
 msgid "add new provider"
 msgstr "добавить нового провайдера"
 
-#: ../src/plugin.py:1375
+#: ../src/plugin.py:1597
 msgid "edit provider"
 msgstr "редактирование провайдера"
 
@@ -1009,42 +1135,10 @@ msgstr "редактирование провайдера"
 msgid "lower case"
 msgstr "нижний регистр"
 
-#: ../src/plugin.py:85 ../src/plugin.py:1330 ../src/plugin.py:1347
+#: ../src/plugin.py:84 ../src/plugin.py:1551 ../src/plugin.py:1568
 msgid "off"
 msgstr "выкл"
 
-#: ../src/plugin.py:1330
+#: ../src/plugin.py:1551
 msgid "on"
 msgstr "вкл"
-
-#: ../src/menu.xml
-msgid "Movies"
-msgstr "Фильмы"
-
-#: ../src/menu.xml
-msgid "Settings"
-msgstr "Настройки"
-
-#: ../src/menu.xml
-msgid "TV Shows"
-msgstr "Телепередачи"
-
-#: ../src/menu.xml
-msgid "Video On Demand TV Shows listing."
-msgstr "Список телепередач «Телепередачи по запросу»."
-
-#: ../src/menu.xml
-msgid "Video On Demand Movies listing."
-msgstr "Список фильмов «Видео по запросу»."
-
-#: ../src/menu.xml
-msgid "Playlist manager"
-msgstr "Менеджер плей-листов"
-
-#: ../src/menu.xml
-msgid "General settings for IPTV subsystem."
-msgstr "Общие настройки в подсистеме IPTV."
-
-#: ../src/menu.xml
-msgid "Manage M3U/Xtreme Codes playlist IPTV providers and adds support for playing IPTV services from autogenerated bouquets."
-msgstr "Настройки управления плейлистами M3U/Xtreme Codes от поставщиков услуг IPTV и поддержки воспроизведения генерируемые в букеты."

@@ -87,6 +87,7 @@ config.plugins.m3uiptv.req_timeout = ConfigSelection(default="2", choices=choice
 config.plugins.m3uiptv.epg_loc_port = ConfigNumber(default=9010)
 config.plugins.m3uiptv.inmenu = ConfigYesNo(default=True)
 config.plugins.m3uiptv.inextensions = ConfigYesNo(default=False)
+config.plugins.m3uiptv.display_poster = ConfigYesNo(default=True)
 config.plugins.m3uiptv.picon_threads = ConfigSelectionNumber(min=50, max=1000, stepwidth=50, default=100, wraparound=True)
 config.plugins.m3uiptv.bouquet_names_case = ConfigSelection(default=2, choices=[(0, _("Original case")), (1, _("lower case")), (2, _("UPPER case"))])
 vod_play_system_choices = [("4097", "HiSilicon" if BoxInfo.getItem("mediaservice") == "servicehisilicon" else "GStreamer")]
@@ -912,7 +913,7 @@ class M3UIPTVVoDSeries(Screen):
 				self["description"].text = _("Press OK to select a series")
 				current_cover_url = None
 				self["poster"].instance.setPixmap(None)
-		if self.mode != self.MODE_GENRE:
+		if self.mode != self.MODE_GENRE and config.plugins.m3uiptv.display_poster.value:
 			threads.deferToThread(self.downloadCover, current_cover_url)
 
 	def keyCancel(self):
@@ -1201,7 +1202,7 @@ class M3UIPTVVoDMovies(Screen):
 				threads.deferToThread(self.getExtraMovieInfo, current[0])
 			if current[0].poster_url:
 				current_cover_url = current[0].poster_url
-		if self.mode != self.MODE_CATEGORY:
+		if self.mode != self.MODE_CATEGORY and config.plugins.m3uiptv.display_poster.value:
 			threads.deferToThread(self.downloadCover, current_cover_url)
 
 	def mdb(self):
@@ -1805,6 +1806,7 @@ class IPTVPluginConfig(Setup):
 		configlist.append((_("Show 'Video on Demand' extensions entry") + " *", config.plugins.m3uiptv.inextensions, _("Allow showing of 'Video on Demand' entry in the extensions (BLUE button) menu.") + " *"))
 		configlist.append((_("Bouquet name character case"), config.plugins.m3uiptv.bouquet_names_case, _("Specify the character case used for bouquet names and titles.")))
 		configlist.append((_("VoD playback system"), config.plugins.m3uiptv.vod_play_system, _("Specify the type of services that will be generated for VoD items.")))
+		configlist.append((_("Download and display posters for VoD items"), config.plugins.m3uiptv.display_poster, _("Download and display posters for VoD items if available.")))
 		configlist.append(("---",))
 		configlist.append((_("Enable catchup/archive entries in EPG screens for period"), config.epg.histminutes, _("Enables possibility to return back in epg screens so to use old entries for invoke catchup/archive/timeshift.")))
 		configlist.append((_("Local EPG server listening port") + " *", config.plugins.m3uiptv.epg_loc_port, _("Enables possibility to return back in epg screens so to use old entries for invoke catchup/archive/timeshift.")))
