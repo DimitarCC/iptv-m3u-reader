@@ -291,7 +291,7 @@ def readProviders():
 				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True) # create provider subfolder if not exists
 				providerObj.loadMedialLibraryItems()
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
-				providerObj.portal_entry_point_type = int(provider.find("portal_entry_point_type").text) if provider.find("portal_entry_point_type") is not None else 0
+				providerObj.portal_entry_point_type = int(provider.find("portal_entry_point_type").text) if provider.find("portal_entry_point_type") is not None else -1
 				providerObj.auto_updates = provider.find("auto_updates") is not None and provider.find("auto_updates").text == "on"
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("tvhprovider"):
@@ -320,6 +320,7 @@ def readProviders():
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
 				providerObj.auto_updates = provider.find("auto_updates") is not None and provider.find("auto_updates").text == "on"
+				providerObj.last_vod_update_time = float(provider.find("last_vod_update_time").text) if provider.find("last_vod_update_time") is not None else 0
 				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True) # create provider subfolder if not exists
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("vodprovider"):
@@ -459,6 +460,7 @@ def writeProviders():
 			xml.append(f"\t\t<server_time_offset>{val.server_timezone_offset}</server_time_offset>\n")
 			xml.append(f"\t\t<portal_entry_point_type>{val.portal_entry_point_type}</portal_entry_point_type>\n")
 			xml.append(f"\t\t<auto_updates>{'on' if val.auto_updates else 'off'}</auto_updates>\n")
+			xml.append(f"\t\t<last_vod_update_time>{val.last_vod_update_time}</last_vod_update_time>\n")
 			xml.append("\t</stalkerprovider>\n")
 		else:
 			xml.append("\t<vodprovider>\n")

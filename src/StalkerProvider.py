@@ -40,20 +40,20 @@ class StalkerProvider(IPTVProcessor):
 		self.play_system_catchup = "4097"
 		self.session = requests.Session()
 		self.token = None
-		self.portal_entry_point_type = 0
+		self.portal_entry_point_type = -1
 		self.v_movies = []
 		self.v_series = []
 
 	def getPortalUrl(self):
-		url = self.url.removesuffix("/")
+		url = self.url.removesuffix("/").removesuffix("/server").removesuffix("/c")
 		if self.portal_entry_point_type == 0:
-			if url.endswith("/c"):
-				url = url.removesuffix("/c") + "/server"
-			elif "/server" not in url:
-				url = url + "/server"
-			url = url + "/load.php"
+			url = url + "/server/load.php"
 		elif self.portal_entry_point_type == 1:
 			url = url + "/portal.php"
+		elif self.portal_entry_point_type == 2:
+			url = url + "/c/server/load.php"
+		elif self.portal_entry_point_type == 3:
+			url = url + "/stalker_portal/server/load.php"
 
 		print("[M3UIPTV][Stalker] Portal URL: " + url)
 		return url
@@ -161,7 +161,8 @@ class StalkerProvider(IPTVProcessor):
 			self.channels_callback(groups)
 			self.piconsDownload()
 			self.generateEPGImportFiles(groups)
-			self.generateMediaLibrary()
+			if time.time() - self.last_vod_update_time > 7*24*60*60:
+				self.generateMediaLibrary()
 			
 	def generateMediaLibrary(self):
 		if not self.ignore_vod:
@@ -172,7 +173,6 @@ class StalkerProvider(IPTVProcessor):
 			for category in series_categories:
 				self.series_categories[category["category_id"]] = category["category_name"]
 			threads.deferToThread(self.get_vod).addCallback(self.store_vod)
-
 
 	def channels_callback(self, groups):
 		tsid = 1000
@@ -229,16 +229,32 @@ class StalkerProvider(IPTVProcessor):
 
 	def get_token(self, session):
 		try:
+			should_save_entry = False
+			if self.portal_entry_point_type == -1:
+				should_save_entry = True
 			url = f"{self.getPortalUrl()}?type=stb&action=handshake&JsHttpRequest=1-xml"
 			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
 			headers = {"User-Agent": REQUEST_USER_AGENT}
 			response = session.get(url, cookies=cookies, headers=headers)
 			if response.status_code == 404:
 				self.portal_entry_point_type = 1
+				url = f"{self.getPortalUrl()}?type=stb&action=handshake&JsHttpRequest=1-xml"
+				response = session.get(url, cookies=cookies, headers=headers)
+				if response.status_code == 404:
+					self.portal_entry_point_type = 2
+					url = f"{self.getPortalUrl()}?type=stb&action=handshake&JsHttpRequest=1-xml"
+					response = session.get(url, cookies=cookies, headers=headers)
+					if response.status_code == 404:
+						self.portal_entry_point_type = 3
+						url = f"{self.getPortalUrl()}?type=stb&action=handshake&JsHttpRequest=1-xml"
+						response = session.get(url, cookies=cookies, headers=headers)
+						if response.status_code == 404:
+							return None # give up since we can not find the right entry point
+			elif self.portal_entry_point_type > 0:
+				self.portal_entry_point_type = 0
+			if should_save_entry:
 				from .plugin import writeProviders  # deferred import
 				writeProviders()  # save to config so it doesn't get lost on reboot
-			url = f"{self.getPortalUrl()}?type=stb&action=handshake&JsHttpRequest=1-xml"
-			response = session.get(url, cookies=cookies, headers=headers)
 			token = response.json()["js"]["token"]
 			if token:
 				return token
@@ -644,6 +660,9 @@ class StalkerProvider(IPTVProcessor):
 			self.v_series = self.getDataToFile(vod_series, dest_file_series)
 		self.loadVoDMoviesFromFile()
 		self.loadVoDSeriesFromFile()
+		self.last_vod_update_time = time.time()
+		from .plugin import writeProviders  # deferred import
+		writeProviders()  # save to config so it doesn't get lost on reboot
 
 	def makeVodListFromJson(self, json_string):
 		if json_string:

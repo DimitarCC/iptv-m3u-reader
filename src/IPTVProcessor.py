@@ -164,6 +164,7 @@ class IPTVProcessor():
 		self.media_library_token = ""
 		self.media_library_object = None
 		self.auto_updates = False
+		self.last_vod_update_time = 0
 
 	def checkForNetwrok(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
@@ -273,7 +274,7 @@ class IPTVProcessor():
 				category = "UNCATEGORIZED" if not category_id or category_id not in self.series_categories else self.series_categories[category_id]
 				name = x.get("title") or x.get("name")
 				series_id = x.get("series_id") and str(x["series_id"])
-				cover_url = x.get("cover")
+				cover_url = x.get("cover") or x.get("stream_icon")
 				plot = x.get("plot")
 				if name and series_id:
 					if category not in self.vod_series:
