@@ -8,13 +8,13 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-05-05 15:55+0300\n"
-"PO-Revision-Date: 2025-04-20 16:03+0300\n"
+"PO-Revision-Date: 2025-05-09 11:47+0300\n"
 "Last-Translator: Orlandox <huoltovalikko.com>\n"
 "Language-Team: Orlandox\n"
+"Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fi\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.6\n"
 
@@ -243,11 +243,11 @@ msgstr "Haluatko jatkaa toistoa?"
 
 #: ../src/plugin.py:1809
 msgid "Download and display posters for VoD items"
-msgstr ""
+msgstr "Lataa ja näytä julisteet Tilaus-TV (VoD) -kohteita varten"
 
 #: ../src/plugin.py:1809
 msgid "Download and display posters for VoD items if available."
-msgstr ""
+msgstr "Lataa ja näytä julisteet Tilaus-TV (VoD) -kohteita varten, jos saatavilla."
 
 #: ../src/plugin.py:1657
 msgid "Download picons"
@@ -873,7 +873,7 @@ msgstr "TVHeadend-palvelin"
 
 #: ../src/plugin.py:1548
 msgid "TXT"
-msgstr ""
+msgstr "TXT"
 
 #: ../src/plugin.py:1636
 msgid "The URL where EPG data for this provider can be downloaded."
@@ -885,7 +885,7 @@ msgstr "Käytetty alusta aloittamisen API."
 
 #: ../src/plugin.py:1616
 msgid "The format of the VOD playlist (m3u; m3u8; txt)"
-msgstr ""
+msgstr "Tilaus-TV:n (VoD) -soittolistan formaatti (m3u; m3u8; txt)"
 
 #: ../src/plugin.py:1644
 msgid ""
@@ -1021,7 +1021,7 @@ msgstr "Käyttäjätunnus"
 
 #: ../src/plugin.py:1616
 msgid "VOD playlist format"
-msgstr ""
+msgstr "Tilaus-TV:n (VoD) -soittolistan formaatti"
 
 #: ../src/plugin.py:2051 ../src/menu.xml
 msgid "Video On Demand"
