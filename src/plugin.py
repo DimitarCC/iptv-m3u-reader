@@ -258,6 +258,7 @@ def readProviders():
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
 				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True) # create provider subfolder if not exists
+				providerObj.loadInfoFromFile()
 				providerObj.loadMedialLibraryItems()
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
 				providerObj.picon_gen_strategy = int(provider.find("picon_gen_strategy").text) if provider.find("picon_gen_strategy") is not None else 0
@@ -289,6 +290,7 @@ def readProviders():
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
 				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True) # create provider subfolder if not exists
+				providerObj.loadInfoFromFile()
 				providerObj.loadMedialLibraryItems()
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
 				providerObj.portal_entry_point_type = int(provider.find("portal_entry_point_type").text) if provider.find("portal_entry_point_type") is not None else -1
@@ -1330,6 +1332,7 @@ class M3UIPTVManagerConfig(Screen):
 							MultiContentEntryText(pos = (%d,%d), size = (%d,%d), flags = RT_HALIGN_LEFT, text = 1), # index 0 is the MenuText,
 		 					MultiContentEntryText(pos = (%d,%d), size = (%d,%d), flags = RT_HALIGN_LEFT, text = 4),
 		 					MultiContentEntryPixmapAlphaBlend(pos = (%d,%d), size = (%d,%d), flags = BT_SCALE | BT_KEEP_ASPECT_RATIO, png = 3),
+		 					MultiContentEntryPixmapAlphaBlend(pos = (%d,%d), size = (%d,%d), flags = BT_SCALE | BT_KEEP_ASPECT_RATIO, png = 5),
 						],
 					"fonts": [gFont("Regular",%d)],
 					"itemHeight":%d
@@ -1344,7 +1347,8 @@ class M3UIPTVManagerConfig(Screen):
 			2, 5, 66, 16,  # logo
 			80, 0, 302, 26,  # template
 			392, 0, 200, 26,  # progress
-			602, 0, 26, 26,  # vod ico
+			570, 0, 26, 26,  # vod ico
+			602, 1, 24, 24,  # active ico
 			22,  # fonts
 			26,  # ItemHeight
 			5, 500, 940, 50, 22,  # description
@@ -1359,6 +1363,13 @@ class M3UIPTVManagerConfig(Screen):
 		self.vod_ico = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "icons/vod.png"))
 		if not self.vod_ico:
 			self.vod_ico = LoadPixmap("%s/vod.png" % plugin_dir)
+		self.active_ico = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "icons/iptv_active.png"))
+		if not self.active_ico:
+			self.active_ico = LoadPixmap("%s/iptv_active.png" % plugin_dir)
+		self.inactive_ico = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "icons/iptv_inactive.png"))
+		if not self.inactive_ico:
+			self.inactive_ico = LoadPixmap("%s/iptv_inactive.png" % plugin_dir)
+		self.activity_icons = {"0": self.active_ico, "1": self.inactive_ico, "2": None}
 		m3u_ico = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "icons/m3u.png"))
 		if not m3u_ico:
 			m3u_ico = LoadPixmap("%s/m3u.png" % plugin_dir)
@@ -1385,6 +1396,9 @@ class M3UIPTVManagerConfig(Screen):
 		self.buildList()
 		for provider in providers:
 			providers[provider].onProgressChanged.append(self.onProgressChanged)
+		
+		threads.deferToThread(self.loadInfoForProviders).addCallback(self.onProgressChanged)
+			
 		self["key_red"] = StaticText(_("Close"))
 		self["key_green"] = StaticText(_("Add provider"))
 		self["key_yellow"] = StaticText(_("Generate bouquets"))
@@ -1421,6 +1435,10 @@ class M3UIPTVManagerConfig(Screen):
 			while self.onProgressChanged in providerObj.onProgressChanged:
 				providerObj.onProgressChanged.remove(self.onProgressChanged)
 
+	def loadInfoForProviders(self):
+		for provider in providers:
+			providers[provider].getProviderInfo()
+
 	def updateCallbacks(self):
 		for provider in providers:
 			providerObj = providers[provider]
@@ -1428,7 +1446,7 @@ class M3UIPTVManagerConfig(Screen):
 				providerObj.update_status_callback.append(self.updateDescription)
 
 	def buildList(self):
-		self["list"].list = list(sorted([(provider, providers[provider].iptv_service_provider,self.logos[providers[provider].type], self.vod_ico if len(providers[provider].vod_movies) > 0 or len(providers[provider].vod_series) > 0 else None,  "" if providers[provider].progress_percentage == -1 else (_("Fetching VoD items") + " " + str(providers[provider].progress_percentage) + "%")) for provider in providers], key=lambda x: x[1]))
+		self["list"].list = list(sorted([(provider, providers[provider].iptv_service_provider,self.logos[providers[provider].type], self.vod_ico if len(providers[provider].vod_movies) > 0 or len(providers[provider].vod_series) > 0 else None,  "" if providers[provider].progress_percentage == -1 else (_("Fetching VoD items") + " " + str(providers[provider].progress_percentage) + "%"), self.activity_icons[providers[provider].getAccountActive()]) for provider in providers], key=lambda x: x[1]))
 
 	def addProvider(self):
 		self.session.openWithCallback(self.providerCallback, M3UIPTVProviderEdit)
@@ -1467,7 +1485,7 @@ class M3UIPTVManagerConfig(Screen):
 
 	def onProgressChanged(self):
 		try:
-			self["list"].setList(list(sorted([(provider, providers[provider].iptv_service_provider,self.logos[providers[provider].type], self.vod_ico if len(providers[provider].vod_movies) > 0 or len(providers[provider].vod_series) > 0 else None,  "" if providers[provider].progress_percentage == -1 else (_("Fetching VoD items") + " " + str(providers[provider].progress_percentage) + "%")) for provider in providers], key=lambda x: x[1])))
+			self["list"].setList(list(sorted([(provider, providers[provider].iptv_service_provider,self.logos[providers[provider].type], self.vod_ico if len(providers[provider].vod_movies) > 0 or len(providers[provider].vod_series) > 0 else None,  "" if providers[provider].progress_percentage == -1 else (_("Fetching VoD items") + " " + str(providers[provider].progress_percentage) + "%"), self.activity_icons[providers[provider].getAccountActive()]) for provider in providers], key=lambda x: x[1])))
 		except:
 			pass
 
@@ -1518,6 +1536,8 @@ class M3UIPTVManagerConfig(Screen):
 					text.append(_("Account created") + ": " + strftime("%d/%m/%Y", localtime(int(created_at))))
 				if (exp_date := provider_info["user_info"].get("exp_date")) and str(exp_date).isdigit():
 					text.append(_("Account expires") + ": " + strftime("%d/%m/%Y", localtime(int(exp_date))))
+				if (exp_date := provider_info["user_info"].get("exp_date")) and  not str(exp_date).isdigit():
+					text.append(_("Account expires") + ": " + exp_date)
 				if is_trial := provider_info["user_info"].get("is_trial"):
 					text.append(_("Is trial") + ": " + ("no" if str(is_trial) == "0" else "yes"))
 				if max_connections := provider_info["user_info"].get("max_connections"):
@@ -1865,7 +1885,6 @@ class IPTVPluginConfig(Setup):
 			if config.plugins.m3uiptv.enabled.isChanged() or config.plugins.m3uiptv.schedule.isChanged() or config.plugins.m3uiptv.scheduletime.isChanged():
 				autoScheduleTimer.setSchedule()
 
-
 class DaysScreen(Setup):
 	def __init__(self, session):
 		self.config = config.plugins.m3uiptv
@@ -1965,9 +1984,7 @@ def startVoDSetup(menuid):
 		return []
 	return [(_("Video on Demand"), M3UIPTVVoDMenu, "iptv_vod_menu", 100)]
 
-
 autoScheduleTimer = None
-
 
 def sessionstart(reason, session, **kwargs):
 	global autoScheduleTimer
@@ -1977,7 +1994,6 @@ def sessionstart(reason, session, **kwargs):
 		threads.deferToThread(startingCustomEPGExternal).addCallback(lambda ignore: finishedCustomEPGExternal())
 		if autoScheduleTimer is None:
 			autoScheduleTimer = AutoScheduleTimer()
-
 
 class AutoScheduleTimer():
 	def __init__(self):
@@ -2026,7 +2042,6 @@ class AutoScheduleTimer():
 				except Exception as err:
 					print(f"[M3UIPTV] Auto updating provider '{providerObj.iptv_service_provider}' failed with error: {str(err)}")
 		self.setSchedule()
-
 
 def startingCustomEPGExternal():
 	port = config.plugins.m3uiptv.epg_loc_port.value

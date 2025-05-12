@@ -169,8 +169,13 @@ class IPTVProcessor():
 	def checkForNetwrok(self):
 		is_check_network_val = config.plugins.m3uiptv.check_internet.value
 		if is_check_network_val != "off":
-			socket.setdefaulttimeout(int(is_check_network_val))
-			socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
+			try:
+				socket.setdefaulttimeout(int(is_check_network_val))
+				socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
+			except:
+				print("[IPTVProcessor] No intenrnet connection or Google DNS (8.8.8.8) not reachable!")
+				return False
+		return True
 
 	def constructRequest(self, url):
 		headers = {'User-Agent': REQUEST_USER_AGENT}
@@ -206,7 +211,6 @@ class IPTVProcessor():
 
 	def loadMedialLibraryItems(self):
 		if not self.ignore_vod:
-			self.loadInfoFromFile()
 			self.loadMovieCategoriesFromFile()
 			self.loadVoDMoviesFromFile()
 			self.loadSeriesCategoriesFromFile()
@@ -260,8 +264,17 @@ class IPTVProcessor():
 		for x in self.onProgressChanged:
 			x()
 
+	def getProviderInfo(self):
+		pass
+
 	def loadInfoFromFile(self):
 		pass
+
+	def getAccountActive(self):
+		if self.provider_info:
+			if self.provider_info["user_info"]:
+				return "0" if self.provider_info["user_info"]["status"] == "Active" else "1"
+		return "2"
 
 	def makeVodSeriesDictFromJson(self, json_string):
 		self.vod_series = {}

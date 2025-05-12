@@ -27,7 +27,7 @@ class XtreemProvider(IPTVProcessor):
 
 	def storePlaylistAndGenBouquet(self):
 		self.checkForNetwrok()
-		self.getServerTZoffset()
+		self.getProviderInfo()
 		url = "%s/player_api.php?username=%s&password=%s&action=get_live_streams" % (self.url, self.username, self.password)
 		req = urllib.request.Request(url, headers={'User-Agent': REQUEST_USER_AGENT})
 		req_timeout_val = config.plugins.m3uiptv.req_timeout.value
@@ -210,7 +210,7 @@ class XtreemProvider(IPTVProcessor):
 							titles.append(title)
 		return ret
 
-	def getServerTZoffset(self):
+	def getProviderInfo(self):
 		url = "%s/player_api.php?username=%s&password=%s" % (self.url, self.username, self.password)
 		dest_file = USER_IPTV_PROVIDER_INFO_FILE % self.scheme
 		json_string = self.getUrlToFile(url, dest_file)
@@ -224,7 +224,7 @@ class XtreemProvider(IPTVProcessor):
 					from .plugin import writeProviders  # deferred import
 					writeProviders()  # save to config so it doesn't get lost on reboot
 				except Exception as err:
-					print("[XtreemProvider] getServerTZoffset, an error occured", err)
+					print("[XtreemProvider] getProviderInfo, an error occured", err)
 
 	def loadInfoFromFile(self):
 		info_file = USER_IPTV_PROVIDER_INFO_FILE % self.scheme

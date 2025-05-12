@@ -4,13 +4,14 @@ from enigma import eDVBDB, eServiceReference
 from ServiceReference import ServiceReference
 from Components.config import config
 from xml.dom import minidom
-import requests, time, re, math, json
+import requests, time, re, math, json, urllib
 from zoneinfo import ZoneInfo
 from datetime import datetime, timezone
 from twisted.internet import threads
 from .IPTVProcessor import IPTVProcessor
 from .VoDItem import VoDItem
-from .Variables import USER_IPTV_VOD_MOVIES_FILE, REQUEST_USER_AGENT, USER_AGENTS, CATCHUP_STALKER, CATCHUP_STALKER_TEXT, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE
+from .Variables import USER_IPTV_VOD_MOVIES_FILE, REQUEST_USER_AGENT, USER_AGENTS, CATCHUP_STALKER, CATCHUP_STALKER_TEXT, USER_IPTV_MOVIE_CATEGORIES_FILE, \
+	 				   USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE, USER_IPTV_PROVIDER_INFO_FILE
 
 db = eDVBDB.getInstance()
 
@@ -155,7 +156,7 @@ class StalkerProvider(IPTVProcessor):
 		self.checkForNetwrok()
 		self.token = self.get_token(self.session)
 		if self.token:
-			self.get_server_timezone_offset(self.session, self.token)
+			self.getProviderInfo()
 			genres = self.get_genres(self.session, self.token)
 			groups = self.get_all_channels(self.session, self.token, genres)
 			self.channels_callback(groups)
@@ -329,26 +330,6 @@ class StalkerProvider(IPTVProcessor):
 				return self.getDataToFile(genres, dest_file)
 		except Exception as ex:
 			print("[M3UIPTV][Stalker] Error getting series genres: " + str(ex))
-			pass
-
-	def get_server_timezone_offset(self, session, token):
-		try:
-			url = f"{self.getPortalUrl()}?type=stb&action=get_profile&JsHttpRequest=1-xml"
-			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
-			headers = {"User-Agent": REQUEST_USER_AGENT, "Authorization": "Bearer " + token}
-			response = session.get(url, cookies=cookies, headers=headers)
-			profile_data = response.json()["js"]
-			if profile_data:
-				zone = ZoneInfo(profile_data["default_timezone"])
-				server_timezone_offset = (datetime.now(timezone.utc).astimezone().utcoffset().total_seconds() - zone.utcoffset(datetime.now()).total_seconds())//3600
-				server_timezone_offset_string = f"{server_timezone_offset :+03.0f}00"
-				if server_timezone_offset_string != self.server_timezone_offset:
-					self.server_timezone_offset = server_timezone_offset_string
-					self.epg_time_offset = int(server_timezone_offset)
-					from .plugin import writeProviders  # deferred import
-					writeProviders()  # save to config so it doesn't get lost on reboot
-		except Exception as ex:
-			print("[M3UIPTV][Stalker] Error getting default timezone: " + str(ex))
 			pass
 
 	def get_channels_for_group(self, groups, services, session, cookies, headers, genre_id):
@@ -730,3 +711,88 @@ class StalkerProvider(IPTVProcessor):
 				if total_vod_count >= total_items:
 					break
 		return ret
+
+	def getPortalVersion(self):
+		try:
+			url = self.url.removesuffix("/").removesuffix("/server").removesuffix("/c").removesuffix("/")
+			url_version = url + "/c/version.js"
+			req = urllib.request.Request(url_version, headers={'User-Agent': REQUEST_USER_AGENT})
+			req_timeout_val = config.plugins.m3uiptv.req_timeout.value
+			if req_timeout_val != "off":
+				response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
+			else:
+				response = urllib.request.urlopen(req, timeout=10)  # set a timeout to prevent blocking
+			if response.status == 404:
+				url_version = url + "/stalker_portal/c/version.js"
+				req = urllib.request.Request(url_version, headers={'User-Agent': REQUEST_USER_AGENT})
+				if req_timeout_val != "off":
+					response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
+				else:
+					response = urllib.request.urlopen(req, timeout=10)  # set a timeout to prevent blocking
+				if response.status == 404:
+					url_version = url + "/stalker_portal/c/version.js"
+					req = urllib.request.Request(url_version, headers={'User-Agent': REQUEST_USER_AGENT})
+					if req_timeout_val != "off":
+						response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
+					else:
+						response = urllib.request.urlopen(req, timeout=10)  # set a timeout to prevent blocking
+					if response.status == 404:
+						return None
+
+			version_response = response.read().decode("utf-8")
+			return version_response.replace("var ver = '", "").replace("';", "")
+		except:
+			return None
+
+
+	def getProviderInfo(self):
+		version = self.getPortalVersion()
+		profile_data = None
+		account_data = None
+		if not self.token:
+			self.token = self.get_token(self.session)
+		if not self.token:
+			return
+		try:
+			url = f"{self.getPortalUrl()}?type=stb&action=get_profile&JsHttpRequest=1-xml"
+			cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
+			headers = {"User-Agent": REQUEST_USER_AGENT, "Authorization": "Bearer " + self.token}
+			response = self.session.get(url, cookies=cookies, headers=headers)
+			profile_data = response.json()["js"]
+			if profile_data:
+				zone = ZoneInfo(profile_data["default_timezone"])
+				server_timezone_offset = (datetime.now(timezone.utc).astimezone().utcoffset().total_seconds() - zone.utcoffset(datetime.now()).total_seconds())//3600
+				server_timezone_offset_string = f"{server_timezone_offset :+03.0f}00"
+				if server_timezone_offset_string != self.server_timezone_offset:
+					self.server_timezone_offset = server_timezone_offset_string
+					self.epg_time_offset = int(server_timezone_offset)
+					from .plugin import writeProviders  # deferred import
+					writeProviders()  # save to config so it doesn't get lost on reboot
+
+				url = f"{self.getPortalUrl()}?type=account_info&action=get_main_info&JsHttpRequest=1-xml"
+				cookies = {"mac": self.mac, "stb_lang": "en", "timezone": "Europe/London"}
+				response = self.session.get(url, cookies=cookies, headers=headers)
+				account_data = response.json()["js"]
+				info = {}
+				info["user_info"] = {}
+				info["user_info"]["status"] = "Active" if profile_data and (profile_data.get("status") == 1) and profile_data.get("blocked") == "0" else "Not active"
+				info["user_info"]["exp_date"] = account_data and account_data["phone"]
+				info["server_info"] = {}
+				info["server_info"]["version"] = version or ""
+				info["server_info"]["url"] = self.getPortalUrl()
+				info["server_info"]["timezone"] = profile_data and profile_data["default_timezone"]
+
+				dest_file = USER_IPTV_PROVIDER_INFO_FILE % self.scheme
+				self.provider_info = self.getDataToFile(info, dest_file)
+		except Exception as ex:
+			print("[M3UIPTV][Stalker] Error getProviderInfo: " + str(ex))
+			pass
+	
+	def loadInfoFromFile(self):
+		info_file = USER_IPTV_PROVIDER_INFO_FILE % self.scheme
+		json_string = self.loadFromFile(info_file)
+		if json_string:
+			self.provider_info = json.loads(json_string)
+		
+		
+		
