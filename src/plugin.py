@@ -864,6 +864,8 @@ class M3UIPTVVoDSeries(Screen):
 			threads.deferToThread(self.downloadCover, cover_url)
 
 	def downloadCover(self, current_cover_url):
+		if current_cover_url and self.deferred_cover_url and self.deferred_cover_url == current_cover_url:
+			return
 		if self.processing_cover:
 			self.deferred_cover_url = current_cover_url
 			return
@@ -1199,10 +1201,11 @@ class M3UIPTVVoDMovies(Screen):
 
 	def selectionChanged(self):
 		current_cover_url = None
-		if self.mode in (self.MODE_MOVIE, self.MODE_SEARCH):
-			if (current := self["list"].getCurrent()) and (plot := current[0].plot) is not None:
+		current = self["list"].getCurrent()
+		if self.mode in (self.MODE_MOVIE, self.MODE_SEARCH) and current:
+			if (plot := current[0].plot) is not None:
 				self["description"].text = plot
-			elif not plot:
+			elif not current[0].plot:
 				threads.deferToThread(self.getExtraMovieInfo, current[0])
 			if current[0].poster_url:
 				current_cover_url = current[0].poster_url

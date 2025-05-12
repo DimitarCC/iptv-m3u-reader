@@ -691,6 +691,7 @@ class StalkerProvider(IPTVProcessor):
 						# if info and info.get("season"):
 						# 	marker.append(_("S%s") % str(info.get("season")))
 						episode_num = str(episode)
+						episode_image = season.get("screenshot_uri", None)
 						if episode_num:
 							marker.append(_("Ep%s") % episode_num)
 						if marker:
@@ -703,7 +704,7 @@ class StalkerProvider(IPTVProcessor):
 						# 	marker.insert(0, _("Released: %s") % str(date))
 						episode_url = f"{season['cmd']}||{str(episode)}" #self.getVoDPlayUrl(season["cmd"], episode)
 						if title and info and title not in titles:
-							ret.append((episode_url, title, info, self, ", ".join(marker), id.split(":")[0]))
+							ret.append((episode_url, title, info, self, ", ".join(marker), id.split(":")[0], episode_image))
 							titles.append(title)
 					total_vod_count += 1
 				total_items = response_json["js"]["total_items"]
