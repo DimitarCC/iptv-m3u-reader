@@ -221,7 +221,10 @@ class StalkerProvider(IPTVProcessor):
 					provider_name_for_titles = provider_name_for_titles.lower()
 				elif name_case_config == 2:
 					provider_name_for_titles = provider_name_for_titles.upper()
-				db.addOrUpdateBouquet(provider_name_for_titles + " - " + group[0], bfilename, services, False)
+				bouquet_name = provider_name_for_titles + " - " + group[0]
+				if self.create_bouquets_strategy == 1:
+					bouquet_name = provider_name_for_titles
+				db.addOrUpdateBouquet(bouquet_name, bfilename, services, False)
 
 		if not self.ignore_vod:
 			self.getVoDMovies()

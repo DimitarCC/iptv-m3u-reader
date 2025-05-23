@@ -190,18 +190,11 @@ class CatchupPlayer(MoviePlayer):
 		self["time_duration_summary"] = StaticText("")
 		self["time_remaining_summary"] = StaticText("")
 		self.onProgressTimer()
-		self.onClose.append(self._onClose)
 		self.__event_tracker = ServiceEventTracker(screen=self, eventmap={
 			iPlayableService.evSeekableStatusChanged: self.__seekableStatusChanged,
 			iPlayableService.evStart: self.__evServiceStart,
 			iPlayableService.evEnd: self.__evServiceEnd, })
 		self["SeekActions"].setEnabled(True)
-		if hasattr(AudioSelection, "audioHooks") and self.onAudioSubTrackChanged not in AudioSelection.audioHooks:
-			AudioSelection.audioHooks.append(self.onAudioSubTrackChanged)
-
-	def _onClose(self):
-		if hasattr(AudioSelection, "audioHooks") and self.onAudioSubTrackChanged in AudioSelection.audioHooks:
-			AudioSelection.audioHooks.remove(self.onAudioSubTrackChanged)
 
 	def setProgress(self, pos):
 		r = self.duration - pos
@@ -220,9 +213,6 @@ class CatchupPlayer(MoviePlayer):
 		text_remaining = "+%d:%02d:%02d" % (r / 3600, r % 3600 / 60, r % 60)
 		self["time_remaining"].setText(text_remaining)
 		self["time_remaining_summary"].setText(text_remaining)
-
-	def onAudioSubTrackChanged(self):
-		self.doServiceRestart()
 
 	def invokeSeek(self, direction=0):
 		self.seek_timer.stop()
@@ -280,6 +270,7 @@ class CatchupPlayer(MoviePlayer):
 		return 0
 
 	def playLastCB(self, answer):
+		self.resume_point = self.getResumePoint()
 		if answer is True and self.resume_point:
 			self.isSeeking = True
 			self.seekTo_pos = self.resume_point
@@ -350,11 +341,6 @@ class CatchupPlayer(MoviePlayer):
 			self.hide()
 		else:
 			self.leavePlayer()
-
-	def doServiceRestart(self):
-		curr_pos = self.start_curr + self.getPosition()
-		self.seekTo_pos = curr_pos - self.start_orig
-		self.doSeekRelative(self.seekTo_pos + 2)
 
 	def doSeekRelative(self, pts):
 		self.progress_timer.stop()
