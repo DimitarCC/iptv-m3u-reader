@@ -225,7 +225,7 @@ class IPTVProcessor():
 	def getMovieCategories(self):
 		pass
 
-	def getSeriesCategories(self):
+	def getSeriesCategories(self) -> object :
 		pass
 
 	def loadMovieCategoriesFromFile(self):
@@ -264,7 +264,7 @@ class IPTVProcessor():
 		for x in self.onProgressChanged:
 			x()
 
-	def getProviderInfo(self):
+	def getProviderInfo(self, from_token=False):
 		pass
 
 	def loadInfoFromFile(self):
@@ -365,7 +365,7 @@ class IPTVProcessor():
 	def processService(self, nref, iptvinfodata, callback=None, event=None):
 		return nref, nref, False
 	
-	def generateXMLTVFile(self):
+	def generateXMLTVFile(self) -> bytes | None:
 		return None
 
 	def bouquetCreated(self, error):

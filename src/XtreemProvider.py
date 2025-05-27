@@ -210,7 +210,7 @@ class XtreemProvider(IPTVProcessor):
 							titles.append(title)
 		return ret
 
-	def getProviderInfo(self):
+	def getProviderInfo(self, from_token=False):
 		url = "%s/player_api.php?username=%s&password=%s" % (self.url, self.username, self.password)
 		dest_file = USER_IPTV_PROVIDER_INFO_FILE % self.scheme
 		json_string = self.getUrlToFile(url, dest_file)
