@@ -132,7 +132,7 @@ msgstr ""
 
 #: ../src/plugin.py:1581
 msgid "Append"
-msgstr "Добавить"
+msgstr "Append"
 
 #: ../src/plugin.py:1746
 #, python-format
@@ -750,7 +750,7 @@ msgstr "Настройки"
 
 #: ../src/plugin.py:1581
 msgid "Shift"
-msgstr "Сдвиг"
+msgstr "Shift"
 
 #: ../src/plugin.py:1806
 msgid "Show 'Video on Demand' extensions entry"
@@ -838,7 +838,7 @@ msgstr "Stalker портал"
 
 #: ../src/plugin.py:1581
 msgid "Standard"
-msgstr "Стандартный"
+msgstr "Standard"
 
 #: ../src/plugin.py:1833
 msgid "Stop time shift while recording"
