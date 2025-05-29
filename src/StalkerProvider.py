@@ -681,7 +681,7 @@ class StalkerProvider(IPTVProcessor):
 			if group["censored"] == 1:
 				censored_groups.append(group)
 				try:
-					url_vod_censored = f"{self.getPortalUrl()}?type=vod&action=get_ordered_list&category={group["category_id"]}&p=1&JsHttpRequest=1-xml"
+					url_vod_censored = f"{self.getPortalUrl()}?type=vod&action=get_ordered_list&category={group['category_id']}&p=1&JsHttpRequest=1-xml"
 					response_censored_json = self.pull_json_with_reauth(url_vod_censored, True)
 					if response_censored_json:
 						total_items_censored = response_censored_json["total_items"]
