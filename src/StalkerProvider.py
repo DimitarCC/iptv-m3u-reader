@@ -215,76 +215,91 @@ class StalkerProvider(IPTVProcessor):
 		"""
         Fetch user profile after ensuring a valid token.
         """
+		try:
+			if not from_token and not self.token:
+				self.get_token()
 
-		if not from_token and not self.token:
-			self.get_token()
+			serial = self.generate_serial(self.mac)
+			dev_id = self.generate_device_id()
+			url = self.getPortalUrl()
+			params = {
+				"type": "stb",
+				"action": "get_profile",
+				"hd": "1",
+				"ver": (
+					"ImageDescription: 0.2.18-r23-250; ImageDate: Thu Sep 13 11:31:16 EEST 2018; "
+					"PORTAL version: 5.6.2; API Version: JS API version: 343; STB API version: 146; "
+					"Player Engine version: 0x58c"
+				),
+				"num_banks": "2",
+				"sn": serial,
+				"stb_type": "MAG250",
+				"client_type": "STB",
+				"image_version": "218",
+				"video_out": "hdmi",
+				"device_id": dev_id,
+				"device_id2": dev_id,
+				"signature": self.generate_signature(serial, dev_id),
+				"auth_second_step": "1",
+				"hw_version": "1.7-BD-00",
+				"not_valid_token": "0",
+				"metrics": self.generate_metrics(serial),
+				"hw_version_2": hashlib.sha1(self.mac.encode()).hexdigest(),
+				"timestamp": int(time.time()),
+				"api_signature": "262",
+				"prehash": "",
+				"JsHttpRequest": "1-xml",
+			}
 
-		serial = self.generate_serial(self.mac)
-		dev_id = self.generate_device_id()
-		url = self.getPortalUrl()
-		params = {
-            "type": "stb",
-            "action": "get_profile",
-            "hd": "1",
-            "ver": (
-                "ImageDescription: 0.2.18-r23-250; ImageDate: Thu Sep 13 11:31:16 EEST 2018; "
-                "PORTAL version: 5.6.2; API Version: JS API version: 343; STB API version: 146; "
-                "Player Engine version: 0x58c"
-            ),
-            "num_banks": "2",
-            "sn": serial,
-            "stb_type": "MAG250",
-            "client_type": "STB",
-            "image_version": "218",
-            "video_out": "hdmi",
-            "device_id": dev_id,
-            "device_id2": dev_id,
-            "signature": self.generate_signature(serial, dev_id),
-            "auth_second_step": "1",
-            "hw_version": "1.7-BD-00",
-            "not_valid_token": "0",
-            "metrics": self.generate_metrics(serial),
-            "hw_version_2": hashlib.sha1(self.mac.encode()).hexdigest(),
-            "timestamp": int(time.time()),
-            "api_signature": "262",
-            "prehash": "",
-            "JsHttpRequest": "1-xml",
-        }
+			json_response = self.pull_json_with_reauth(url, True, params=params, skip_profile=True)
+			if not json_response:
+				return
+			js_data = json_response
+			token = js_data.get("token", "")
+			if token:
+				self.token = token
+				self.token_timestamp = time.time()
 
-		json_response = self.pull_json_with_reauth(url, True, params=params, skip_profile=True)
-		if not json_response:
-			return
-		js_data = json_response
-		token = js_data.get("token", "")
-		if token:
-			self.token = token
-			self.token_timestamp = time.time()
+			if js_data:
+				version = self.getPortalVersion()
+				zone = ZoneInfo(js_data["default_timezone"])
+				server_timezone_offset = (datetime.now(timezone.utc).astimezone().utcoffset().total_seconds() - zone.utcoffset(datetime.now()).total_seconds())//3600
+				server_timezone_offset_string = f"{server_timezone_offset :+03.0f}00"
+				if server_timezone_offset_string != self.server_timezone_offset:
+					self.server_timezone_offset = server_timezone_offset_string
+					self.epg_time_offset = int(server_timezone_offset)
+					from .plugin import writeProviders  # deferred import
+					writeProviders()  # save to config so it doesn't get lost on reboot
 
-		if js_data:
-			version = self.getPortalVersion()
-			zone = ZoneInfo(js_data["default_timezone"])
-			server_timezone_offset = (datetime.now(timezone.utc).astimezone().utcoffset().total_seconds() - zone.utcoffset(datetime.now()).total_seconds())//3600
-			server_timezone_offset_string = f"{server_timezone_offset :+03.0f}00"
-			if server_timezone_offset_string != self.server_timezone_offset:
-				self.server_timezone_offset = server_timezone_offset_string
-				self.epg_time_offset = int(server_timezone_offset)
-				from .plugin import writeProviders  # deferred import
-				writeProviders()  # save to config so it doesn't get lost on reboot
+				url = f"{self.getPortalUrl()}?type=account_info&action=get_main_info&JsHttpRequest=1-xml"
+				account_data = self.pull_json_with_reauth(url, True)
+				expiry_date = account_data and account_data["phone"]
+				info = {}
+				info["user_info"] = {}
+				info["user_info"]["status"] = "Active" if js_data and js_data.get("blocked") == "0" and expiry_date else "Not active"
+				info["user_info"]["exp_date"] = expiry_date
+				info["server_info"] = {}
+				info["server_info"]["version"] = version or ""
+				info["server_info"]["url"] = self.getPortalUrl()
+				info["server_info"]["timezone"] = js_data and js_data["default_timezone"]
 
-			url = f"{self.getPortalUrl()}?type=account_info&action=get_main_info&JsHttpRequest=1-xml"
-			account_data = self.pull_json_with_reauth(url, True)
-			expiry_date = account_data and account_data["phone"]
-			info = {}
-			info["user_info"] = {}
-			info["user_info"]["status"] = "Active" if js_data and js_data.get("blocked") == "0" and expiry_date else "Not active"
-			info["user_info"]["exp_date"] = expiry_date
-			info["server_info"] = {}
-			info["server_info"]["version"] = version or ""
-			info["server_info"]["url"] = self.getPortalUrl()
-			info["server_info"]["timezone"] = js_data and js_data["default_timezone"]
-
-			dest_file = USER_IPTV_PROVIDER_INFO_FILE % self.scheme
-			self.provider_info = self.getDataToFile(info, dest_file)
+				dest_file = USER_IPTV_PROVIDER_INFO_FILE % self.scheme
+				self.provider_info = self.getDataToFile(info, dest_file)
+		except:
+			if not from_token:
+				version = self.getPortalVersion()
+				info = {}
+				info["user_info"] = {}
+				info["user_info"]["status"] = "Not active"
+				info["user_info"]["exp_date"] = ""
+				info["server_info"] = {}
+				info["server_info"]["version"] = version or ""
+				info["server_info"]["url"] = self.getPortalUrl()
+				info["server_info"]["timezone"] = ""
+				dest_file = USER_IPTV_PROVIDER_INFO_FILE % self.scheme
+				self.provider_info = self.getDataToFile(info, dest_file)
+			else:
+				pass
 
 	# -------------------------------------------------------------------------
 	# EPG HANDLING
