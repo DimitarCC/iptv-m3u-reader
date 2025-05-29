@@ -718,7 +718,7 @@ class StalkerProvider(IPTVProcessor):
 			total_pages_censored_l = 0
 			while True:
 				time.sleep(0.05)
-				url = f"{self.getPortalUrl()}?type=vod&action=get_ordered_list&p={page_number}&category={group_censored["category_id"]}&JsHttpRequest=1-xml"
+				url = f"{self.getPortalUrl()}?type=vod&action=get_ordered_list&p={page_number}&category={group_censored['category_id']}&JsHttpRequest=1-xml"
 				response_json = self.pull_json_with_reauth(url, True)
 				if response_json:
 					try:
