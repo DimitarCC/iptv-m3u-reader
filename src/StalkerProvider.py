@@ -503,7 +503,7 @@ class StalkerProvider(IPTVProcessor):
 			pass
 		return []
 
-	def getVODCategories(self) -> list | None:
+	def getVODCategories(self) -> list:
 		try:
 			url = f"{self.getPortalUrl()}?type=vod&action=get_categories&JsHttpRequest=1-xml"
 			genre_data = self.pull_json_with_reauth(url, True)
@@ -522,7 +522,7 @@ class StalkerProvider(IPTVProcessor):
 			print("[M3UIPTV][Stalker] Error getting vod genres: " + str(ex))
 			return []
 
-	def getSeriesCategories(self) -> list | None:
+	def getSeriesCategories(self) -> list:
 		try:
 			url = f"{self.getPortalUrl()}?type=series&action=get_categories&JsHttpRequest=1-xml"
 			genre_data = self.pull_json_with_reauth(url, True)

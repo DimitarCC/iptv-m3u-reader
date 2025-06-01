@@ -365,7 +365,7 @@ class IPTVProcessor():
 	def processService(self, nref, iptvinfodata, callback=None, event=None):
 		return nref, nref, False
 	
-	def generateXMLTVFile(self) -> bytes | None:
+	def generateXMLTVFile(self) -> bytes:
 		return None
 
 	def bouquetCreated(self, error):
