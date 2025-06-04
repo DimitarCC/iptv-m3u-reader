@@ -22,7 +22,7 @@ from .VODProvider import VODProvider
 from .IPTVProviders import providers, processService as processIPTVService
 from .IPTVCatchupPlayer import injectCatchupInEPG
 from .epgimport_helper import overwriteEPGImportEPGSourceInit
-from .Variables import PROVIDER_FOLDER, USER_IPTV_PROVIDERS_FILE, USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_STALKER, CATCHUP_FLUSSONIC, CATCHUP_VOD
+from .Variables import PROVIDER_FOLDER, USER_IPTV_PROVIDERS_FILE, USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_STALKER, CATCHUP_FLUSSONIC, CATCHUP_VOD, REQUEST_USER_AGENT
 from Screens.Screen import Screen, ScreenSummary
 from Screens.InfoBar import InfoBar, MoviePlayer
 from Screens.InfoBarGenerics import streamrelay
@@ -864,18 +864,23 @@ class M3UIPTVVoDSeries(Screen):
 			threads.deferToThread(self.downloadCover, cover_url)
 
 	def downloadCover(self, current_cover_url):
-		if current_cover_url and self.deferred_cover_url and self.deferred_cover_url == current_cover_url:
-			return
-		if self.processing_cover:
-			self.deferred_cover_url = current_cover_url
-			return
 		if not current_cover_url:
 			self["poster"].instance.setPixmap(None)
 			return
+		current_cover_url = current_cover_url.replace("\\", "")
+		if self.deferred_cover_url and self.deferred_cover_url == current_cover_url:
+			return
+		
+		if self.processing_cover:
+			self.deferred_cover_url = current_cover_url
+			return
+
 		self.processing_cover = True
 		if not self.deferred_cover_url:
 			try:
-				req = urllib.request.Request(current_cover_url)
+				req = urllib.request.Request(current_cover_url, headers={
+        										'User-Agent': REQUEST_USER_AGENT #'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+    										})
 				response = urllib.request.urlopen(req, timeout=5)
 				if response.status != 200:
 					self.processing_cover = False
@@ -1160,17 +1165,23 @@ class M3UIPTVVoDMovies(Screen):
 			threads.deferToThread(self.downloadCover, cover_url)
 
 	def downloadCover(self, current_cover_url):
-		if self.processing_cover:
-			self.deferred_cover_url = current_cover_url
-			return
 		if not current_cover_url:
 			self["poster"].instance.setPixmap(None)
 			return
+
+		current_cover_url = current_cover_url.replace("\\", "")
+		if self.processing_cover:
+			self.deferred_cover_url = current_cover_url
+			return
+		
 		self.processing_cover = True
 		if not self.deferred_cover_url:
 			try:
-				req = urllib.request.Request(current_cover_url)
+				req = urllib.request.Request(current_cover_url, headers={
+        										'User-Agent': REQUEST_USER_AGENT #'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+    										})
 				response = urllib.request.urlopen(req, timeout=5)
+
 				if response.status != 200:
 					self.processing_cover = False
 					self.deferred_cover_url = None

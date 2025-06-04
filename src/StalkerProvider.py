@@ -5,7 +5,7 @@ from ServiceReference import ServiceReference
 from Components.config import config
 from xml.dom import minidom
 from urllib.parse import urlparse
-import requests, time, re, math, json, urllib, random, hashlib
+import requests, time, re, math, json, urllib, random, hashlib, time
 from zoneinfo import ZoneInfo
 from datetime import datetime, timezone
 from twisted.internet import threads
@@ -46,6 +46,7 @@ class StalkerProvider(IPTVProcessor):
 		self.portal_entry_point_type = -1
 		self.v_movies = []
 		self.v_series = []
+		self.zone = ZoneInfo("UTC")
 
 	# -------------------------------------------------------------------------
 	# DETECT PORTAL ENTRY POINT
@@ -262,8 +263,11 @@ class StalkerProvider(IPTVProcessor):
 
 			if js_data:
 				version = self.getPortalVersion()
-				zone = ZoneInfo(js_data["default_timezone"])
-				server_timezone_offset = (datetime.now(timezone.utc).astimezone().utcoffset().total_seconds() - zone.utcoffset(datetime.now()).total_seconds())//3600
+				self.zone = ZoneInfo(js_data["default_timezone"])
+				server_timezone_offset = (self.zone.utcoffset(datetime.now()).total_seconds())//3600
+				
+				if time.localtime().tm_isdst:
+					server_timezone_offset += 1
 				server_timezone_offset_string = f"{server_timezone_offset :+03.0f}00"
 				if server_timezone_offset_string != self.server_timezone_offset:
 					self.server_timezone_offset = server_timezone_offset_string
@@ -315,11 +319,7 @@ class StalkerProvider(IPTVProcessor):
 			if self.token:
 				genres = self.get_genres()
 				groups = self.get_all_channels(genres)
-				channels = [
-					x
-					for xs in groups.values()
-					for x in xs[1]
-				]
+				channels = [ x for xs in groups.values() for x in xs[1]]
 				channel_dict = {}
 				for x in channels:
 					channel_dict[x.id] = x
@@ -360,8 +360,8 @@ class StalkerProvider(IPTVProcessor):
 								channel = channel_dict[str(k)]
 							
 							for epg in v:
-								start_time 	= datetime.fromtimestamp(float(epg['start_timestamp']))
-								stop_time	= datetime.fromtimestamp(float(epg['stop_timestamp']))
+								start_time 	= datetime.fromtimestamp(float(epg['start_timestamp']), self.zone)
+								stop_time	= datetime.fromtimestamp(float(epg['stop_timestamp']), self.zone)
 								
 								pg_entry = doc.createElement('programme')
 								format_string = f"%Y%m%d%H%M%S {self.server_timezone_offset}"
@@ -388,7 +388,8 @@ class StalkerProvider(IPTVProcessor):
 									c_entry_content = doc.createTextNode(epg_category)
 									c_entry.appendChild(c_entry_content)
 									pg_entry.appendChild(c_entry)
-						return doc.toxml(encoding='utf-8')
+						docxml = doc.toxml(encoding='utf-8')
+						return docxml
 				except Exception as ex:
 					print("[M3UIPTV][Stalker] Error getting epg info: " + str(ex))
 					return None

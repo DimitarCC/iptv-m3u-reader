@@ -55,6 +55,12 @@ class M3UProvider(IPTVProcessor):
 		return epg_match
 
 	def storePlaylistAndGenBouquet(self):
+		def get_resolution_from_name(ch_name):
+			if "UHD" in ch_name or "4K" in ch_name:
+				return "1F"
+			elif "HD" in ch_name:
+				return "19"
+			return "1"
 		playlist = None
 		if not self.isLocalPlaylist():
 			self.checkForNetwrok()
@@ -102,9 +108,12 @@ class M3UProvider(IPTVProcessor):
 				else:
 					curr_group = None
 				epg_id = "None"
-				epg_id_match = re.search(r"tvg-id=\"(.*?)\"", line, re.IGNORECASE)
+				epg_id_match = re.search(r"tvg-epgid=\"(.*?)\"", line, re.IGNORECASE)
+				if not epg_id_match:
+					epg_id_match = re.search(r"tvg-id=\"(.*?)\"", line, re.IGNORECASE)
 				if epg_id_match:
 					epg_id = epg_id_match.group(1)
+
 				if self.use_provider_tsid:
 					condition_tsid = re.escape(self.provider_tsid_search_criteria).replace("\\{TSID\\}", "(\d+)")
 					match_tsid = re.search(condition_tsid, line)
@@ -160,10 +169,20 @@ class M3UProvider(IPTVProcessor):
 						if subst_match and subst_match.group(1) in subst.substitions:
 							ch_name = subst.substitions[subst_match.group(1)]
 
-				if "UHD" in ch_name or "4K" in ch_name:
-					stype = "1F"
-				elif "HD" in ch_name:
-					stype = "19"
+				resolution_match = re.search(r"tvg-resolution=\"(.*?)\"", line, re.IGNORECASE)
+				if resolution_match:
+					resolution_str = resolution_match.group(1).replace("p", "").replace("i", "")
+					try:
+						res_int = int(resolution_str)
+						if res_int > 1080:
+							stype = "1F"
+						elif res_int >= 720:
+							stype = "19"
+					except:
+						stype = get_resolution_from_name(ch_name)
+				else:
+					stype = get_resolution_from_name(ch_name)
+
 				sref = self.generateChannelReference(stype, tsid, url.replace(":", "%3a"), ch_name)
 				if self.create_bouquets_strategy != 1:
 					if curr_group:
@@ -173,11 +192,13 @@ class M3UProvider(IPTVProcessor):
 				if self.create_bouquets_strategy > 0:
 					if (curr_group and curr_group not in blacklist) or not curr_group:
 						groups["ALL"].append((sref, epg_id if self.epg_match_strategy == 0 else ch_name, ch_name, tsid))
+
 				if "tvg-logo" in line and (stream_icon_match := re.search(r"tvg-logo=\"(.+?)\"", line, re.IGNORECASE)):
 					if self.picon_gen_strategy == 0:
 						self.piconsAdd(stream_icon_match.group(1), ch_name)
 					else:
 						self.piconsSrefAdd(stream_icon_match.group(1), sref)
+
 				if not self.use_provider_tsid:
 					tsid += 1
 

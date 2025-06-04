@@ -272,8 +272,8 @@ class IPTVProcessor():
 
 	def getAccountActive(self):
 		if self.provider_info:
-			if self.provider_info["user_info"]:
-				return "0" if self.provider_info["user_info"].get("status", "") == "Active" else "1"
+			if prov_info := self.provider_info.get("user_info", None):
+				return "0" if prov_info.get("status", "") == "Active" else "1"
 		return "2"
 
 	def makeVodSeriesDictFromJson(self, json_string):
