@@ -54,7 +54,7 @@ class StalkerProvider(IPTVProcessor):
 
 	def getPortalUrl(self):
 		url = self.url.removesuffix("/").removesuffix("/server").removesuffix("/c").removesuffix("/stalker_portal")
-		if self.portal_entry_point_type == 0:
+		if self.portal_entry_point_type <= 0:
 			url = url + "/server/load.php"
 		elif self.portal_entry_point_type == 1:
 			url = url + "/portal.php"
@@ -173,12 +173,14 @@ class StalkerProvider(IPTVProcessor):
 			if self.portal_entry_point_type == -1:
 				should_save_entry = True
 			url = f"{self.getPortalUrl()}?type=stb&action=handshake&JsHttpRequest=1-xml"
+			referrer = self.url + ("/stalker_portal/c/index.html" if "stalker_portal" in self.url else "/c/index.html")
+			host = self.get_host()
 			cookies = self.generate_cookies()
 			headers = { "User-Agent": REQUEST_USER_AGENT, \
-				 "Referer": self.url + "/stalker_portal/c/index.html", \
+				 "Referer": referrer, \
 				 "X-User-Agent": "Model: MAG250; Link: WiFi", \
 				 "Pragma": "no-cache", \
-				 "Host": self.get_host(), \
+				 "Host": host, \
 				 "Connection": "Close" }
 			response = self.session.get(url, cookies=cookies, headers=headers)
 			if response.status_code == 404:
@@ -195,6 +197,9 @@ class StalkerProvider(IPTVProcessor):
 						response = self.session.get(url, cookies=cookies, headers=headers)
 						if response.status_code == 404:
 							return None # give up since we can not find the right entry point
+			elif response.status_code == 200:
+				self.portal_entry_point_type = 0
+
 			if should_save_entry:
 				from .plugin import writeProviders  # deferred import
 				writeProviders()  # save to config so it doesn't get lost on reboot
