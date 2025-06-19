@@ -33,7 +33,7 @@ from Screens.MessageBox import MessageBox
 from Screens.TextBox import TextBox
 from Screens.VirtualKeyBoard import VirtualKeyBoard
 from Components.ServiceEventTracker import ServiceEventTracker
-from Components.ActionMap import ActionMap, HelpableActionMap
+from Components.ActionMap import ActionMap, HelpableActionMap, NumberActionMap
 from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigText, ConfigPassword, ConfigSelectionNumber, ConfigNumber, ConfigClock, ConfigSubDict, ConfigEnableDisable
 from Components.ParentalControl import parentalControl
 from Components.SelectionList import SelectionList, SelectionEntryComponent
@@ -714,9 +714,35 @@ class VoDMoviePlayer(MoviePlayer):
 	def __init__(self, session, service, slist=None, lastservice=None):
 		MoviePlayer.__init__(self, session, service=service, slist=slist, lastservice=lastservice)
 		self.skinName = ["VoDMoviePlayer", "MoviePlayer"]
+		self.current_seek_step = 0
+		self.seek_timer = eTimer()
+		self.seek_timer.callback.append(self.onSeekRequest)
+		self["NumberSeekActions"] = NumberActionMap(["NumberActions"],
+		{
+			"1": self.numberSeek,
+			"3": self.numberSeek,
+			"4": self.numberSeek,
+			"6": self.numberSeek,
+			"7": self.numberSeek,
+			"9": self.numberSeek,
+		}, -10)  # noqa: E123
 		self.__event_tracker = ServiceEventTracker(screen=self, eventmap={
 			iPlayableService.evStart: self.__evServiceStart,})
-		
+
+	def numberSeek(self, key):
+		if self.getSeek() is None:  # not currently seekable, so skip this key press
+			return
+		self.seek_timer.stop()
+		print("[VoDMoviePlayer][numberSeek] key", key)
+		self.current_seek_step += {1: - config.seek.selfdefined_13.value, 3: config.seek.selfdefined_13.value, 4: - config.seek.selfdefined_46.value, 6: config.seek.selfdefined_46.value, 7: - config.seek.selfdefined_79.value, 9: config.seek.selfdefined_79.value}[key]
+		self.seek_timer.start(700, 1)
+		self.showAfterSeek()  # show infobar
+
+	def onSeekRequest(self):
+		self.seek_timer.stop()
+		self.doSeekRelative(self.current_seek_step * 90000)
+		self.current_seek_step = 0
+
 	def __evServiceStart(self):
 		self.jumpPreviousNextMark(lambda x: 0, start=True) # Reset the stream to beginning since some network streams jumps to the end marker
 
