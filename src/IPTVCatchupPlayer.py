@@ -241,7 +241,7 @@ class CatchupPlayer(MoviePlayer):
 		self.seekTo_pos = p
 		self.skip_progress_update = True
 		self.setProgress(p)
-		self.seek_timer.start(1000)
+		self.seek_timer.start(1000, 1)
 
 	def onSeekRequest(self):
 		self.seek_timer.stop()
