@@ -733,7 +733,6 @@ class VoDMoviePlayer(MoviePlayer):
 		if self.getSeek() is None:  # not currently seekable, so skip this key press
 			return
 		self.seek_timer.stop()
-		print("[VoDMoviePlayer][numberSeek] key", key)
 		self.current_seek_step += {1: - config.seek.selfdefined_13.value, 3: config.seek.selfdefined_13.value, 4: - config.seek.selfdefined_46.value, 6: config.seek.selfdefined_46.value, 7: - config.seek.selfdefined_79.value, 9: config.seek.selfdefined_79.value}[key]
 		self.seek_timer.start(700, 1)
 		self.showAfterSeek()  # show infobar
