@@ -1594,6 +1594,8 @@ class M3UIPTVManagerConfig(Screen):
 					text.append(_("Server protocol") + ": " + str(server_protocol))
 				if timezone := provider_info["server_info"].get("timezone"):
 					text.append(_("Server timezone") + ": " + str(timezone))
+				if version := provider_info["server_info"].get("version"):
+					text.append(_("Portal version") + ": " + str(version))
 			self.session.open(ShowText, text="\n".join(text), title=title)
 
 	def createSummary(self):

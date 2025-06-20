@@ -196,7 +196,9 @@ class StalkerProvider(IPTVProcessor):
 						url = f"{self.getPortalUrl()}?type=stb&action=handshake&JsHttpRequest=1-xml"
 						response = self.session.get(url, cookies=cookies, headers=headers)
 						if response.status_code == 404:
-							return None # give up since we can not find the right entry point
+							self.token = ""
+							self.random = ""
+							return "", "" # give up since we can not find the right entry point
 			elif response.status_code == 200:
 				self.portal_entry_point_type = 0
 
@@ -217,7 +219,7 @@ class StalkerProvider(IPTVProcessor):
 			self.random = ""
 			return "", ""
 
-	def getProviderInfo(self, from_token=False) -> None:
+	def getProviderInfo(self, from_token=False):
 		"""
         Fetch user profile after ensuring a valid token.
         """
@@ -225,41 +227,63 @@ class StalkerProvider(IPTVProcessor):
 			if not from_token and not self.token:
 				self.get_token()
 
+			version = self.getPortalVersion()
 			serial = self.generate_serial(self.mac)
 			dev_id = self.generate_device_id()
 			url = self.getPortalUrl()
-			params = {
-				"type": "stb",
-				"action": "get_profile",
-				"hd": "1",
-				"ver": (
-					"ImageDescription: 0.2.18-r23-250; ImageDate: Thu Sep 13 11:31:16 EEST 2018; "
-					"PORTAL version: 5.6.2; API Version: JS API version: 343; STB API version: 146; "
-					"Player Engine version: 0x58c"
-				),
-				"num_banks": "2",
-				"sn": serial,
-				"stb_type": "MAG250",
-				"client_type": "STB",
-				"image_version": "218",
-				"video_out": "hdmi",
-				"device_id": dev_id,
-				"device_id2": dev_id,
-				"signature": self.generate_signature(serial, dev_id),
-				"auth_second_step": "1",
-				"hw_version": "1.7-BD-00",
-				"not_valid_token": "0",
-				"metrics": self.generate_metrics(serial),
-				"hw_version_2": hashlib.sha1(self.mac.encode()).hexdigest(),
-				"timestamp": int(time.time()),
-				"api_signature": "262",
-				"prehash": "",
-				"JsHttpRequest": "1-xml",
-			}
+			if version.strip().startswith("5.6"):
+				params = {
+					"type": "stb",
+					"action": "get_profile",
+					"hd": "1",
+					"ver": (
+						"ImageDescription: 0.2.18-r23-250; ImageDate: Thu Sep 13 11:31:16 EEST 2018; "
+						"PORTAL version: 5.6.2; API Version: JS API version: 343; STB API version: 146; "
+						"Player Engine version: 0x58c"
+					),
+					"num_banks": "2",
+					"sn": serial,
+					"stb_type": "MAG250",
+					"client_type": "STB",
+					"image_version": "218",
+					"video_out": "hdmi",
+					"device_id": dev_id,
+					"device_id2": dev_id,
+					"signature": self.generate_signature(serial, dev_id),
+					"auth_second_step": "1",
+					"hw_version": "1.7-BD-00",
+					"not_valid_token": "0",
+					"metrics": self.generate_metrics(serial),
+					"hw_version_2": hashlib.sha1(self.mac.encode()).hexdigest(),
+					"timestamp": int(time.time()),
+					"api_signature": "262",
+					"prehash": "",
+					"JsHttpRequest": "1-xml",
+				}
+			else:
+				params = {
+					"type": "stb",
+					"action": "get_profile",
+					"hd": "1",
+					"num_banks": "2",
+					"sn": serial,
+					"client_type": "STB",
+					"video_out": "hdmi",
+					"signature": self.generate_signature(serial, dev_id),
+					"auth_second_step": "1",
+					"not_valid_token": "0",
+					"metrics": self.generate_metrics(serial),
+					"hw_version_2": hashlib.sha1(self.mac.encode()).hexdigest(),
+					"timestamp": int(time.time()),
+					"api_signature": "262",
+					"prehash": "",
+					"JsHttpRequest": "1-xml",
+				}
 
 			json_response = self.pull_json_with_reauth(url, True, params=params, skip_profile=True)
 			if not json_response:
 				return
+
 			js_data = json_response
 			token = js_data.get("token", "")
 			if token:
@@ -267,7 +291,6 @@ class StalkerProvider(IPTVProcessor):
 				self.token_timestamp = time.time()
 
 			if js_data:
-				version = self.getPortalVersion()
 				self.zone = ZoneInfo(js_data["default_timezone"])
 				server_timezone_offset = (self.zone.utcoffset(datetime.now()).total_seconds())//3600
 				
@@ -281,8 +304,10 @@ class StalkerProvider(IPTVProcessor):
 					writeProviders()  # save to config so it doesn't get lost on reboot
 
 				url = f"{self.getPortalUrl()}?type=account_info&action=get_main_info&JsHttpRequest=1-xml"
-				account_data = self.pull_json_with_reauth(url, True)
-				expiry_date = account_data and account_data["phone"]
+				account_data = self.pull_json_with_reauth(url, True, skip_reauth=True)
+				expiry_date = ""
+				if account_data:
+					expiry_date = account_data and account_data["phone"]
 				info = {}
 				info["user_info"] = {}
 				info["user_info"]["status"] = "Active" if js_data and js_data.get("blocked") == "0" and expiry_date else "Not active"
@@ -404,7 +429,7 @@ class StalkerProvider(IPTVProcessor):
 	# DATA RETRIEVAL
 	# -------------------------------------------------------------------------
 
-	def pull_json_with_reauth(self, url, include_token_in_cookies, params=None, skip_profile=False):
+	def pull_json_with_reauth(self, url, include_token_in_cookies, params=None, skip_profile=False, skip_reauth=False):
 		try:
 			json = {}
 			cookies = self.generate_cookies(include_token_in_cookies)
@@ -416,14 +441,17 @@ class StalkerProvider(IPTVProcessor):
 			try:
 				json = response.json().get("js", {})
 			except: # most likely it returned empty result since not authorized/token expired
-				self.get_token(skip_profile)
-				cookies = self.generate_cookies(True)
-				headers = self.generate_headers()
-				if params:
-					response = self.session.get(url, cookies=cookies, headers=headers, params=params)
+				if not skip_reauth:
+					self.get_token(skip_profile)
+					cookies = self.generate_cookies(True)
+					headers = self.generate_headers()
+					if params:
+						response = self.session.get(url, cookies=cookies, headers=headers, params=params)
+					else:
+						response = self.session.get(url, cookies=cookies, headers=headers)
+					json = response.json().get("js", {})
 				else:
-					response = self.session.get(url, cookies=cookies, headers=headers)
-				json = response.json().get("js", {})
+					pass
 			return json
 		except:
 			return {}
@@ -606,6 +634,8 @@ class StalkerProvider(IPTVProcessor):
 
 		url = f"{self.getPortalUrl()}?type=itv&action=get_all_channels&JsHttpRequest=1-xml"
 		js = self.pull_json_with_reauth(url, True)
+		if not js:
+			return {}
 		channel_data = js['data']
 		for channel in channel_data:
 			surl = f"{self.scheme}%3a//{channel['id']}?cmd={channel['cmd'].replace('ffmpeg ', '').replace('ffrt ', '').replace('&','|amp|').replace(':', '%3a')}"
@@ -631,18 +661,14 @@ class StalkerProvider(IPTVProcessor):
 
 	def get_stream_play_url(self, cmd):
 		url = f"{self.getPortalUrl()}?type=itv&action=create_link&cmd={cmd}&series=&forced_storage=undefined&disable_ad=0&download=0&JsHttpRequest=1-xml"
-		js = self.pull_json_with_reauth(url, True)
+		js = self.pull_json_with_reauth(url, False)
 		try:
-			stream_data = js
-			return stream_data["cmd"], True
+			return js["cmd"], True
 		except: # probably token has expired
 			self.get_token()
-			cookies = self.generate_cookies(True)
-			headers = self.generate_headers()
-			response = self.session.get(url, cookies=cookies, headers=headers)
+			js = self.pull_json_with_reauth(url, False)
 			try:
-				stream_data = response.json()["js"]
-				return stream_data["cmd"], True
+				return js["cmd"], True
 			except:
 				return cmd, False
 
@@ -995,7 +1021,8 @@ class StalkerProvider(IPTVProcessor):
 
 	def storePlaylistAndGenBouquet(self):
 		self.checkForNetwrok()
-		self.get_token()
+		if not self.token:
+			self.get_token()
 		if self.token:
 			# self.getProviderInfo()
 			genres = self.get_genres()
@@ -1063,10 +1090,10 @@ class StalkerProvider(IPTVProcessor):
 		if not self.token:
 			self.get_token()
 		if self.token:
-			iptv_url, token_valid = self.get_stream_play_url(cmd.replace("%3a", ":").replace("|amp|", "&"))
+			iptv_url, token_valid = self.get_stream_play_url(cmd.replace("|amp|", "&"))
 			if not token_valid:
 				self.get_token()
-				iptv_url, token_valid = self.get_stream_play_url(cmd.replace("%3a", ":").replace("|amp|", "&"))
+				iptv_url, token_valid = self.get_stream_play_url(cmd.replace("|amp|", "&"))
 			if catchup_days:
 				iptv_url = self.constructCatchupSuffix(catchup_days, iptv_url, CATCHUP_STALKER_TEXT)
 
