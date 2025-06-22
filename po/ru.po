@@ -1142,3 +1142,51 @@ msgstr "выкл"
 #: ../src/plugin.py:1551
 msgid "on"
 msgstr "вкл"
+
+#: ../src/plugin.py:1670
+msgid "Auto updates"
+msgstr "Автообновление"
+
+#: ../src/plugin.py:1670
+msgid "Include this provider when the global update schedule runs."
+msgstr "Включите если установлено глобальное расписание обновлений."
+
+#: ../src/plugin.py:1670
+msgid "Requires the scheduler to be set up in the settings screen."
+msgstr "Требуется настроить запланированое автообновление в карточке Настройки."
+
+#: ../src/plugin.py:1809
+msgid "Download and display posters for VoD items"
+msgstr "Загрузите и разместите постеры для VoD"
+
+#: ../src/plugin.py:1809
+msgid "Download and display posters for VoD items if available."
+msgstr "Загрузите и разместите постеры для VoD, если таковые имеются."
+
+#: ../src/plugin.py:1848
+msgid "Schedule update"
+msgstr "Расписания обновления"
+
+#: ../src/plugin.py:1848
+msgid "Select 'yes' for automated updates of providers."
+msgstr "Выберите «да» для автоматического обновления поставщиков."
+
+#: ../src/plugin.py:1848
+msgid "Also requires enabling in each individual provider that is to be updated."
+msgstr "Также требуется включение в карточке настроек поставщика, который должен быть обновлен."
+
+#: ../src/plugin.py:1850
+msgid "Schedule time of day"
+msgstr "Начало автоматического старта"
+
+#: ../src/plugin.py:1850
+msgid "Set the time of day to perform the update."
+msgstr "Установите время для выполнения обновления."
+
+#: ../src/plugin.py:1851
+msgid "Schedule days of the week"
+msgstr "Расписание дней недели"
+
+#: ../src/plugin.py:1851
+msgid "Press OK to select which days of the week to perform the update."
+msgstr "Нажмите OK, чтобы выбрать дни недели для выполнения обновления."
