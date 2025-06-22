@@ -126,10 +126,6 @@ msgstr "Включает отображение пункта 'Видео по з
 msgid "Alphabetically"
 msgstr "По алфавиту"
 
-#: ../src/plugin.py:1848
-msgid "Also requires enabling in each individual provider that is to be updated."
-msgstr ""
-
 #: ../src/plugin.py:1581
 msgid "Append"
 msgstr "Append"
@@ -141,10 +137,6 @@ msgstr "Вы уверены, что хотите навсегда удалить
 
 #: ../src/plugin.py:1883
 msgid "At least one day of the week must be selected"
-msgstr ""
-
-#: ../src/plugin.py:1670
-msgid "Auto updates"
 msgstr ""
 
 #: ../src/plugin.py:1822
@@ -244,14 +236,6 @@ msgstr "Проверьте, доступна ли сеть, прежде чем 
 msgid "Do you want to resume playback?"
 msgstr "Хотите возобновить воспроизведение?"
 
-#: ../src/plugin.py:1809
-msgid "Download and display posters for VoD items"
-msgstr ""
-
-#: ../src/plugin.py:1809
-msgid "Download and display posters for VoD items if available."
-msgstr ""
-
 #: ../src/plugin.py:1657
 msgid "Download picons"
 msgstr "Загрузить пиконы"
@@ -329,10 +313,6 @@ msgstr "Фильтр"
 msgid "Flussonic"
 msgstr "Flussonic"
 
-#: ../src/plugin.py:1876
-msgid "Friday"
-msgstr ""
-
 #: ../src/menu.xml
 msgid "General settings for IPTV subsystem."
 msgstr "Общие настройки в подсистеме IPTV."
@@ -388,10 +368,6 @@ msgstr "Если установлено значение 'да', позволя�
 #: ../src/plugin.py:1614
 msgid "If the playlist is already stored on a local device you can use the local file path in this field, e.g. /tmp/myplaylist.m3u"
 msgstr "Если плейлист уже сохранен на локальном устройстве, вы можете использовать в этом поле путь к локальному файлу, например, /tmp/myplaylist.m3u"
-
-#: ../src/plugin.py:1670
-msgid "Include this provider when the global update schedule runs."
-msgstr ""
 
 #: ../src/plugin.py:672
 msgid "Incorrect type service for PiP!"
@@ -473,10 +449,6 @@ msgstr "Имя пользователя медиатеки"
 #: ../src/plugin.py:1649
 msgid "Media Library type"
 msgstr "Тип медиатеки"
-
-#: ../src/plugin.py:1876
-msgid "Monday"
-msgstr ""
 
 #: ../src/menu.xml
 msgid "Movies"
@@ -584,10 +556,6 @@ msgstr "Нажмите OK, чтобы выбрать сериалы"
 msgid "Press OK to select the current item"
 msgstr "Нажмите OK, чтобы выбрать текущий пункт"
 
-#: ../src/plugin.py:1851
-msgid "Press OK to select which days of the week to perform the update."
-msgstr ""
-
 #: ../src/plugin.py:1665
 msgid "Provider TSID retrival condition"
 msgstr "Условие поиска TSID поставщика"
@@ -621,10 +589,6 @@ msgstr "Выпущено: %s"
 msgid "Request timeout"
 msgstr "Запрос времени ожидания"
 
-#: ../src/plugin.py:1670
-msgid "Requires the scheduler to be set up in the settings screen."
-msgstr ""
-
 #: ../src/IPTVCatchupPlayer.py:313
 #, python-format
 msgid "Resume position at %s"
@@ -635,25 +599,9 @@ msgstr "Возобновить с позиции %s"
 msgid "S%s"
 msgstr "S%s"
 
-#: ../src/plugin.py:1876
-msgid "Saturday"
-msgstr ""
-
 #: ../src/plugin.py:1771
 msgid "Save"
 msgstr "Сохранить"
-
-#: ../src/plugin.py:1851
-msgid "Schedule days of the week"
-msgstr ""
-
-#: ../src/plugin.py:1850
-msgid "Schedule time of day"
-msgstr ""
-
-#: ../src/plugin.py:1848
-msgid "Schedule update"
-msgstr ""
 
 #: ../src/plugin.py:1639
 msgid "Scheme"
@@ -687,10 +635,6 @@ msgstr "Искать вперед"
 #: ../src/plugin.py:1837
 msgid "Select 'Yes' to allow use of the seek bar to jump to a selected point within the event."
 msgstr "Выберите 'Да', чтобы разрешить использование строки поиска для перехода к выбранной точке события."
-
-#: ../src/plugin.py:1848
-msgid "Select 'yes' for automated updates of providers."
-msgstr ""
 
 #: ../src/plugin.py:1846
 msgid "Select a player to be in use."
@@ -735,10 +679,6 @@ msgstr "Часовой пояс сервера"
 #: ../src/plugin.py:1525
 msgid "Server url"
 msgstr "Url-адрес сервера"
-
-#: ../src/plugin.py:1850
-msgid "Set the time of day to perform the update."
-msgstr ""
 
 #: ../src/plugin.py:1668
 msgid "Sets custom User-Agent for use with services that requires specific one."
@@ -860,10 +800,6 @@ msgstr "Останавливает использование таймшифта
 msgid "Stream output format"
 msgstr "Формат выходного потока"
 
-#: ../src/plugin.py:1876
-msgid "Sunday"
-msgstr ""
-
 #: ../src/plugin.py:1056 ../src/plugin.py:1228
 msgid "TMDb search"
 msgstr "Поиск TMDb"
@@ -916,10 +852,6 @@ msgstr "URL плейлиста (*.m3u; *.m3u8) или URL сервера пот�
 msgid "The search criteria by which the service will be searched in the playlist file."
 msgstr "Критерии поиска, по которым будет осуществляться поиск сервиса в файле плейлиста."
 
-#: ../src/plugin.py:1876
-msgid "Thursday"
-msgstr ""
-
 #: ../src/plugin.py:1803
 msgid "Timeout in seconds for the requests of getting playlist."
 msgstr "Тайм-аут в секундах для запросов на получение плейлиста."
@@ -935,10 +867,6 @@ msgstr "Переключить все"
 #: ../src/plugin.py:1569
 msgid "Transport stream (TS)"
 msgstr "Транспортный поток (TS)"
-
-#: ../src/plugin.py:1876
-msgid "Tuesday"
-msgstr ""
 
 #: ../src/StalkerProvider.py:260 ../src/StalkerProvider.py:261
 #: ../src/VODProvider.py:103 ../src/XtreemProvider.py:58
@@ -1090,10 +1018,6 @@ msgstr "VoD Сериалы: введите условия поиска"
 #: ../src/plugin.py:1808
 msgid "VoD playback system"
 msgstr "Система воспроизведения VoD"
-
-#: ../src/plugin.py:1876
-msgid "Wednesday"
-msgstr ""
 
 #: ../src/plugin.py:1824
 msgid "When enabled, a warning will be displayed and the user will get an option to stop or to continue the time shift."
