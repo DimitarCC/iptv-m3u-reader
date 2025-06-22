@@ -1190,3 +1190,31 @@ msgstr "Расписание дней недели"
 #: ../src/plugin.py:1851
 msgid "Press OK to select which days of the week to perform the update."
 msgstr "Нажмите OK, чтобы выбрать дни недели для выполнения обновления."
+
+#: ../src/plugin.py:1876
+msgid "Monday"
+msgstr "Понедельник"
+
+#: ../src/plugin.py:1876
+msgid "Tuesday"
+msgstr "Вторник"
+
+#: ../src/plugin.py:1876
+msgid "Wednesday"
+msgstr "Среда"
+
+#: ../src/plugin.py:1876
+msgid "Thursday"
+msgstr "Четверг"
+
+#: ../src/plugin.py:1876
+msgid "Friday"
+msgstr "Пятница"
+
+#: ../src/plugin.py:1876
+msgid "Saturday"
+msgstr "Суббота"
+
+#: ../src/plugin.py:1876
+msgid "Sunday"
+msgstr "Воскресенье"
