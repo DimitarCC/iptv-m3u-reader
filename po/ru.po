@@ -1153,7 +1153,7 @@ msgstr "Включите если установлено глобальное р
 
 #: ../src/plugin.py:1670
 msgid "Requires the scheduler to be set up in the settings screen."
-msgstr "Требуется настроить запланированое автообновление в карточке Настройки."
+msgstr "Требуется настроить запланированое автообновление в карточке НастройкиIPTV."
 
 #: ../src/plugin.py:1809
 msgid "Download and display posters for VoD items"
@@ -1169,11 +1169,11 @@ msgstr "Расписания обновления"
 
 #: ../src/plugin.py:1848
 msgid "Select 'yes' for automated updates of providers."
-msgstr "Выберите «да» для автоматического обновления поставщиков."
+msgstr "Выберите «да» для автоматического обновления поставщиков услуг."
 
 #: ../src/plugin.py:1848
 msgid "Also requires enabling in each individual provider that is to be updated."
-msgstr "Также требуется включение в карточке настроек поставщика, который должен быть обновлен."
+msgstr "Также требуется включение в карточке Менеджер плей-листов - провайдеры, которые должны быть обновлены."
 
 #: ../src/plugin.py:1850
 msgid "Schedule time of day"
