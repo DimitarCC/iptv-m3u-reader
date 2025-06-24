@@ -975,6 +975,7 @@ class M3UIPTVVoDSeries(Screen):
 				"yellow": self.mdb,
 				# "blue": self.blue,
 				"play": self.key_play,
+				"menu": self.closeRecursive,
 			}, -1)  # noqa: E123
 		self.buildList()
 		# self.onClose.append(self.mdbCleanup)
@@ -1066,6 +1067,9 @@ class M3UIPTVVoDSeries(Screen):
 			self["list"].index = lastindex
 		else:
 			self.close()
+
+	def closeRecursive(self):
+		self.close(True)
 
 	def keySelect(self):
 		if current := self["list"].getCurrent():
@@ -1274,6 +1278,7 @@ class M3UIPTVVoDMovies(Screen):
 				"yellow": self.mdb,
 				# "blue": self.blue,
 				"play": self.key_play,
+				"menu": self.closeRecursive,
 			}, -1)  # noqa: E123
 		self.buildList()
 		self.onClose.append(self.mdbCleanup)
@@ -1458,6 +1463,9 @@ class M3UIPTVVoDMovies(Screen):
 			self.buildList()
 		else:
 			self.close()
+
+	def closeRecursive(self):
+		self.close(True)
 
 	def createSummary(self):
 		return PluginSummary
