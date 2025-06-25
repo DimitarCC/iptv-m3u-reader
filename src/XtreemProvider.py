@@ -80,7 +80,7 @@ class XtreemProvider(IPTVProcessor):
 				stype = "19"
 			sref = self.generateChannelReference(stype, tsid, surl.replace(":", "%3a"), ch_name)
 
-			if self.create_bouquets_strategy > 0:  # config option here: for user-optional, all-channels bouquet
+			if self.create_bouquets_strategy > 0 and self.create_bouquets_strategy < 3:  # config option here: for user-optional, all-channels bouquet
 				if category_id not in groups or groups[category_id][0] not in blacklist:
 					groups["ALL_CHANNELS"][1].append((sref, epg_id, ch_name, tsid, ch_num))
 
@@ -98,14 +98,19 @@ class XtreemProvider(IPTVProcessor):
 		self.generateMediaLibrary()
 
 		examples = []
-
+		srefs_for_main = []
+		bouquet_prefix = "userbouquet"
+		if self.create_bouquets_strategy == 3:
+			bouquet_prefix = "subbouquet"
 		for groupItem in groups.values():
 			examples.append(groupItem[0])
 			if groupItem[1]:  # don't create the bouquet if there are no services
-				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.{groupItem[0]}.tv")
+				bfilename = self.cleanFilename(f"{bouquet_prefix}.m3uiptv.{self.scheme}.{groupItem[0]}.tv")
 				if groupItem[0] in blacklist:
 					self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
 					continue
+				if self.create_bouquets_strategy == 3:
+					srefs_for_main.append(f'1:7:1:0:0:0:0:0:0:0:FROM BOUQUET "{bfilename}" ORDER BY bouquet')
 				services = []
 				service_list = groupItem[1]
 				if self.ch_order_strategy > 0:
@@ -119,6 +124,11 @@ class XtreemProvider(IPTVProcessor):
 				elif name_case_config == 2:
 					provider_name_for_titles = provider_name_for_titles.upper()
 				db.addOrUpdateBouquet(provider_name_for_titles + " - " + groupItem[0], bfilename, services, False)
+
+		if self.create_bouquets_strategy == 3:
+			bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.tv")
+			db.addOrUpdateBouquet(provider_name_for_titles, bfilename, srefs_for_main, False)
+
 		self.writeExampleBlacklist(examples)
 		self.piconsDownload()
 		self.generateEPGImportFiles(groups)

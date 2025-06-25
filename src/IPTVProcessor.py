@@ -426,6 +426,7 @@ class IPTVProcessor():
 	def removeBouquets(self):
 		from enigma import eDVBDB
 		eDVBDB.getInstance().removeBouquet(re.escape(self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.")) + r".*[.]tv")
+		eDVBDB.getInstance().removeBouquet(re.escape(self.cleanFilename(f"subbouquet.m3uiptv.{self.scheme}.")) + r".*[.]tv")
 
 	def removeBouquet(self, filename):
 		from enigma import eDVBDB

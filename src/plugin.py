@@ -1756,7 +1756,7 @@ class M3UIPTVProviderEdit(Setup):
 		self.catchup_type = ConfigSelection(default=providerObj.catchup_type, choices=catchup_type_choices)
 		self.epg_url = ConfigText(default=providerObj.epg_url, fixed_size=False)
 		self.picons = ConfigYesNo(default=providerObj.picons)
-		self.create_bouquets_strategy = ConfigSelection(default=providerObj.create_bouquets_strategy, choices=[(0, _("Only bouquets for groups")), (1, _("Only bouquet for 'All Channels'")), (2, _("Bouquets for 'All Channels' and groups"))])
+		self.create_bouquets_strategy = ConfigSelection(default=providerObj.create_bouquets_strategy, choices=[(0, _("Only bouquets for groups")), (1, _("Only bouquet for 'All Channels'")), (2, _("Bouquets for 'All Channels' and groups")), (3, _("Bouquet for provider and sub-bouquets for groups"))])
 		self.ch_order_strategy = ConfigSelection(default=providerObj.ch_order_strategy, choices=[(0, _("Use provider order")), (1, _("By channel number")), (2, _("Alphabetically"))])
 		self.auto_updates = ConfigYesNo(default=providerObj.auto_updates)
 

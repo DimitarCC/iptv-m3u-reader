@@ -508,6 +508,7 @@ class StalkerProvider(IPTVProcessor):
 	def channels_callback(self, groups):
 		tsid = 1000
 		blacklist = self.readBlacklist()
+		srefs_for_main = []
 		for group in groups.values():
 			services = []
 			service_list = group[1]
@@ -540,11 +541,17 @@ class StalkerProvider(IPTVProcessor):
 				services.append(sref)
 				service.sref = sref
 
+			bouquet_prefix = "userbouquet"
+			if self.create_bouquets_strategy == 3:
+				bouquet_prefix = "subbouquet"
+
 			if len(services) > 0:
-				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.{group[0]}.tv")
+				bfilename = self.cleanFilename(f"{bouquet_prefix}.m3uiptv.{self.scheme}.{group[0]}.tv")
 				if group[0] in blacklist:
 					self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
 					continue
+				if self.create_bouquets_strategy == 3:
+					srefs_for_main.append(f'1:7:1:0:0:0:0:0:0:0:FROM BOUQUET "{bfilename}" ORDER BY bouquet')
 				provider_name_for_titles = self.iptv_service_provider
 				name_case_config = config.plugins.m3uiptv.bouquet_names_case.value
 				if name_case_config == 1:
@@ -555,6 +562,10 @@ class StalkerProvider(IPTVProcessor):
 				if self.create_bouquets_strategy == 1:
 					bouquet_name = provider_name_for_titles
 				db.addOrUpdateBouquet(bouquet_name, bfilename, services, False)
+			
+		if self.create_bouquets_strategy == 3:
+			bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.tv")
+			db.addOrUpdateBouquet(provider_name_for_titles, bfilename, srefs_for_main, False)
 
 		if not self.ignore_vod:
 			self.getVoDMovies()
@@ -649,7 +660,7 @@ class StalkerProvider(IPTVProcessor):
 					channels_data = response_json["js"]["data"]
 					for channel in channels_data:
 						surl = f"{self.scheme}%3a//{channel['id']}?cmd={channel['cmd'].replace('ffmpeg ', '').replace('ffrt ', '').replace('&','|amp|').replace(':', '%3a')}"
-						if self.create_bouquets_strategy > 0:  # config option here: for user-optional, all-channels bouquet
+						if self.create_bouquets_strategy > 0 and self.create_bouquets_strategy < 3:  # config option here: for user-optional, all-channels bouquet
 							if genre_id not in groups or groups[genre_id][0] not in blacklist:
 								groups["ALL_CHANNELS"][1].append(Channel(channel["id"], channel["number"], channel["name"], surl, channel["tv_archive_duration"], channel["logo"], channel["xmltv_id"]))
 						if self.create_bouquets_strategy != 1:  # config option here: for sections bouquets
@@ -696,7 +707,7 @@ class StalkerProvider(IPTVProcessor):
 				if isinstance(genre_id, int):
 					genre_id = str(genre_id)
 				category_id = genre_id
-				if self.create_bouquets_strategy > 0:  # config option here: for user-optional, all-channels bouquet
+				if self.create_bouquets_strategy > 0 and self.create_bouquets_strategy < 3:  # config option here: for user-optional, all-channels bouquet
 					if category_id not in groups or groups[category_id][0] not in blacklist:
 						groups["ALL_CHANNELS"][1].append(Channel(channel["id"], channel["number"], channel["name"], surl, channel["tv_archive_duration"], channel["logo"], channel["xmltv_id"]))
 
