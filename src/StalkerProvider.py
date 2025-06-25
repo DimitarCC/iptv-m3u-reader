@@ -47,6 +47,24 @@ class StalkerProvider(IPTVProcessor):
 		self.v_movies = []
 		self.v_series = []
 		self.zone = ZoneInfo("UTC")
+		self.serial = ""
+
+	# -------------------------------------------------------------------------
+	# HELPER FUNCTIONS
+	# -------------------------------------------------------------------------
+
+	def request(self, url):
+		try:
+			req = urllib.request.Request(url, headers={'User-Agent': REQUEST_USER_AGENT})
+			req_timeout_val = config.plugins.m3uiptv.req_timeout.value
+			if req_timeout_val != "off":
+				response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
+			else:
+				response = urllib.request.urlopen(req, timeout=10)  # set a timeout to prevent blocking
+			return response
+		except urllib.error.HTTPError as ex:
+			return ex
+
 
 	# -------------------------------------------------------------------------
 	# DETECT PORTAL ENTRY POINT
@@ -199,7 +217,7 @@ class StalkerProvider(IPTVProcessor):
 							self.token = ""
 							self.random = ""
 							return "", "" # give up since we can not find the right entry point
-			elif response.status_code == 200:
+			elif response.status_code == 200 and self.portal_entry_point_type == -1:
 				self.portal_entry_point_type = 0
 
 			if should_save_entry:
@@ -228,10 +246,13 @@ class StalkerProvider(IPTVProcessor):
 				self.get_token()
 
 			version = self.getPortalVersion()
-			serial = self.generate_serial(self.mac)
+			if version:
+				print("[M3UIPTV][Stalker] Portal version: " + version)
+			serial = self.generate_serial(self.mac) if not self.serial else self.serial
+			self.serial = serial
 			dev_id = self.generate_device_id()
 			url = self.getPortalUrl()
-			if version.strip().startswith("5.6"):
+			if version and version.strip().startswith("5.6"):
 				params = {
 					"type": "stb",
 					"action": "get_profile",
@@ -310,8 +331,8 @@ class StalkerProvider(IPTVProcessor):
 					expiry_date = account_data and account_data["phone"]
 				info = {}
 				info["user_info"] = {}
-				info["user_info"]["status"] = "Active" if js_data and js_data.get("blocked") == "0" and expiry_date else "Not active"
-				info["user_info"]["exp_date"] = expiry_date
+				info["user_info"]["status"] = "Active" if js_data and js_data.get("blocked") == "0" else "Not active"
+				info["user_info"]["exp_date"] = expiry_date or _("Unknown")
 				info["server_info"] = {}
 				info["server_info"]["version"] = version or ""
 				info["server_info"]["url"] = self.getPortalUrl()
@@ -319,7 +340,8 @@ class StalkerProvider(IPTVProcessor):
 
 				dest_file = USER_IPTV_PROVIDER_INFO_FILE % self.scheme
 				self.provider_info = self.getDataToFile(info, dest_file)
-		except:
+		except Exception as ex:
+			print("[M3UIPTV][Stalker] Error getting profile: " + str(ex))
 			if not from_token:
 				version = self.getPortalVersion()
 				info = {}
@@ -334,6 +356,33 @@ class StalkerProvider(IPTVProcessor):
 				self.provider_info = self.getDataToFile(info, dest_file)
 			else:
 				pass
+
+	def getPortalVersion(self):
+		try:
+			url = self.url.removesuffix("/").removesuffix("/server").removesuffix("/c").removesuffix("/").removesuffix("/stalker_portal")
+			url_version = url + "/version.js"
+			response = self.request(url_version)
+			if response.status == 404:
+				url_version = url + "/c/version.js"
+				response = self.request(url_version)
+				if response.status == 404:
+					url_version = url + "/stalker_portal/c/version.js"
+					response = self.request(url_version)
+					if response.status == 404:
+						# url_version = url + "/stalker_portal/c/version.js"
+						# req = urllib.request.Request(url_version, headers={'User-Agent': REQUEST_USER_AGENT})
+						# if req_timeout_val != "off":
+						# 	response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
+						# else:
+						# 	response = urllib.request.urlopen(req, timeout=10)  # set a timeout to prevent blocking
+						# if response.status == 404:
+						return None
+
+			version_response = response.read().decode("utf-8")
+			return version_response.replace("var ver = '", "").replace("';", "")
+		except Exception as ex:
+			print("[M3UIPTV][Stalker] Error getting portal version: " + str(ex))
+			return None
 
 	# -------------------------------------------------------------------------
 	# EPG HANDLING
@@ -673,13 +722,13 @@ class StalkerProvider(IPTVProcessor):
 				return cmd, False
 
 	def getVoDPlayUrl(self, url, series=0):
-		if ("http://" in url or "https://" in url) and "localhost" not in url:
+		if ("http://" in url or "https://" in url) and "localhost" not in url and self.portal_entry_point_type != 3:
 			return url.replace("ffmpeg ", "").replace("ffrt ", "")
 		if not self.token:
 			self.get_token()
 		cookies = self.generate_cookies(True)
 		headers = self.generate_headers()
-		url = f"{self.getPortalUrl()}?type=vod&action=create_link&cmd={url.replace('ffmpeg ', '').replace('ffrt ', '')}&JsHttpRequest=1-xml&series={str(series)}"
+		url = f"{self.getPortalUrl()}?type=vod&action=create_link&cmd={url}&JsHttpRequest=1-xml&series={str(series)}"
 		response = self.session.get(url, cookies=cookies, headers=headers)
 		try:
 			stream_data = response.json()["js"]
@@ -962,38 +1011,6 @@ class StalkerProvider(IPTVProcessor):
 					break
 		return ret
 
-	def getPortalVersion(self):
-		try:
-			url = self.url.removesuffix("/").removesuffix("/server").removesuffix("/c").removesuffix("/")
-			url_version = url + "/c/version.js"
-			req = urllib.request.Request(url_version, headers={'User-Agent': REQUEST_USER_AGENT})
-			req_timeout_val = config.plugins.m3uiptv.req_timeout.value
-			if req_timeout_val != "off":
-				response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
-			else:
-				response = urllib.request.urlopen(req, timeout=10)  # set a timeout to prevent blocking
-			if response.status == 404:
-				url_version = url + "/stalker_portal/c/version.js"
-				req = urllib.request.Request(url_version, headers={'User-Agent': REQUEST_USER_AGENT})
-				if req_timeout_val != "off":
-					response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
-				else:
-					response = urllib.request.urlopen(req, timeout=10)  # set a timeout to prevent blocking
-				if response.status == 404:
-					url_version = url + "/stalker_portal/c/version.js"
-					req = urllib.request.Request(url_version, headers={'User-Agent': REQUEST_USER_AGENT})
-					if req_timeout_val != "off":
-						response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
-					else:
-						response = urllib.request.urlopen(req, timeout=10)  # set a timeout to prevent blocking
-					if response.status == 404:
-						return None
-
-			version_response = response.read().decode("utf-8")
-			return version_response.replace("var ver = '", "").replace("';", "")
-		except:
-			return None
-
 	# -------------------------------------------------------------------------
 	# DATA LOADING FROM STORAGE
 	# -------------------------------------------------------------------------
@@ -1036,12 +1053,15 @@ class StalkerProvider(IPTVProcessor):
 	def generateMediaLibrary(self):
 		if not self.ignore_vod:
 			vod_categories = self.getVODCategories()
-			for category in vod_categories:
-				self.movie_categories[category["category_id"]] = category["category_name"]
+			if vod_categories:
+				for category in vod_categories:
+					self.movie_categories[category["category_id"]] = category["category_name"]
 			series_categories = self.getSeriesCategories()
-			for category in series_categories:
-				self.series_categories[category["category_id"]] = category["category_name"]
-			threads.deferToThread(self.get_vod, vod_categories).addCallback(self.store_vod)
+			if series_categories:
+				for category in series_categories:
+					self.series_categories[category["category_id"]] = category["category_name"]
+			if vod_categories:
+				threads.deferToThread(self.get_vod, vod_categories).addCallback(self.store_vod)
 
 	def store_vod(self, data):
 		vod_movies, vod_series = data

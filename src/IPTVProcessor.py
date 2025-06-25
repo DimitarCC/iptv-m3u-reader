@@ -116,6 +116,7 @@ class IPTVProcessor():
 		self.username = ""  # used by XtreemProvider, default here for Setup
 		self.password = ""  # used by XtreemProvider, default here for Setup
 		self.mac = ""  # used by StalkerProvider, default here for Setup
+		self.serial = "" # used by StalkerProvider, default here for Setup
 		self.vod_movies = []
 		self.vod_series = {}
 		self.onBouquetCreated = []
@@ -194,6 +195,9 @@ class IPTVProcessor():
 		return path.join(path.realpath("/tmp"), "M3UIPTV", self.scheme)
 
 	def getPlaylistAndGenBouquet(self, callback=None):
+		if self.picon_gen_strategy == 1:
+			self.removePicons()
+
 		if callback:
 			threads.deferToThread(self.storePlaylistAndGenBouquet).addCallback(callback)
 		else:

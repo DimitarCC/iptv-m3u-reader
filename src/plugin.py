@@ -1032,6 +1032,7 @@ class M3UIPTVVoDSeries(Screen):
 				self["poster"].instance.setPixmap(None)
 
 	def selectionChanged(self):
+		current_cover_url = None
 		if self.mode == self.MODE_GENRE:
 			current_cover_url = None
 			self["poster"].instance.setPixmap(None)
@@ -1044,7 +1045,7 @@ class M3UIPTVVoDSeries(Screen):
 				self["description"].text = _("Press OK to access selected item")
 				current_cover_url = None
 				self["poster"].instance.setPixmap(None)
-		elif self.mode == self.MODE_SERIES:
+		elif self.mode == self.MODE_SERIES or self.mode == self.MODE_SEARCH:
 			if (current := self["list"].getCurrent()) and (plot := current[3]):
 				self["description"].text = plot
 				current_cover_url = current[4]
@@ -1166,7 +1167,7 @@ class M3UIPTVVoDSeries(Screen):
 		elif self.mode == self.MODE_SEARCH:
 			self.title = _("VoD Series Search")
 			self["description"].text = _("Press OK to select the current item")
-			self["list"].setList(sorted([(series[0], series[1], series[2], c) for i, series in enumerate(self.allseries[self.all]) if (c := self.search(i))], key=lambda x: (-x[3], x[1])))
+			self["list"].setList(sorted([(series[0], series[1], series[2], series[3], series[4], c) for i, series in enumerate(self.allseries[self.all]) if (c := self.search(i))], key=lambda x: (-x[5], x[1])))
 		self["key_yellow"].text = self.mdbText()
 
 	def playMovie(self):
