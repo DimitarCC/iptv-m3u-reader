@@ -133,7 +133,7 @@ class TVHeadendProvider(IPTVProcessor):
 							groups[curr_group].append((sref, epg_id, ch_name, tsid))
 						else:
 							services.append((sref, epg_id, ch_name, tsid))
-					if self.create_bouquets_strategy > 0:
+					if self.create_bouquets_strategy > 0 and self.create_bouquets_strategy < 3:
 						if (curr_group and curr_group not in blacklist) or not curr_group:
 							groups["ALL"].append((sref, epg_id, ch_name, tsid))
 					if "tvg-logo" in line and (stream_icon_match := re.search(r"tvg-logo=\"(.+?)\"", line, re.IGNORECASE)):
@@ -157,16 +157,22 @@ class TVHeadendProvider(IPTVProcessor):
 			provider_name_for_titles = provider_name_for_titles.upper()
 
 		groups_for_epg = {}  # mimic format used in XtreemProvider.py
+		srefs_for_main = []
+		bouquet_prefix = "userbouquet"
+		if self.create_bouquets_strategy == 3:
+			bouquet_prefix = "subbouquet"
 		for groupName, srefs in groups.items():
 			if groupName != "ALL":
 				examples.append(groupName)
 			if self.ch_order_strategy > 0:
 				srefs.sort(key=lambda x: (x[3] if self.ch_order_strategy == 1 else x[2]))
 			if len(srefs) > 0:
-				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.{groupName}.tv")
+				bfilename = self.cleanFilename(f"{bouquet_prefix}.m3uiptv.{self.scheme}.{groupName}.tv")
 				if groupName in blacklist:
 					self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
 					continue
+				if self.create_bouquets_strategy == 3:
+					srefs_for_main.append(f'1:7:1:0:0:0:0:0:0:0:FROM BOUQUET "{bfilename}" ORDER BY bouquet')
 				bouquet_name = provider_name_for_titles + " - " + groupName
 				if self.create_bouquets_strategy == 1:
 					bouquet_name = provider_name_for_titles
@@ -176,15 +182,24 @@ class TVHeadendProvider(IPTVProcessor):
 		if len(services) > 0:
 			if len(groups) > 0:
 				examples.append("UNCATEGORIZED")
-				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.UNCATEGORIZED.tv")
+				bfilename = self.cleanFilename(f"{bouquet_prefix}.m3uiptv.{self.scheme}.UNCATEGORIZED.tv")
 				if "UNCATEGORIZED" in blacklist:
 					self.removeBouquet(bfilename)  # remove blacklisted bouquet if already exists
 				else:
+					if self.create_bouquets_strategy == 3:
+						srefs_for_main.append(f'1:7:1:0:0:0:0:0:0:0:FROM BOUQUET "{bfilename}" ORDER BY bouquet')
 					db.addOrUpdateBouquet(provider_name_for_titles + " - UNCATEGORIZED", bfilename, [sref[0] for sref in services], False)
 			else:
-				bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.tv")
+				bfilename = self.cleanFilename(f"{bouquet_prefix}.m3uiptv.{self.scheme}.tv")
+				if self.create_bouquets_strategy == 3:
+					srefs_for_main.append(f'1:7:1:0:0:0:0:0:0:0:FROM BOUQUET "{bfilename}" ORDER BY bouquet')
 				db.addOrUpdateBouquet(provider_name_for_titles, bfilename, [sref[0] for sref in services], False)
 			groups_for_epg["EMPTY"] = ("UNCATEGORIZED", services)
+
+		if self.create_bouquets_strategy == 3:
+			bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.tv")
+			db.addOrUpdateBouquet(provider_name_for_titles, bfilename, srefs_for_main, False)
+
 		self.writeExampleBlacklist(examples)
 		self.piconsDownload()
 		self.generateEPGImportFiles(groups_for_epg)
