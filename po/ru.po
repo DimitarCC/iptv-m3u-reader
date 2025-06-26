@@ -165,7 +165,7 @@ msgstr "Стратегия создания букета"
 
 #: ../src/plugin.py:1759
 msgid "Bouquet for provider and sub-bouquets for groups"
-msgstr ""
+msgstr "Букет для поставщика и дополнительные букеты для групп"
 
 #: ../src/plugin.py:1981
 msgid "Bouquet name character case"
@@ -557,7 +557,7 @@ msgstr "Пожалуйста, подождите! Загрузка данных 
 
 #: ../src/plugin.py:1709
 msgid "Portal version"
-msgstr ""
+msgstr "рсия портала"
 
 #: ../src/plugin.py:1968
 msgid "Press OK"
@@ -972,7 +972,7 @@ msgstr ""
 
 #: ../src/StalkerProvider.py:335
 msgid "Unknown"
-msgstr ""
+msgstr "Неизвестный"
 
 #: ../src/plugin.py:1837
 msgid ""
@@ -1038,7 +1038,7 @@ msgstr "Имя пользователя"
 
 #: ../src/plugin.py:1790
 msgid "VOD playlist format"
-msgstr ""
+msgstr "Формат плейлиста VOD"
 
 #: ../src/plugin.py:2220 ../src/menu.xml
 msgid "Video On Demand"
