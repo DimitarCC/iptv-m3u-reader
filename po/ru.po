@@ -141,7 +141,7 @@ msgstr "Вы уверены, что хотите навсегда удалить
 
 #: ../src/plugin.py:2056
 msgid "At least one day of the week must be selected"
-msgstr ""
+msgstr "Необходимо выбрать хотя бы один день недели"
 
 #: ../src/plugin.py:1844
 msgid "Auto updates"
@@ -557,7 +557,7 @@ msgstr "Пожалуйста, подождите! Загрузка данных 
 
 #: ../src/plugin.py:1709
 msgid "Portal version"
-msgstr "рсия портала"
+msgstr "Версия портала"
 
 #: ../src/plugin.py:1968
 msgid "Press OK"
