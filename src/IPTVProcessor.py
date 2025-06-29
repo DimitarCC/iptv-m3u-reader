@@ -117,6 +117,8 @@ class IPTVProcessor():
 		self.password = ""  # used by XtreemProvider, default here for Setup
 		self.mac = ""  # used by StalkerProvider, default here for Setup
 		self.serial = "" # used by StalkerProvider, default here for Setup
+		self.devid = ""  # used by StalkerProvider, default here for Setup
+		self.signature = ""  # used by StalkerProvider, default here for Setup
 		self.vod_movies = []
 		self.vod_series = {}
 		self.onBouquetCreated = []
@@ -223,7 +225,7 @@ class IPTVProcessor():
 	def getVoDMovies(self):
 		pass
 
-	def getVoDPlayUrl(self, url, series=0):
+	def getVoDPlayUrl(self, url, movie=0, series=0):
 		return url
 
 	def getMovieCategories(self):

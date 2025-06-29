@@ -401,5 +401,5 @@ class M3UProvider(IPTVProcessor):
 	def getSeriesById(self, series_id):
 		return self.media_library_object and self.media_library_object.getSeriesById(series_id)
 	
-	def getVoDPlayUrl(self, url, series):
-		return self.media_library_object and self.media_library_object.getVoDPlayUrl(url, series) or url
+	def getVoDPlayUrl(self, url, movie, series):
+		return self.media_library_object and self.media_library_object.getVoDPlayUrl(url, movie, series) or url

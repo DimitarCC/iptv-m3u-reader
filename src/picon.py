@@ -22,7 +22,7 @@ def getPiconPath():
 			searchPaths = None
 	if searchPaths and len(searchPaths) == 1:
 		return searchPaths[0]
-	return lastPiconPath or "/picon"
+	return lastPiconPath or config.plugins.m3uiptv.fallback_picon_loc.value or "/picon"
 
 
 class Fetcher():
