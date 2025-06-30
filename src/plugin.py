@@ -72,6 +72,27 @@ except ImportError:
 	except ImportError:
 		IMDB = None
 
+try:
+	from Components.Renderer.Picon import searchPaths
+except ImportError:
+	try:
+		from Components.Renderer.Picon import piconLocator
+		searchPaths = piconLocator.searchPaths
+	except ImportError:
+		searchPaths = None
+
+# Add imports for SubsSupport plugin if installed
+try:
+    from Plugins.Extensions.SubsSupport import SubsSupport, SubsSupportStatus
+except ImportError:
+	class SubsSupport(object):
+		def __init__(self, *args, **kwargs):
+			pass
+
+	class SubsSupportStatus(object):
+		def __init__(self, *args, **kwargs):
+			pass
+
 from os import path, fsync, rename, makedirs, remove
 from xml.etree.cElementTree import iterparse
 
@@ -90,6 +111,10 @@ config.plugins.m3uiptv.inextensions = ConfigYesNo(default=False)
 config.plugins.m3uiptv.display_poster = ConfigYesNo(default=True)
 config.plugins.m3uiptv.picon_threads = ConfigSelectionNumber(min=50, max=1000, stepwidth=50, default=100, wraparound=True)
 config.plugins.m3uiptv.bouquet_names_case = ConfigSelection(default=2, choices=[(0, _("Original case")), (1, _("lower case")), (2, _("UPPER case"))])
+fpicon_locs = []
+if searchPaths:
+	fpicon_locs = [(x.removesuffix("/"), x.removesuffix("/")) for x in searchPaths]
+config.plugins.m3uiptv.fallback_picon_loc = ConfigSelection(default="/picon", choices=fpicon_locs)
 vod_play_system_choices = [("4097", "HiSilicon" if BoxInfo.getItem("mediaservice") == "servicehisilicon" else "GStreamer")]
 if isPluginInstalled("ServiceApp"):
 	vod_play_system_choices.append(("5002", "Exteplayer3"))
@@ -710,9 +735,11 @@ def playRealService(self, nnref):
 
 		InfoBarInstance.serviceStarted()
 
-class VoDMoviePlayer(MoviePlayer):
+class VoDMoviePlayer(MoviePlayer, SubsSupport, SubsSupportStatus):
 	def __init__(self, session, service, slist=None, lastservice=None):
 		MoviePlayer.__init__(self, session, service=service, slist=slist, lastservice=lastservice)
+		SubsSupport.__init__(self, searchSupport=True, embeddedSupport=True)
+		SubsSupportStatus.__init__(self)
 		self.skinName = ["CatchupPlayer", "VoDMoviePlayer", "MoviePlayer"]
 		self.onPlayStateChanged.append(self.__playStateChanged)
 		self.skip_progress_update = False
@@ -1182,7 +1209,7 @@ class M3UIPTVVoDSeries(Screen):
 				if len(stream_data_split) > 1:
 					providerObj = current[3]
 					series = int(stream_data_split[1])
-					url = providerObj.getVoDPlayUrl(url, series)
+					url = providerObj.getVoDPlayUrl(url, series=series)
 				ref = eServiceReference("%s:0:1:%x:1009:1:CCCC0000:0:0:0:%s:%s" % (config.plugins.m3uiptv.vod_play_system.value, int(current[5]) + (10000*series), url.replace(":", "%3a"), current[1]))
 				self.session.open(VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
 
@@ -1454,7 +1481,7 @@ class M3UIPTVVoDMovies(Screen):
 			infobar = InfoBar.instance
 			if infobar:
 				LastService = self.session.nav.getCurrentServiceReferenceOriginal()
-				url = current[0].providerObj.getVoDPlayUrl(current[0].url)
+				url = current[0].providerObj.getVoDPlayUrl(current[0].url, current[0].id)
 				ref = eServiceReference("%s:0:1:%x:1009:1:CCCC0000:0:0:0:%s:%s" % (config.plugins.m3uiptv.vod_play_system.value, current[0].id, url.replace(":", "%3a"), current[0].name))
 				self.session.open(VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
 
@@ -1981,6 +2008,8 @@ class IPTVPluginConfig(Setup):
 		configlist.append((_("Bouquet name character case"), config.plugins.m3uiptv.bouquet_names_case, _("Specify the character case used for bouquet names and titles.")))
 		configlist.append((_("VoD playback system"), config.plugins.m3uiptv.vod_play_system, _("Specify the type of services that will be generated for VoD items.")))
 		configlist.append((_("Download and display posters for VoD items"), config.plugins.m3uiptv.display_poster, _("Download and display posters for VoD items if available.")))
+		if searchPaths:
+			configlist.append((_("Fallback location for picons"), config.plugins.m3uiptv.fallback_picon_loc, _("Fallback loction for picons used when current active picon location can not be detected.")))
 		configlist.append(("---",))
 		configlist.append((_("Enable catchup/archive entries in EPG screens for period"), config.epg.histminutes, _("Enables possibility to return back in epg screens so to use old entries for invoke catchup/archive/timeshift.")))
 		configlist.append((_("Local EPG server listening port") + " *", config.plugins.m3uiptv.epg_loc_port, _("Enables possibility to return back in epg screens so to use old entries for invoke catchup/archive/timeshift.")))

@@ -48,6 +48,8 @@ class StalkerProvider(IPTVProcessor):
 		self.v_series = []
 		self.zone = ZoneInfo("UTC")
 		self.serial = ""
+		self.devid = ""
+		self.signature = ""
 
 	# -------------------------------------------------------------------------
 	# HELPER FUNCTIONS
@@ -64,7 +66,6 @@ class StalkerProvider(IPTVProcessor):
 			return response
 		except urllib.error.HTTPError as ex:
 			return ex
-
 
 	# -------------------------------------------------------------------------
 	# DETECT PORTAL ENTRY POINT
@@ -248,9 +249,16 @@ class StalkerProvider(IPTVProcessor):
 			version = self.getPortalVersion()
 			if version:
 				print("[M3UIPTV][Stalker] Portal version: " + version)
-			serial = self.generate_serial(self.mac) if not self.serial else self.serial
-			self.serial = serial
-			dev_id = self.generate_device_id()
+
+			if not self.serial:
+				self.serial = self.generate_serial(self.mac)
+
+			if not self.devid:
+				self.devid = self.generate_device_id()
+
+			if not self.signature:
+				self.signature = self.generate_signature(self.serial, self.devid)
+
 			url = self.getPortalUrl()
 			if version and version.strip().startswith("5.6"):
 				params = {
@@ -263,18 +271,18 @@ class StalkerProvider(IPTVProcessor):
 						"Player Engine version: 0x58c"
 					),
 					"num_banks": "2",
-					"sn": serial,
+					"sn": self.serial,
 					"stb_type": "MAG250",
 					"client_type": "STB",
 					"image_version": "218",
 					"video_out": "hdmi",
-					"device_id": dev_id,
-					"device_id2": dev_id,
-					"signature": self.generate_signature(serial, dev_id),
+					"device_id": self.devid,
+					"device_id2": self.devid,
+					"signature": self.signature,
 					"auth_second_step": "1",
 					"hw_version": "1.7-BD-00",
 					"not_valid_token": "0",
-					"metrics": self.generate_metrics(serial),
+					"metrics": self.generate_metrics(self.serial),
 					"hw_version_2": hashlib.sha1(self.mac.encode()).hexdigest(),
 					"timestamp": int(time.time()),
 					"api_signature": "262",
@@ -287,13 +295,13 @@ class StalkerProvider(IPTVProcessor):
 					"action": "get_profile",
 					"hd": "1",
 					"num_banks": "2",
-					"sn": serial,
+					"sn": self.serial,
 					"client_type": "STB",
 					"video_out": "hdmi",
-					"signature": self.generate_signature(serial, dev_id),
+					"signature": self.signature,
 					"auth_second_step": "1",
 					"not_valid_token": "0",
-					"metrics": self.generate_metrics(serial),
+					"metrics": self.generate_metrics(self.serial),
 					"hw_version_2": hashlib.sha1(self.mac.encode()).hexdigest(),
 					"timestamp": int(time.time()),
 					"api_signature": "262",
@@ -597,12 +605,12 @@ class StalkerProvider(IPTVProcessor):
 			pass
 		return []
 
-	def getVODCategories(self) -> list:
+	def getVoDCategoriesBase(self):
+		url = f"{self.getPortalUrl()}?type=vod&action=get_categories&JsHttpRequest=1-xml"
+		genre_data = self.pull_json_with_reauth(url, True)
+		genres = []
 		try:
-			url = f"{self.getPortalUrl()}?type=vod&action=get_categories&JsHttpRequest=1-xml"
-			genre_data = self.pull_json_with_reauth(url, True)
 			if genre_data:
-				genres = []
 				for i in genre_data:
 					gid = i["id"]
 					if isinstance(gid, int):
@@ -610,8 +618,15 @@ class StalkerProvider(IPTVProcessor):
 					name = i["title"]
 					censored = i.get("censored", 0)
 					genres.append({'category_name': name, 'category_type': 'VOD', 'category_id': gid, 'censored': censored})
-				dest_file = USER_IPTV_MOVIE_CATEGORIES_FILE % self.scheme
-				return self.getDataToFile(genres, dest_file)
+		except:
+			pass
+		return genres
+	
+	def getVODCategories(self) -> list:
+		try:
+			genres = self.getVoDCategoriesBase()
+			dest_file = USER_IPTV_MOVIE_CATEGORIES_FILE % self.scheme
+			return self.getDataToFile(genres, dest_file)
 		except Exception as ex:
 			print("[M3UIPTV][Stalker] Error getting vod genres: " + str(ex))
 			return []
@@ -628,6 +643,8 @@ class StalkerProvider(IPTVProcessor):
 						gid = str(gid)
 					name = i["title"]
 					genres.append({'category_name': name, 'category_type': 'SERIES', 'category_id': gid})
+				if len(genres) == 0:
+					genres = self.getVoDCategoriesBase()
 				dest_file = USER_IPTV_SERIES_CATEGORIES_FILE % self.scheme
 				return self.getDataToFile(genres, dest_file)
 		except Exception as ex:
@@ -732,35 +749,47 @@ class StalkerProvider(IPTVProcessor):
 			except:
 				return cmd, False
 
-	def getVoDPlayUrl(self, url, series=0):
+	def getVoDPlayUrl(self, url, movie=0, series=0):
 		if ("http://" in url or "https://" in url) and "localhost" not in url and self.portal_entry_point_type != 3:
 			return url.replace("ffmpeg ", "").replace("ffrt ", "")
+		orig_url = url
 		if not self.token:
 			self.get_token()
-		cookies = self.generate_cookies(True)
-		headers = self.generate_headers()
+		ext = ""
+		if "." in url:
+			ext = url[url.rfind("."):]
+		if url.startswith("/media/"):
+			url = f"{self.getPortalUrl()}?type=vod&action=get_ordered_list&movie_id={movie}&p=1&JsHttpRequest=1-xml"
+			stream_data_temp = self.pull_json_with_reauth(url, True)
+			if stream_data_temp:
+				data = stream_data_temp.get('data', [])
+				if data:
+					m_id = data[0].get("id")
+					url = f"/media/file_{m_id}{ext}"
 		url = f"{self.getPortalUrl()}?type=vod&action=create_link&cmd={url}&JsHttpRequest=1-xml&series={str(series)}"
-		response = self.session.get(url, cookies=cookies, headers=headers)
-		try:
-			stream_data = response.json()["js"]
-			return stream_data["cmd"].replace("ffmpeg ", "").replace("ffrt ", "")
-		except: # probably token has expired
-			self.get_token()
-			cookies = self.generate_cookies(True)
-			headers = self.generate_headers()
-			response = self.session.get(url, cookies=cookies, headers=headers)
-			try:
-				stream_data = response.json()["js"]
-				return stream_data["cmd"].replace("ffmpeg ", "").replace("ffrt ", "")
-			except:
-				pass
-			return url.replace("ffmpeg ", "").replace("ffrt ", "")
+		stream_data = self.pull_json_with_reauth(url, True)
+		print(stream_data)
+		cmd = stream_data["cmd"].replace("ffmpeg ", "").replace("ffrt ", "") if stream_data else orig_url.replace("ffmpeg ", "").replace("ffrt ", "")
+		return cmd
+		# response = self.session.get(url, cookies=cookies, headers=headers)
+		# try:
+		# 	stream_data = response.json()["js"]
+		# 	return stream_data["cmd"].replace("ffmpeg ", "").replace("ffrt ", "")
+		# except: # probably token has expired
+		# 	self.get_token()
+		# 	cookies = self.generate_cookies(True)
+		# 	headers = self.generate_headers()
+		# 	response = self.session.get(url, cookies=cookies, headers=headers)
+		# 	try:
+		# 		stream_data = response.json()["js"]
+		# 		return stream_data["cmd"].replace("ffmpeg ", "").replace("ffrt ", "")
+		# 	except:
+		# 		pass
+		# 	return url.replace("ffmpeg ", "").replace("ffrt ", "")
 
 	def get_vod(self, vod_categories):
 		if not self.token:
 			self.get_token()
-		cookies = self.generate_cookies(True)
-		headers = self.generate_headers()
 		page_number = 1
 		total_pages = 0
 		total_pages_censored = 0
@@ -818,10 +847,12 @@ class StalkerProvider(IPTVProcessor):
 							continue
 						vods_data = response_json["data"]
 						for vod in vods_data:
+							is_series_val = vod.get("is_series", 0)
+							is_series = is_series_val == "1" or is_series_val == 1
 							item = {}
 							item["num"] = vod.get("id")
 							item["name"] = vod.get("name")
-							item["stream_type"] = "movie" if vod.get("is_movie", 0) == 1 else "series"
+							item["stream_type"] = "movie" if not is_series else "series"
 							item["stream_id"] = vod.get("id")
 							item["stream_icon"] = vod.get("screenshot_uri")
 							item["cover"] = vod.get("screenshot_uri")
@@ -837,7 +868,10 @@ class StalkerProvider(IPTVProcessor):
 							item["year"] = vod.get("year")
 							item["genres_str"] = vod.get("genres_str")
 							item["play_url"] = vod.get("cmd")
-							movies.append(item)
+							if is_series:
+								series.append(item)
+							else:
+								movies.append(item)
 						if total_pages_censored_l == 0:
 							total_items = int(response_json["total_items"])
 							max_page_items = int(response_json["max_page_items"])
@@ -851,9 +885,11 @@ class StalkerProvider(IPTVProcessor):
 						if page_number_l >= total_pages_censored_l:
 							break
 					except ValueError:
-						print("[M3UIPTV][Stalker] Invalid JSON format in response")
+						print("[M3UIPTV][Stalker][VOD CENSORED] Invalid JSON format in response")
 				else:
-					print(f"[M3UIPTV][Stalker] IPTV Request failed for page {page_number}")
+					print(f"[M3UIPTV][Stalker][VOD CENSORED] IPTV Request failed for page {page_number}")
+					page_number += 1
+					page_number_l += 1
 
 		page_number = 1
 		while True:
@@ -869,10 +905,12 @@ class StalkerProvider(IPTVProcessor):
 						continue
 					vods_data = response_json["data"]
 					for vod in vods_data:
+						is_series_val = vod.get("is_series", 0)
+						is_series = is_series_val == "1" or is_series_val == 1
 						item = {}
 						item["num"] = vod.get("id")
 						item["name"] = vod.get("name")
-						item["stream_type"] = "movie" if vod.get("is_movie", 0) == 1 else "series"
+						item["stream_type"] = "movie" if not is_series else "series"
 						item["stream_id"] = vod.get("id")
 						item["stream_icon"] = vod.get("screenshot_uri")
 						item["cover"] = vod.get("screenshot_uri")
@@ -888,7 +926,10 @@ class StalkerProvider(IPTVProcessor):
 						item["year"] = vod.get("year")
 						item["genres_str"] = vod.get("genres_str")
 						item["play_url"] = vod.get("cmd")
-						movies.append(item)
+						if is_series:
+							series.append(item)
+						else:
+							movies.append(item)
 					if total_pages == 0:
 						total_items = int(response_json["total_items"])
 						max_page_items = int(response_json["max_page_items"])
@@ -901,9 +942,10 @@ class StalkerProvider(IPTVProcessor):
 					if page_number >= total_pages:
 						break
 				except ValueError:
-					print("[M3UIPTV][Stalker] Invalid JSON format in response")
+					print("[M3UIPTV][Stalker][VOD] Invalid JSON format in response")
 			else:
-				print(f"[M3UIPTV][Stalker] IPTV Request failed for page {page_number}")
+				print(f"[M3UIPTV][Stalker][VOD] IPTV Request failed for page {page_number}")
+				page_number += 1
 				if page_number >= total_pages:
 					break
 
@@ -915,11 +957,6 @@ class StalkerProvider(IPTVProcessor):
 			response_json = self.pull_json_with_reauth(url, True)
 			if response_json:
 				try:
-					if not response_json:
-						page_number += 1
-						if page_number >= total_pages_series:
-							break
-						continue
 					if isinstance(response_json, bool):
 						break
 					vods_data = response_json["data"]
@@ -927,7 +964,7 @@ class StalkerProvider(IPTVProcessor):
 						item = {}
 						item["num"] = vod.get("id")
 						item["name"] = vod.get("name")
-						item["stream_type"] = "movie" if vod.get("is_movie") == 1 else "series"
+						item["stream_type"] = "series"
 						item["series_id"] = vod.get("id")
 						item["stream_icon"] = vod.get("screenshot_uri")
 						item["rating"] = vod.get("rating_imdb") if "raating_imdb" in vod else vod.get("rating_kinopoisk")
@@ -952,9 +989,12 @@ class StalkerProvider(IPTVProcessor):
 					if page_number >= total_pages_series:
 						break
 				except ValueError:
-					print("[M3UIPTV][Stalker] Invalid JSON format in response")
+					print("[M3UIPTV][Stalker][SERIES] Invalid JSON format in response")
 			else:
-				print(f"[M3UIPTV][Stalker] IPTV Request failed for page {page_number}")
+				print(f"[M3UIPTV][Stalker][SERIES] IPTV Request failed for page {page_number}")
+				page_number += 1
+				if page_number >= total_pages_series:
+					break
 				if page_number >= total_pages:
 					break
 
