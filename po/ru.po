@@ -141,7 +141,7 @@ msgstr "Вы уверены, что хотите навсегда удалить
 
 #: ../src/plugin.py:2056
 msgid "At least one day of the week must be selected"
-msgstr ""
+msgstr "Необходимо выбрать хотя бы один день недели"
 
 #: ../src/plugin.py:1844
 msgid "Auto updates"
@@ -165,7 +165,7 @@ msgstr "Стратегия создания букета"
 
 #: ../src/plugin.py:1759
 msgid "Bouquet for provider and sub-bouquets for groups"
-msgstr ""
+msgstr "Букет для поставщика и дополнительные букеты для групп"
 
 #: ../src/plugin.py:1981
 msgid "Bouquet name character case"
@@ -557,7 +557,7 @@ msgstr "Пожалуйста, подождите! Загрузка данных 
 
 #: ../src/plugin.py:1709
 msgid "Portal version"
-msgstr ""
+msgstr "Версия портала"
 
 #: ../src/plugin.py:1968
 msgid "Press OK"
@@ -972,7 +972,7 @@ msgstr ""
 
 #: ../src/StalkerProvider.py:335
 msgid "Unknown"
-msgstr ""
+msgstr "Неизвестный"
 
 #: ../src/plugin.py:1837
 msgid ""
@@ -1038,7 +1038,7 @@ msgstr "Имя пользователя"
 
 #: ../src/plugin.py:1790
 msgid "VOD playlist format"
-msgstr ""
+msgstr "Формат плейлиста VOD"
 
 #: ../src/plugin.py:2220 ../src/menu.xml
 msgid "Video On Demand"
@@ -1154,3 +1154,12 @@ msgstr "выкл"
 #: ../src/plugin.py:1725
 msgid "on"
 msgstr "вкл"
+
+#: ../src/plugin.py:2012
+msgid "Fallback location for picons"
+msgstr "Местоположение пиконов"
+
+#: ../src/plugin.py:2012
+msgid "Fallback loction for picons used when current active picon location can not be detected."
+msgstr "Местоположение пиконов, выберите текущее местоположение пиконов если не удаётся обнаружить автоматически."
+
