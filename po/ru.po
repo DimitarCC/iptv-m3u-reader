@@ -1157,7 +1157,7 @@ msgstr "вкл"
 
 #: ../src/plugin.py:2012
 msgid "Fallback location for picons"
-msgstr "Местоположение для пиконов"
+msgstr "Местоположение пиконов"
 
 #: ../src/plugin.py:2012
 msgid "Fallback loction for picons used when current active picon location can not be detected."
