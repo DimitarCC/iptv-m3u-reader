@@ -1743,7 +1743,7 @@ class M3UIPTVProviderEdit(Setup):
 	def __init__(self, session, provider=None):
 		self.edit = provider in providers
 		providerObj = providers.get(provider, IPTVProcessor())
-		blacklist = self.edit and bool(providerObj.readExampleBlacklist())
+		self.blacklist = self.edit and bool(providerObj.readExampleBlacklist())
 		self.providerObj = providerObj
 		self.type = ConfigSelection(default=providerObj.type, choices=[("M3U", _("M3U/M3U8")), ("Xtreeme", _("Xtreme Codes")), ("Stalker", _("Stalker portal")), ("TVH", _("TVHeadend server")), ("VOD", _("Video on Demand"))])
 		self.playlist_type = ConfigSelection(default=providerObj.playlist_type, choices=[("m3u", _("M3U/M3U8")), ("txt", _("TXT"))])
@@ -1787,6 +1787,10 @@ class M3UIPTVProviderEdit(Setup):
 		self.ch_order_strategy = ConfigSelection(default=providerObj.ch_order_strategy, choices=[(0, _("Use provider order")), (1, _("By channel number")), (2, _("Alphabetically"))])
 		self.auto_updates = ConfigYesNo(default=providerObj.auto_updates)
 
+		self.bouquetsblacklist = ConfigSelection(choices=[("1", _("Press OK"))], default="1")
+		self.movieblacklist = ConfigSelection(choices=[("1", _("Press OK"))], default="1")
+		self.seriesblacklist = ConfigSelection(choices=[("1", _("Press OK"))], default="1")
+
 		# media library fields
 		self.has_media_library = ConfigYesNo(default=providerObj.has_media_library)
 		self.media_library_type = ConfigSelection(default=providerObj.media_library_type, choices=[("xc", _("Xtream Codes (Username/Password)")), ("xc-token", _("Xtream Codes (Token)"))])
@@ -1800,11 +1804,6 @@ class M3UIPTVProviderEdit(Setup):
 			self["key_yellow"] = StaticText(_("Delete \"%s\"") % providerObj.iptv_service_provider)
 			self["yellowactions"] = HelpableActionMap(self, ["ColorActions"], {
 				"yellow": (self.keyRemove, _("Permanently remove provider \"%s\" from your configuration.") % providerObj.iptv_service_provider)
-			}, prio=0)
-		if blacklist:
-			self["key_blue"] = StaticText(_("Bouquet blacklist"))
-			self["blueactions"] = HelpableActionMap(self, ["ColorActions"], {
-				"blue": (self.keyBlacklist, _("Edit bouquet blacklist for provider \"%s\".") % providerObj.iptv_service_provider)
 			}, prio=0)
 
 	def createSetup(self):
@@ -1870,7 +1869,24 @@ class M3UIPTVProviderEdit(Setup):
 		if config.plugins.m3uiptv.schedule.value:
 			configlist.append((_("Auto updates"), self.auto_updates, _("Include this provider when the global update schedule runs.") + " " + _("Requires the scheduler to be set up in the settings screen.")))
 
+		if self.blacklist:
+			configlist.append((_("Bouquets blacklist"), self.bouquetsblacklist, _("Press OK to select which bouquets/categories will be blacklisted.")))
+		if self.type.value == "Stalker" and not self.novod.value:
+			configlist.append((_("Blacklist VoD movie categories"), self.movieblacklist, _("Press OK to select which categories will be blacklisted.")))
+			configlist.append((_("Blacklist VoD series categories"), self.seriesblacklist, _("Press OK to select which categories will be blacklisted.")))
+
 		self["config"].list = configlist
+
+	def keySelect(self):
+		current = self["config"].getCurrent()
+		if current and len(current) > 1 and current[1] is self.bouquetsblacklist:
+			self.session.open(BouquetBlacklist, self.providerObj)
+		elif current and len(current) > 1 and current[1] is self.movieblacklist:
+			self.session.open(BouquetBlacklist, self.providerObj, 1)
+		elif current and len(current) > 1 and current[1] is self.seriesblacklist:
+			self.session.open(BouquetBlacklist, self.providerObj, 2)
+		else:
+			Setup.keySelect(self)
 
 	def keySave(self):
 		self.scheme.value = self.providerObj.cleanFilename(self.scheme.value)
@@ -1958,12 +1974,10 @@ class M3UIPTVProviderEdit(Setup):
 			shutil.rmtree(PROVIDER_FOLDER % self.scheme.value, True)
 			self.close(True)
 
-	def keyBlacklist(self):
-		self.session.open(BouquetBlacklist, self.providerObj)
-
 class BouquetBlacklist(Screen):
-	def __init__(self, session, providerObj):
+	def __init__(self, session, providerObj, blacklist_type=0):
 		self.providerObj = providerObj
+		self.blacklist_type = blacklist_type
 		Screen.__init__(self, session)
 		self.title = _("%s: Blacklist Bouquets") % self.providerObj.iptv_service_provider
 		self.skinName = ["Setup"]
@@ -1979,15 +1993,20 @@ class BouquetBlacklist(Screen):
 			"cancel": self.close,
 			"yellow": self["config"].toggleAllSelection,
 		}, -2)
-		examples = self.providerObj.readExampleBlacklist()
-		blacklist = self.providerObj.readBlacklist()
-		self["config"].setList([SelectionEntryComponent(x, x, "", x in blacklist) for x in examples if not x.startswith("#")])
+		if blacklist_type == 1:
+			self.providerObj.getVODCategories()
+		elif blacklist_type == 2:
+			self.providerObj.getSeriesCategories()
+		examples = self.providerObj.readExampleBlacklist(blacklist_type)
+		blacklist = self.providerObj.readBlacklist(blacklist_type)
+		self["config"].setList([SelectionEntryComponent(x.split("|gid|")[0], x.split("|gid|")[-1], "", x.split("|gid|")[-1] in blacklist) for x in examples if not x.startswith("#")])
 
 	def keySave(self):
 		blacklist = [x[0][1] for x in self["config"].list if x[0][3]]
-		self.providerObj.writeBlacklist(blacklist)
-		for bouquet in blacklist:
-			self.providerObj.removeBouquet(self.providerObj.cleanFilename(f"userbouquet.m3uiptv.{self.providerObj.iptv_service_provider}.{bouquet}.tv"))
+		self.providerObj.writeBlacklist(blacklist, self.blacklist_type)
+		if self.blacklist_type == 0:
+			for bouquet in blacklist:
+				self.providerObj.removeBouquet(self.providerObj.cleanFilename(f"userbouquet.m3uiptv.{self.providerObj.iptv_service_provider}.{bouquet}.tv"))
 		self.close()
 
 class IPTVPluginConfig(Setup):

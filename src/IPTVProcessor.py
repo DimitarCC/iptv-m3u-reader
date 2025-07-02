@@ -5,7 +5,8 @@ from twisted.internet import threads
 from .epgimport_helper import epgimport_helper
 from .Variables import REQUEST_USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, \
 					   CATCHUP_FLUSSONIC_TEXT, CATCHUP_VOD_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE, USER_AGENTS, \
-					   USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE, USER_IPTV_VOD_SERIES_FILE
+					   USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE, USER_IPTV_VOD_SERIES_FILE, USER_IPTV_PROVIDER_VOD_MOVIES_BLACKLIST_FILE, \
+					   USER_IPTV_PROVIDER_VOD_SERIES_BLACKLIST_FILE
 from .VoDItem import VoDItem
 from .picon import Fetcher
 from Components.config import config
@@ -259,6 +260,12 @@ class IPTVProcessor():
 	def loadVoDMoviesFromFile(self):
 		pass
 
+	def getVODCategories(self) -> list:
+		pass
+
+	def getSeriesCategories(self) -> list:
+		pass
+
 	def getVoDSeries(self):
 		pass
 
@@ -455,12 +462,20 @@ class IPTVProcessor():
 	def cleanFilename(self, name):
 		return sanitizeFilename(name.replace(" ", "").replace("(", "").replace(")", "").replace("&", "").replace("'", "").replace('"', "").replace(',', "").replace(":", "").replace(";", "").replace('ы','и'))
 
-	def readBlacklist(self):
+	def readBlacklist(self, blacklist_type=0):
 		file = USER_IPTV_PROVIDER_BLACKLIST_FILE % self.scheme
+		if blacklist_type == 1:
+			file = USER_IPTV_PROVIDER_VOD_MOVIES_BLACKLIST_FILE % self.scheme
+		elif blacklist_type == 2:
+			file = USER_IPTV_PROVIDER_VOD_SERIES_BLACKLIST_FILE % self.scheme
 		return self.getBlacklist(file)
 
-	def readExampleBlacklist(self):
+	def readExampleBlacklist(self, blacklist_type=0):
 		file = (USER_IPTV_PROVIDER_BLACKLIST_FILE % self.scheme) + ".example"
+		if blacklist_type == 1:
+			file = (USER_IPTV_PROVIDER_VOD_MOVIES_BLACKLIST_FILE % self.scheme) + ".example"
+		elif blacklist_type == 2:
+			file = (USER_IPTV_PROVIDER_VOD_SERIES_BLACKLIST_FILE % self.scheme) + ".example"
 		return self.getBlacklist(file)
 
 	def getBlacklist(self, file):
@@ -471,14 +486,22 @@ class IPTVProcessor():
 				print("[IPTVProcessor] readBlacklist, error reading blacklist", err)
 		return []
 
-	def writeExampleBlacklist(self, examples):
+	def writeExampleBlacklist(self, examples, blacklist_type=0):
 		file = (USER_IPTV_PROVIDER_BLACKLIST_FILE % self.scheme) + ".example"
+		if blacklist_type == 1:
+			file = (USER_IPTV_PROVIDER_VOD_MOVIES_BLACKLIST_FILE % self.scheme) + ".example"
+		elif blacklist_type == 2:
+			file = (USER_IPTV_PROVIDER_VOD_SERIES_BLACKLIST_FILE % self.scheme) + ".example"
 		if examples:
 			examples.insert(0, _("# only leave the groups you want to remove in blacklist below and then rename the file to %s and regenerate the bouquets") % (USER_IPTV_PROVIDER_BLACKLIST_FILE % self.scheme))
 			open(file, "w").write("\n".join(examples))
 
-	def writeBlacklist(self, blacklist):
+	def writeBlacklist(self, blacklist, blacklist_type=0):
 		file = USER_IPTV_PROVIDER_BLACKLIST_FILE % self.scheme
+		if blacklist_type == 1:
+			file = USER_IPTV_PROVIDER_VOD_MOVIES_BLACKLIST_FILE % self.scheme
+		elif blacklist_type == 2:
+			file = USER_IPTV_PROVIDER_VOD_SERIES_BLACKLIST_FILE % self.scheme
 		open(file, "w").write("\n".join(blacklist))
 
 	def piconsAdd(self, stream_icon, ch_name):
