@@ -6,7 +6,8 @@ from Components.config import config
 from Tools.Directories import fileExists
 from time import time
 from twisted.internet import threads
-import urllib, re
+import urllib
+import re
 from .IPTVProcessor import IPTVProcessor
 from .XtreemProvider import XtreemProvider
 from .Variables import CATCHUP_DEFAULT, CATCHUP_TYPES, USER_AGENTS
@@ -42,7 +43,7 @@ class M3UProvider(IPTVProcessor):
 			if epg_match:
 				return epg_match.group(1)
 		return self.getEpgUrl()
-	
+
 	def searchForXMLTV(self, line, isCustomUrl=False):
 		epg_match = None
 		if "#EXTM3U" in line and not isCustomUrl:
@@ -90,8 +91,8 @@ class M3UProvider(IPTVProcessor):
 			if "#EXTM3U" in line:
 				if (m := re.search(r"catchup-time=\"(\d+)\"", line, re.IGNORECASE)):
 					tvg_rec = int(m.group(1))
-					if tvg_rec >= 24*60*60:
-						global_tvg_rec = str(tvg_rec//86400)
+					if tvg_rec >= 24 * 60 * 60:
+						global_tvg_rec = str(tvg_rec // 86400)
 				epg_match = self.searchForXMLTV(line, self.is_custom_xmltv)
 				if epg_match:
 					self.epg_url = epg_match.group(1)
@@ -228,7 +229,7 @@ class M3UProvider(IPTVProcessor):
 						ALL_dict[tsid_max] = sref
 				lcnindex = list(ALL_dict.keys())
 				bouquet_list = []
-				for number in range(1, tsid_max +1):
+				for number in range(1, tsid_max + 1):
 					if number in lcnindex:
 						bouquet_list.append(ALL_dict[number][0])
 					else:
@@ -307,7 +308,7 @@ class M3UProvider(IPTVProcessor):
 					self.media_library_object.password = self.media_library_token
 			self.media_library_object.generateMediaLibrary()
 			self.loadMedialLibraryItems()
-	
+
 	def loadMedialLibraryItems(self):
 		if self.has_media_library and self.media_library_object:
 			self.media_library_object.loadMedialLibraryItems()
@@ -386,7 +387,7 @@ class M3UProvider(IPTVProcessor):
 					nref_new = origRef + ":" + iptv_url + ":" + orig_name + "•" + prov.iptv_service_provider
 					break
 			self.nnref = eServiceReference(nref_new)
-			try: #type2 distros support
+			try:  # type2 distros support
 				self.nnref.setCompareSref(nref.toString())
 			except:
 				pass
@@ -397,9 +398,9 @@ class M3UProvider(IPTVProcessor):
 			self.isPlayBackup = True
 			self.nnref = eServiceReference(backup_ref + ":")
 			return self.nnref  # , nref
-	
+
 	def getSeriesById(self, series_id):
 		return self.media_library_object and self.media_library_object.getSeriesById(series_id)
-	
+
 	def getVoDPlayUrl(self, url, movie, series):
 		return self.media_library_object and self.media_library_object.getVoDPlayUrl(url, movie, series) or url
