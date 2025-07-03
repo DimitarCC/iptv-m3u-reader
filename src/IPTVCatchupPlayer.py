@@ -5,7 +5,6 @@ from enigma import eServiceReference, eTimer, iPlayableService
 from Screens.InfoBar import InfoBar, MoviePlayer
 from Screens.MinuteInput import MinuteInput
 from Screens.Screen import Screen
-from Screens.AudioSelection import AudioSelection
 from Screens.MessageBox import MessageBox
 from Components.ServiceEventTracker import ServiceEventTracker
 from Components.Sources.Progress import Progress
@@ -109,10 +108,10 @@ def injectCatchupIconGMEPG(res, obj, service, service_name, events, picon, servi
 				catchup_days = int(match.groups(1)[0])
 				if now - stime <= datetime.timedelta(days=catchup_days).total_seconds():
 					res.append(MultiContentEntryPixmapAlphaBlend(
-									pos=(left + xpos + ewidth - pix_width - 10, top + 10),
-									size=(pix_width, pix_height),
-									png=obj.catchUpIcon,
-									flags=0))
+						pos=(left + xpos + ewidth - pix_width - 10, top + 10),
+						size=(pix_width, pix_height),
+						png=obj.catchUpIcon,
+						flags=0))
 
 
 def playM3UIPTVArchiveEntry(self, event, service):
