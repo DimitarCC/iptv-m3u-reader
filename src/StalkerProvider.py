@@ -169,13 +169,14 @@ class StalkerProvider(IPTVProcessor):
 		return metrics_str
 
 	def generate_headers(self):
-		return { "User-Agent": REQUEST_USER_AGENT, \
-				 "Authorization": "Bearer " + self.token, \
-				 "Referer": self.url + "/stalker_portal/c/index.html", \
-				 "X-User-Agent": "Model: MAG250; Link: WiFi", \
-				 "Pragma": "no-cache", \
-				 "Host": self.get_host(), \
-				 "Connection": "Close" }
+		return {
+			"User-Agent": REQUEST_USER_AGENT,
+			"Authorization": "Bearer " + self.token,
+			"Referer": self.url + "/stalker_portal/c/index.html",
+			"X-User-Agent": "Model: MAG250; Link: WiFi",
+			"Pragma": "no-cache",
+			"Host": self.get_host(),
+			"Connection": "Close" }
 
 	def generate_cookies(self, include_token=False):
 		if include_token:
@@ -195,12 +196,13 @@ class StalkerProvider(IPTVProcessor):
 			referrer = self.url + ("/stalker_portal/c/index.html" if "stalker_portal" in self.url else "/c/index.html")
 			host = self.get_host()
 			cookies = self.generate_cookies()
-			headers = { "User-Agent": REQUEST_USER_AGENT, \
-				 "Referer": referrer, \
-				 "X-User-Agent": "Model: MAG250; Link: WiFi", \
-				 "Pragma": "no-cache", \
-				 "Host": host, \
-				 "Connection": "Close" }
+			headers = {
+				"User-Agent": REQUEST_USER_AGENT, \
+				"Referer": referrer, \
+				"X-User-Agent": "Model: MAG250; Link: WiFi", \
+				"Pragma": "no-cache", \
+				"Host": host, \
+				"Connection": "Close" }
 			response = self.session.get(url, cookies=cookies, headers=headers)
 			if response.status_code == 404:
 				self.portal_entry_point_type = 1
@@ -239,9 +241,7 @@ class StalkerProvider(IPTVProcessor):
 			return "", ""
 
 	def getProviderInfo(self, from_token=False):
-		"""
-        Fetch user profile after ensuring a valid token.
-        """
+		# Fetch user profile after ensuring a valid token.
 		try:
 			if not from_token and not self.token:
 				self.get_token()
@@ -321,8 +321,8 @@ class StalkerProvider(IPTVProcessor):
 
 			if js_data:
 				self.zone = ZoneInfo(js_data["default_timezone"])
-				server_timezone_offset = (self.zone.utcoffset(datetime.now()).total_seconds())//3600
-				
+				server_timezone_offset = (self.zone.utcoffset(datetime.now()).total_seconds()) // 3600
+
 				if time.localtime().tm_isdst:
 					server_timezone_offset += 1
 				server_timezone_offset_string = f"{server_timezone_offset :+03.0f}00"
@@ -399,7 +399,7 @@ class StalkerProvider(IPTVProcessor):
 	def getEpgUrl(self):
 		return self.custom_xmltv_url if self.is_custom_xmltv and self.custom_xmltv_url else "http://localhost:9010/StalkerEPG?p=%s" % self.scheme
 
-	def generateXMLTVFile(self): # Use this for the timer for regenerate of EPG xml
+	def generateXMLTVFile(self):  # Use this for the timer for regenerate of EPG xml
 		if self.create_epg and not self.custom_xmltv_url:
 			self.checkForNetwrok()
 			self.get_token()
@@ -440,35 +440,35 @@ class StalkerProvider(IPTVProcessor):
 							dn_entry.appendChild(dn_entry_content)
 							c_entry.appendChild(dn_entry)
 
-						for k,v in epg_data.items():
+						for k, v in epg_data.items():
 							channel = None
-							
+
 							if str(k) in channel_dict.keys():
 								channel = channel_dict[str(k)]
-							
+
 							for epg in v:
-								start_time 	= datetime.fromtimestamp(float(epg['start_timestamp']), self.zone)
-								stop_time	= datetime.fromtimestamp(float(epg['stop_timestamp']), self.zone)
-								
+								start_time = datetime.fromtimestamp(float(epg['start_timestamp']), self.zone)
+								stop_time = datetime.fromtimestamp(float(epg['stop_timestamp']), self.zone)
+
 								pg_entry = doc.createElement('programme')
 								format_string = f"%Y%m%d%H%M%S {self.server_timezone_offset}"
 								pg_entry.setAttribute("start", start_time.strftime(format_string))
 								pg_entry.setAttribute("stop", stop_time.strftime(format_string))
 								pg_entry.setAttribute("channel", str(k))
 								base.appendChild(pg_entry)
-								
+
 								t_entry = doc.createElement('title')
 								t_entry.setAttribute("lang", "en")
 								t_entry_content = doc.createTextNode(epg['name'])
 								t_entry.appendChild(t_entry_content)
 								pg_entry.appendChild(t_entry)
-								
+
 								d_entry = doc.createElement('desc')
 								d_entry.setAttribute("lang", "en")
 								d_entry_content = doc.createTextNode(epg['descr'])
 								d_entry.appendChild(d_entry_content)
 								pg_entry.appendChild(d_entry)
-							
+
 								if epg_category := epg['category']:
 									c_entry = doc.createElement('category')
 									c_entry.setAttribute("lang", "en")
@@ -497,7 +497,7 @@ class StalkerProvider(IPTVProcessor):
 				response = self.session.get(url, cookies=cookies, headers=headers)
 			try:
 				json = response.json().get("js", {})
-			except: # most likely it returned empty result since not authorized/token expired
+			except:  # most likely it returned empty result since not authorized/token expired
 				if not skip_reauth:
 					self.get_token(skip_profile)
 					cookies = self.generate_cookies(True)
@@ -570,7 +570,7 @@ class StalkerProvider(IPTVProcessor):
 				if self.create_bouquets_strategy == 1:
 					bouquet_name = provider_name_for_titles
 				db.addOrUpdateBouquet(bouquet_name, bfilename, services, False)
-			
+
 		if self.create_bouquets_strategy == 3:
 			bfilename = self.cleanFilename(f"userbouquet.m3uiptv.{self.scheme}.tv")
 			db.addOrUpdateBouquet(provider_name_for_titles, bfilename, srefs_for_main, False)
@@ -625,7 +625,7 @@ class StalkerProvider(IPTVProcessor):
 		except:
 			pass
 		return genres
-	
+
 	def getVODCategories(self) -> list:
 		try:
 			genres = self.getVoDCategoriesBase(1)
@@ -685,7 +685,7 @@ class StalkerProvider(IPTVProcessor):
 					response_json = response.json()
 					channels_data = response_json["js"]["data"]
 					for channel in channels_data:
-						surl = f"{self.scheme}%3a//{channel['id']}?cmd={channel['cmd'].replace('ffmpeg ', '').replace('ffrt ', '').replace('&','|amp|').replace(':', '%3a')}"
+						surl = f"{self.scheme}%3a//{channel['id']}?cmd={channel['cmd'].replace('ffmpeg ', '').replace('ffrt ', '').replace('&', '|amp|').replace(':', '%3a')}"
 						if self.create_bouquets_strategy > 0 and self.create_bouquets_strategy < 3:  # config option here: for user-optional, all-channels bouquet
 							if genre_id not in groups or groups[genre_id][0] not in blacklist:
 								groups["ALL_CHANNELS"][1].append(Channel(channel["id"], channel["number"], channel["name"], surl, channel["tv_archive_duration"], channel["logo"], channel["xmltv_id"]))
@@ -703,7 +703,7 @@ class StalkerProvider(IPTVProcessor):
 				print(f"[M3UIPTV][Stalker] IPTV Request failed for page {page_number}")
 
 	def get_all_channels(self, genres):
-		groups = {} 
+		groups = {}
 		censored_groups = []
 		blacklist = self.readBlacklist()
 		if not genres:
@@ -724,7 +724,7 @@ class StalkerProvider(IPTVProcessor):
 			return {}
 		channel_data = js['data']
 		for channel in channel_data:
-			surl = f"{self.scheme}%3a//{channel['id']}?cmd={channel['cmd'].replace('ffmpeg ', '').replace('ffrt ', '').replace('&','|amp|').replace(':', '%3a')}"
+			surl = f"{self.scheme}%3a//{channel['id']}?cmd={channel['cmd'].replace('ffmpeg ', '').replace('ffrt ', '').replace('&' ,'|amp|').replace(':', '%3a')}"
 			if self.output_format == "ts":
 				surl = surl.replace("extension=m3u8", "extension=ts")
 			elif self.output_format == "m3u8":
@@ -739,7 +739,7 @@ class StalkerProvider(IPTVProcessor):
 
 				if self.create_bouquets_strategy != 1:  # config option here: for sections bouquets
 					groups[category_id if category_id and category_id in groups else "EMPTY"][1].append(Channel(channel["id"], channel["number"], channel["name"], surl, channel["tv_archive_duration"], channel["logo"], channel["xmltv_id"]))
-		
+
 		for censored_group in censored_groups:
 			self.get_channels_for_group(groups, groups[censored_group][1], censored_group)
 
@@ -750,7 +750,7 @@ class StalkerProvider(IPTVProcessor):
 		js = self.pull_json_with_reauth(url, False)
 		try:
 			return js["cmd"], True
-		except: # probably token has expired
+		except:  # probably token has expired
 			self.get_token()
 			js = self.pull_json_with_reauth(url, False)
 			try:
@@ -793,7 +793,7 @@ class StalkerProvider(IPTVProcessor):
 		series = []
 		censored_groups = []
 		blacklist_movies = self.readBlacklist(1)
-		blacklist_series = self.readBlacklist(2)	
+		blacklist_series = self.readBlacklist(2)
 
 		try:
 			url_series = f"{self.getPortalUrl()}?type=series&action=get_ordered_list&p=1&JsHttpRequest=1-xml"
@@ -805,7 +805,6 @@ class StalkerProvider(IPTVProcessor):
 		except:
 			pass
 
-
 		try:
 			url_vod = f"{self.getPortalUrl()}?type=vod&action=get_ordered_list&p=1&JsHttpRequest=1-xml"
 			vod_json = self.pull_json_with_reauth(url_vod, True)
@@ -816,8 +815,7 @@ class StalkerProvider(IPTVProcessor):
 		except:
 			pass
 
-
-		for	group in vod_categories:
+		for group in vod_categories:
 			if group['category_id'] == "*":
 				continue
 			if group["censored"] == 1:
@@ -845,8 +843,7 @@ class StalkerProvider(IPTVProcessor):
 				except:
 					pass
 
-		
-		for	group in series_categories:
+		for group in series_categories:
 			if group['category_id'] == "*":
 				continue
 			try:
@@ -859,7 +856,6 @@ class StalkerProvider(IPTVProcessor):
 						total_pages_series -= math.ceil(total_items_t / max_page_items_t)
 			except:
 				pass
-
 
 		page_number = 1
 		for group_censored in censored_groups:
@@ -1020,7 +1016,7 @@ class StalkerProvider(IPTVProcessor):
 						self.progress_percentage = int(((page_number + total_pages + total_pages_censored) / (total_pages + total_pages_series + total_pages_censored)) * 100)
 						for x in self.onProgressChanged:
 							x()
-						#print("[M3UIPTV][Stalker][VOD] progress %d / Page Number: %d / Total Pages: %d" % (self.progress_percentage, page_number, total_pages))
+						# print("[M3UIPTV][Stalker][VOD] progress %d / Page Number: %d / Total Pages: %d" % (self.progress_percentage, page_number, total_pages))
 						page_number += 1
 						gr_s_page_number += 1
 						if page_number >= total_pages_series:
@@ -1044,11 +1040,11 @@ class StalkerProvider(IPTVProcessor):
 			vod_json_obj = json.loads(json_string)
 			for movie in vod_json_obj:
 				name = movie["name"]
-				#ext = movie["container_extension"]
+				# ext = movie["container_extension"]
 				id = int(movie["stream_id"])
 				url = movie["play_url"]
 				vod_item = VoDItem(url, name, id, self, self.movie_categories.get(str(movie.get("category_id"))), movie.get("plot"), movie.get("stream_icon"))
-				self.vod_movies.append(vod_item)	
+				self.vod_movies.append(vod_item)
 
 	def getSeriesById(self, series_id):
 		if not self.token:
@@ -1057,7 +1053,7 @@ class StalkerProvider(IPTVProcessor):
 		headers = self.generate_headers()
 		ret = []
 		titles = []  # this is a temporary hack to avoid duplicates when there are multiple container extensions
-		#file = path.join(self.getTempDir(), series_id)
+		# file = path.join(self.getTempDir(), series_id)
 		page_number = 1
 		total_vod_count = 0
 		while True:
@@ -1087,7 +1083,7 @@ class StalkerProvider(IPTVProcessor):
 						# 	if date[:4].isdigit():
 						# 		date = date[:4]
 						# 	marker.insert(0, _("Released: %s") % str(date))
-						episode_url = f"{season['cmd']}||{str(episode)}" #self.getVoDPlayUrl(season["cmd"], episode)
+						episode_url = f"{season['cmd']}||{str(episode)}" # self.getVoDPlayUrl(season["cmd"], episode)
 						if title and info and title not in titles:
 							ret.append((episode_url, title, info, self, ", ".join(marker), id.split(":")[0], episode_image))
 							titles.append(title)
@@ -1134,7 +1130,7 @@ class StalkerProvider(IPTVProcessor):
 			self.channels_callback(groups)
 			self.piconsDownload()
 			self.generateEPGImportFiles(groups)
-			if time.time() - self.last_vod_update_time > 7*24*60*60:
+			if time.time() - self.last_vod_update_time > 7 * 24 * 60 * 60:
 				self.generateMediaLibrary()
 
 	def generateMediaLibrary(self):
@@ -1183,7 +1179,7 @@ class StalkerProvider(IPTVProcessor):
 		catchup_days = ""
 		if match:
 			catchup_days = match.group(1)
-	
+
 		if "localhost/ch" not in cmd:
 			surl = cmd.replace(":", "%3a").replace("|amp|", "&")
 			surl = self.constructCatchupSuffix(catchup_days, surl, CATCHUP_STALKER_TEXT)
@@ -1211,7 +1207,7 @@ class StalkerProvider(IPTVProcessor):
 			nref_new = "%s:%s%s:%s•%s" % (origRef, iptv_url.replace(":", "%3a").replace("ffmpeg ", "").replace('ffrt ', ''), "" if self.custom_user_agent == "off" else ("#User-Agent=" + USER_AGENTS[self.custom_user_agent]), orig_name, self.iptv_service_provider)
 			nref_new = origRef + ":" + iptv_url.replace(":", "%3a").replace("ffmpeg ", "").replace('ffrt ', '') + ":" + orig_name + "•" + self.iptv_service_provider
 			nnref = eServiceReference(nref_new)
-			try: #type2 distros support
+			try:  # type2 distros support
 				nnref.setCompareSref(nref.toString())
 			except:
 				pass
