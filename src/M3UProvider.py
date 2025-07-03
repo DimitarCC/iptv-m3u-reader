@@ -115,7 +115,7 @@ class M3UProvider(IPTVProcessor):
 					epg_id = epg_id_match.group(1)
 
 				if self.use_provider_tsid:
-					condition_tsid = re.escape(self.provider_tsid_search_criteria).replace("\\{TSID\\}", "(\d+)")
+					condition_tsid = re.escape(self.provider_tsid_search_criteria).replace(r"\\{TSID\\}", r"(\d+)")
 					match_tsid = re.search(condition_tsid, line)
 					if match_tsid:
 						tsid = int(match_tsid.group(1))
