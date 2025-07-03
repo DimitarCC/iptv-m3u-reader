@@ -11,4 +11,4 @@ setup(
     packages=[pkg],
     package_data={pkg: ['*.png', '*.xml', 'locale/*/LC_MESSAGES/*.mo']},
     cmdclass=setup_translate.cmdclass,  # for translation
-    )
+)

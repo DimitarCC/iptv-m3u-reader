@@ -5,14 +5,20 @@ from twisted.internet import threads
 from .epgimport_helper import epgimport_helper
 from .Variables import REQUEST_USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, \
 					   CATCHUP_FLUSSONIC_TEXT, CATCHUP_VOD_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE, USER_AGENTS, \
-					   USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE, USER_IPTV_VOD_SERIES_FILE, USER_IPTV_PROVIDER_VOD_MOVIES_BLACKLIST_FILE, \
+					   USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE, USER_IPTV_PROVIDER_VOD_MOVIES_BLACKLIST_FILE, \
 					   USER_IPTV_PROVIDER_VOD_SERIES_BLACKLIST_FILE
 from .VoDItem import VoDItem
 from .picon import Fetcher
 from Components.config import config
 from Tools.Directories import sanitizeFilename, fileExists
-from os import fsync, rename, path, makedirs, listdir, remove as remove_file
-import re, json, socket, urllib, threading, shutil, base64
+from os import fsync, rename, path, makedirs, remove as remove_file
+import re
+import json
+import socket
+import urllib
+import threading
+import shutil
+import base64
 from time import time
 from datetime import datetime
 
@@ -117,7 +123,7 @@ class IPTVProcessor():
 		self.username = ""  # used by XtreemProvider, default here for Setup
 		self.password = ""  # used by XtreemProvider, default here for Setup
 		self.mac = ""  # used by StalkerProvider, default here for Setup
-		self.serial = "" # used by StalkerProvider, default here for Setup
+		self.serial = ""  # used by StalkerProvider, default here for Setup
 		self.devid = ""  # used by StalkerProvider, default here for Setup
 		self.signature = ""  # used by StalkerProvider, default here for Setup
 		self.vod_movies = []
@@ -150,10 +156,10 @@ class IPTVProcessor():
 		self.custom_user_agent = "off"
 		self.output_format = "ts"
 		self.ch_order_strategy = 0
-		self.epg_time_offset = 0 # Only for Stalker providers
-		self.server_time_offset = "" # Only for Stalker providers
-		self.portal_entry_point_type = 0 # Only for Stalker providers
-		self.playlist_type = "m3u" # Only for VOD providers
+		self.epg_time_offset = 0  # Only for Stalker providers
+		self.server_time_offset = ""  # Only for Stalker providers
+		self.portal_entry_point_type = 0  # Only for Stalker providers
+		self.playlist_type = "m3u"  # Only for VOD providers
 
 		# Fields for utilize substitutions if available
 		self.servicename_substitutions = {}
@@ -161,7 +167,7 @@ class IPTVProcessor():
 
 		# Fields for media library for M3U providers start here
 		self.has_media_library = False
-		self.media_library_type = "xc" # can be xml, xc (Xtream Codes) or xc-token (Xtream Codes with single token). For the moment only xc and xc-token are implemented
+		self.media_library_type = "xc"  # can be xml, xc (Xtream Codes) or xc-token (Xtream Codes with single token). For the moment only xc and xc-token are implemented
 		self.media_library_url = ""
 		self.media_library_username = ""
 		self.media_library_password = ""
@@ -232,7 +238,7 @@ class IPTVProcessor():
 	def getMovieCategories(self):
 		pass
 
-	def getSeriesCategories(self) -> object :
+	def getSeriesCategories(self) -> object:
 		pass
 
 	def loadMovieCategoriesFromFile(self):
@@ -310,7 +316,7 @@ class IPTVProcessor():
 	def getSeriesById(self, series_id):
 		ret = []
 		return ret
-	
+
 	def getMovieById(self, movie_id):
 		ret = {}
 		return ret
@@ -344,7 +350,7 @@ class IPTVProcessor():
 			f.close()
 			rename(dest_file + ".writing", dest_file)
 		return vod_response
-	
+
 	def getDataToFile(self, data, dest_file):
 		if not data:
 			return None
@@ -377,7 +383,7 @@ class IPTVProcessor():
 
 	def processService(self, nref, iptvinfodata, callback=None, event=None):
 		return nref, nref, False
-	
+
 	def generateXMLTVFile(self) -> bytes:
 		return None
 
@@ -397,7 +403,7 @@ class IPTVProcessor():
 
 	def getEpgUrlForSources(self):  # for use when dynamic xmltv url is needed for sources file
 		return self.custom_xmltv_url if self.is_custom_xmltv and self.custom_xmltv_url else self.epg_url
-	
+
 	def createChannelsFile(self, epghelper, groups):
 		epghelper.createChannelsFile(groups)
 
@@ -425,7 +431,7 @@ class IPTVProcessor():
 				captchup_addon += "&tz_offset=%d" % self.server_timezone_offset
 			return url + captchup_addon
 		return url
-	
+
 	def removeAllData(self):
 		self.removeBouquets()
 		self.removeEpgSources()
@@ -460,7 +466,7 @@ class IPTVProcessor():
 		epghelper.removeSources()
 
 	def cleanFilename(self, name):
-		return sanitizeFilename(name.replace(" ", "").replace("(", "").replace(")", "").replace("&", "").replace("'", "").replace('"', "").replace(',', "").replace(":", "").replace(";", "").replace('ы','и'))
+		return sanitizeFilename(name.replace(" ", "").replace("(", "").replace(")", "").replace("&", "").replace("'", "").replace('"', "").replace(',', "").replace(":", "").replace(";", "").replace('ы', 'и'))
 
 	def readBlacklist(self, blacklist_type=0):
 		file = USER_IPTV_PROVIDER_BLACKLIST_FILE % self.scheme
