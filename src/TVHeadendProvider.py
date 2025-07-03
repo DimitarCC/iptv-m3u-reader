@@ -1,8 +1,8 @@
-from . import _
-
 from enigma import eDVBDB
 from Components.config import config
-import urllib, re, base64
+import urllib
+import re
+import base64
 from .IPTVProcessor import IPTVProcessor
 from .Variables import CATCHUP_TYPES, REQUEST_USER_AGENT, CATCHUP_DEFAULT
 
@@ -127,7 +127,7 @@ class TVHeadendProvider(IPTVProcessor):
 					elif "HD" in ch_name:
 						stype = "19"
 					sref = self.generateChannelReference(stype, tsid, url.replace(":", "%3a"), ch_name)
-					
+
 					if self.create_bouquets_strategy != 1:
 						if curr_group:
 							groups[curr_group].append((sref, epg_id, ch_name, tsid))

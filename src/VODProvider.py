@@ -3,7 +3,9 @@ from . import _
 from enigma import eDVBDB
 from Components.config import config
 from Tools.Directories import fileExists
-import urllib, re, json
+import urllib
+import re
+import json
 from .IPTVProcessor import IPTVProcessor
 from .VoDItem import VoDItem
 from .Variables import CATCHUP_DEFAULT, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE
@@ -156,7 +158,7 @@ class VODProvider(IPTVProcessor):
 			item["genres_str"] = ""
 			item["play_url"] = vod[0]
 			movies.append(item)
-		
+
 		if len(movies) > 0:
 			dest_file_movies = USER_IPTV_VOD_MOVIES_FILE % self.scheme
 			self.v_movies = self.getDataToFile(movies, dest_file_movies)
@@ -182,7 +184,7 @@ class VODProvider(IPTVProcessor):
 		self.makeVodListFromJson(json_string)
 		for x in self.onProgressChanged:
 			x()
-	
+
 	def loadMedialLibraryItems(self):
 		self.loadMovieCategoriesFromFile()
 		self.loadVoDMoviesFromFile()

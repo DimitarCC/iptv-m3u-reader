@@ -92,7 +92,6 @@ class Fetcher():
 					remove(softlinkpath)
 				symlink(filepath, softlinkpath)
 
-
 	def removeall(self):
 		if path.exists(self.piconDir):
 			for f in listdir(self.piconDir):

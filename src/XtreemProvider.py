@@ -1,6 +1,8 @@
 from . import _
 
-import urllib, json, time
+import urllib
+import json
+import time
 from enigma import eDVBDB
 from Components.config import config
 from os import path

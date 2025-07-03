@@ -83,7 +83,7 @@ except ImportError:
 
 # Add imports for SubsSupport plugin if installed
 try:
-    from Plugins.Extensions.SubsSupport import SubsSupport, SubsSupportStatus
+	from Plugins.Extensions.SubsSupport import SubsSupport, SubsSupportStatus
 except ImportError:
 	class SubsSupport(object):
 		def __init__(self, *args, **kwargs):
@@ -96,7 +96,14 @@ except ImportError:
 from os import path, fsync, rename, makedirs, remove
 from xml.etree.cElementTree import iterparse
 
-import json, base64, shutil, xml, re, threading, urllib, os
+import json
+import base64
+import shutil
+import xml
+import re
+import threading
+import urllib
+import os
 
 write_lock = threading.Lock()
 
@@ -137,8 +144,10 @@ file = open("%s/menu.xml" % plugin_dir, 'r')
 mdom = xml.etree.cElementTree.parse(file)
 file.close()
 
+
 class StalkerEPG(resource.Resource):
 	isLeaf = True
+
 	def render_GET(self, request):
 		request.responseHeaders.setRawHeaders('Content-Disposition', ['attachment; filename="epg.xml"'])
 		provider = request.args[b"p"][0].decode("utf-8")
