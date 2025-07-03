@@ -183,7 +183,7 @@ class StalkerProvider(IPTVProcessor):
 			"X-User-Agent": "Model: MAG250; Link: WiFi",
 			"Pragma": "no-cache",
 			"Host": self.get_host(),
-			"Connection": "Close" }
+			"Connection": "Close"}
 
 	def generate_cookies(self, include_token=False):
 		if include_token:
@@ -204,12 +204,12 @@ class StalkerProvider(IPTVProcessor):
 			host = self.get_host()
 			cookies = self.generate_cookies()
 			headers = {
-				"User-Agent": REQUEST_USER_AGENT, \
-				"Referer": referrer, \
-				"X-User-Agent": "Model: MAG250; Link: WiFi", \
-				"Pragma": "no-cache", \
-				"Host": host, \
-				"Connection": "Close" }
+				"User-Agent": REQUEST_USER_AGENT,
+				"Referer": referrer,
+				"X-User-Agent": "Model: MAG250; Link: WiFi",
+				"Pragma": "no-cache",
+				"Host": host,
+				"Connection": "Close"}
 			response = self.session.get(url, cookies=cookies, headers=headers)
 			if response.status_code == 404:
 				self.portal_entry_point_type = 1
@@ -226,7 +226,7 @@ class StalkerProvider(IPTVProcessor):
 						if response.status_code == 404:
 							self.token = ""
 							self.random = ""
-							return "", "" # give up since we can not find the right entry point
+							return "", ""  # give up since we can not find the right entry point
 			elif response.status_code == 200 and self.portal_entry_point_type == -1:
 				self.portal_entry_point_type = 0
 
@@ -413,7 +413,7 @@ class StalkerProvider(IPTVProcessor):
 			if self.token:
 				genres = self.get_genres()
 				groups = self.get_all_channels(genres)
-				channels = [ x for xs in groups.values() for x in xs[1]]
+				channels = [x for xs in groups.values() for x in xs[1]]
 				channel_dict = {}
 				for x in channels:
 					channel_dict[x.id] = x
@@ -433,15 +433,14 @@ class StalkerProvider(IPTVProcessor):
 						for c in epg_data:
 							if not str(c) in channel_dict.keys():
 								continue
-						
+
 							channel = channel_dict[str(c)]
 							name = channel.name
-							
+
 							c_entry = doc.createElement('channel')
 							c_entry.setAttribute("id", str(c))
 							base.appendChild(c_entry)
-							
-							
+
 							dn_entry = doc.createElement('display-name')
 							dn_entry_content = doc.createTextNode(name)
 							dn_entry.appendChild(dn_entry_content)
@@ -731,7 +730,7 @@ class StalkerProvider(IPTVProcessor):
 			return {}
 		channel_data = js['data']
 		for channel in channel_data:
-			surl = f"{self.scheme}%3a//{channel['id']}?cmd={channel['cmd'].replace('ffmpeg ', '').replace('ffrt ', '').replace('&' ,'|amp|').replace(':', '%3a')}"
+			surl = f"{self.scheme}%3a//{channel['id']}?cmd={channel['cmd'].replace('ffmpeg ', '').replace('ffrt ', '').replace('&', '|amp|').replace(':', '%3a')}"
 			if self.output_format == "ts":
 				surl = surl.replace("extension=m3u8", "extension=ts")
 			elif self.output_format == "m3u8":
@@ -1090,7 +1089,7 @@ class StalkerProvider(IPTVProcessor):
 						# 	if date[:4].isdigit():
 						# 		date = date[:4]
 						# 	marker.insert(0, _("Released: %s") % str(date))
-						episode_url = f"{season['cmd']}||{str(episode)}" # self.getVoDPlayUrl(season["cmd"], episode)
+						episode_url = f"{season['cmd']}||{str(episode)}"  # self.getVoDPlayUrl(season["cmd"], episode)
 						if title and info and title not in titles:
 							ret.append((episode_url, title, info, self, ", ".join(marker), id.split(":")[0], episode_image))
 							titles.append(title)
