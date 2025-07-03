@@ -5,14 +5,21 @@ from ServiceReference import ServiceReference
 from Components.config import config
 from xml.dom import minidom
 from urllib.parse import urlparse
-import requests, time, re, math, json, urllib, random, hashlib, time
+import requests
+import time
+import re
+import math
+import json
+import urllib
+import random
+import hashlib
 from zoneinfo import ZoneInfo
-from datetime import datetime, timezone
+from datetime import datetime
 from twisted.internet import threads
 from .IPTVProcessor import IPTVProcessor
 from .VoDItem import VoDItem
 from .Variables import USER_IPTV_VOD_MOVIES_FILE, REQUEST_USER_AGENT, USER_AGENTS, CATCHUP_STALKER, CATCHUP_STALKER_TEXT, USER_IPTV_MOVIE_CATEGORIES_FILE, \
-	 				   USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE, USER_IPTV_PROVIDER_INFO_FILE
+	 				   USER_IPTV_VOD_SERIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE, USER_IPTV_PROVIDER_INFO_FILE
 
 db = eDVBDB.getInstance()
 
