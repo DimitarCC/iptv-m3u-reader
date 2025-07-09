@@ -116,7 +116,7 @@ class M3UProvider(IPTVProcessor):
 					epg_id = epg_id_match.group(1)
 
 				if self.use_provider_tsid:
-					condition_tsid = re.escape(self.provider_tsid_search_criteria).replace(r"\\{TSID\\}", r"(\d+)")
+					condition_tsid = re.escape(self.provider_tsid_search_criteria).replace("\\{TSID\\}", r"(\d+)")
 					match_tsid = re.search(condition_tsid, line)
 					if match_tsid:
 						tsid = int(match_tsid.group(1))
@@ -169,6 +169,14 @@ class M3UProvider(IPTVProcessor):
 						subst_match = re.search(subst_condition, line if subst.search_key == "#EXTINF" else url)
 						if subst_match and subst_match.group(1) in subst.substitions:
 							ch_name = subst.substitions[subst_match.group(1)]
+
+				if len(self.epg_substitions) > 0:
+					subst_name = self.epg_substitions["#EXTINF"] + self.epg_substitions["#URL"]
+					for subst in subst_name:
+						subst_condition = subst.search_regex
+						subst_match = re.search(subst_condition, line if subst.search_key == "#EXTINF" else url)
+						if subst_match and subst_match.group(1) in subst.substitions:
+							epg_id = subst.substitions[subst_match.group(1)]
 
 				resolution_match = re.search(r"tvg-resolution=\"(.*?)\"", line, re.IGNORECASE)
 				if resolution_match:

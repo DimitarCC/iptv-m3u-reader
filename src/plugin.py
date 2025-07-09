@@ -180,31 +180,38 @@ def tmdbScreenMovieHelper(VoDObj):
 					tmdb.API_KEY = base64.b64decode('ZDQyZTZiODIwYTE1NDFjYzY5Y2U3ODk2NzFmZWJhMzk=')
 					return (VoDObj.name, "movie", tmdbTempDir + tmdb_id + ".jpg", tmdb_id, 2, url_backdrop), url_cover
 
-def readSubstitions(type, scheme): # type can be 0: servicename, 1: epg
+def readSubstitions(scheme):
+	def make_result_obj():
+		res = {}
+		res["#EXTINF"] = []
+		res["#URL"] = []
+		return res
+
+	def subIter(elements, result_obj):
+		for sname_subst in elements:
+			for sname_subst_elem in sname_subst.findall("substitution"):
+				subst_item = Substition(sname_subst_elem.get("search-line"), sname_subst_elem.get("search-regex"))
+				content = sname_subst_elem.text
+				content_lines = content.splitlines()
+				content_dict = {}
+				for line in content_lines:
+					line = line.rstrip(",").strip().replace("\t", "")
+					if line:
+						k,v = line.split(":")
+						content_dict[k] = v
+				subst_item.substitions = content_dict
+				result_obj[subst_item.search_key].append(subst_item)
+
 	if not fileExists(USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE % scheme):
-		return {}
-	if type == 0:
-		fd = open(USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE % scheme, 'rb')
-		result = {}
-		result["#EXTINF"] = []
-		result["#URL"] = []
-		for subst, elem in iterparse(fd):
-			if elem.tag == "substitutions":
-				for sname_subst in elem.findall("servicename"):
-					for sname_subst_elem in sname_subst.findall("substitution"):
-						subst_item = Substition(sname_subst_elem.get("search-line"), sname_subst_elem.get("search-regex"))
-						content = sname_subst_elem.text
-						content_lines = content.splitlines()
-						content_dict = {}
-						for line in content_lines:
-							line = line.rstrip(",").strip().replace("\t", "")
-							if line:
-								k,v = line.split(":")
-								content_dict[k] = v
-						subst_item.substitions = content_dict
-						result[subst_item.search_key].append(subst_item)
-		return result
-	return {}
+		return {}, {}
+	fd = open(USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE % scheme, 'rb')
+	result = make_result_obj()
+	result_epg = make_result_obj()
+	for subst, elem in iterparse(fd):
+		if elem.tag == "substitutions":
+			subIter(elem.findall("servicename"), result)
+			subIter(elem.findall("epgid"), result_epg)
+	return result, result_epg
 
 def readProviders():
 	if not fileExists(USER_IPTV_PROVIDERS_FILE):
@@ -264,7 +271,7 @@ def readProviders():
 
 				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True) # create provider subfolder if not exists
 				providerObj.loadMedialLibraryItems()
-				providerObj.servicename_substitutions = readSubstitions(0, providerObj.scheme)
+				providerObj.servicename_substitutions, providerObj.epg_substitions = readSubstitions(providerObj.scheme)
 
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("xtreemprovider"):
