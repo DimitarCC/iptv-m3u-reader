@@ -4,7 +4,7 @@ cd meta
 version=$(grep Version control|cut -d " " -f 2)
 package=$(grep Package control|cut -d " " -f 2)
 mkdir -p usr/lib/enigma2/python/Plugins/SystemPlugins/M3UIPTV
-cp -r ../src ./usr/lib/enigma2/python/Plugins/SystemPlugins/M3UIPTV
+cp -r ../src/. ./usr/lib/enigma2/python/Plugins/SystemPlugins/M3UIPTV
 tar -cvzf data.tar.gz usr
 tar -cvzf control.tar.gz control
 
