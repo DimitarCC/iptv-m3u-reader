@@ -529,10 +529,11 @@ def writeProviders():
 # Function for overwrite/extend some functions from Navigation.py so to inject own code
 def injectIntoNavigation(session):
 	import NavigationInstance
-
 	if hasattr(NavigationInstance.instance, "playServiceExtensions") and playServiceExtension not in NavigationInstance.instance.playServiceExtensions:
 		NavigationInstance.instance.playServiceExtensions.append(playServiceExtension)
 	elif not hasattr(NavigationInstance.instance, "playServiceExtensions"):
+		if not hasattr(NavigationInstance.instance, "firstStart"):
+			NavigationInstance.instance.firstStart = False
 		Navigation.originalPlayingServiceReference = None
 		NavigationInstance.instance.playService = playServiceWithIPTVATV.__get__(NavigationInstance.instance, Navigation)
 	if hasattr(NavigationInstance.instance, "recordServiceExtensions") and record_pipServiceExtension not in NavigationInstance.instance.recordServiceExtensions:
@@ -744,10 +745,11 @@ def playRealService(self, nnref):
 	InfoBarInstance = InfoBarCount == 1 and InfoBar.instance
 	if InfoBarInstance and distro not in type2_distros:
 		current_service_source = InfoBarInstance.session.screen["CurrentService"]
-		if "%3a//" in nnref.toString():
-			current_service_source.newService(nnref)
-		else:
-			current_service_source.newService(True)
+		if hasattr(current_service_source, "newService"):
+			if "%3a//" in nnref.toString():
+				current_service_source.newService(nnref)
+			else:
+				current_service_source.newService(True)
 
 		InfoBarInstance.serviceStarted()
 
