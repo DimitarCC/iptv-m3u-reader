@@ -155,7 +155,7 @@ class StalkerEPG(resource.Resource):
 			return providers[provider].generateXMLTVFile()
 		except:
 			return None
-		
+
 class Substition():
 	def __init__(self, key, regex):
 		self.search_key = key
@@ -577,7 +577,7 @@ def playServiceExtension(navigation_instance, playref, event, infoBar_instance):
 			infoBar_instance.session.screen["Event_Next"].updateSource(playref)
 		return result[0], result[2]
 	return playref, False
-		
+
 def record_pipServiceExtension(navigation_instance, playref):
 	if callable(processIPTVService):
 		return processIPTVService(playref, None)[0]
@@ -792,16 +792,16 @@ class VoDMoviePlayer(MoviePlayer, SubsSupport, SubsSupportStatus):
 		self.__event_tracker = ServiceEventTracker(screen=self, eventmap={
 			iPlayableService.evStart: self.__evServiceStart,
 			iPlayableService.evEnd: self.__evServiceEnd,})
-		
+
 	def getLength(self):
 		seek = self.getSeek()
 		if seek is None:
 			return None
 		length = seek.getLength()
-		if length[0]:
+		if not length or length[0]:
 			return 0
 		return length[1] / 90000
-	
+
 	def getPosition(self):
 		seek = self.getSeek()
 		if seek is None:
@@ -835,7 +835,7 @@ class VoDMoviePlayer(MoviePlayer, SubsSupport, SubsSupportStatus):
 
 	def setProgress(self, pos):
 		len = self.getLength()
-		if len == 0:
+		if len is None or pos is None:
 			self["progress"].value = 0
 			self["progress_summary"].value = 0
 			text = "-00:00:00         00:00:00         +00:00:00"
@@ -852,8 +852,13 @@ class VoDMoviePlayer(MoviePlayer, SubsSupport, SubsSupportStatus):
 			self["time_remaining_summary"].setText(text_remaining)
 			return
 
-		r = self.getLength() - pos  # Remaining
-		progress_val = i if (i := int((pos / len) * 100)) and i >= 0 else 0
+		if len <= 0:
+			progress_val = 0
+		else:
+			progress_val = int((pos / len) * 100)
+			progress_val = max(min(progress_val, 100), 0)
+		r = max(len - pos, 0)
+
 		self["progress"].value = progress_val
 		self["progress_summary"].value = progress_val
 		text = "-%d:%02d:%02d         %d:%02d:%02d         +%d:%02d:%02d" % (pos / 3600, pos % 3600 / 60, pos % 60, len / 3600, len % 3600 / 60, len % 60, r / 3600, r % 3600 / 60, r % 60)
@@ -945,7 +950,7 @@ class M3UIPTVVoDSeries(Screen):
 	skin = ["""
 		<screen name="M3UIPTVVoDSeries" position="center,center" size="%d,%d">
 			<panel name="__DynamicColorButtonTemplate__"/>
-		 	<widget name="overlay" position="%d,%d" zPosition="12" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1"/>
+			 <widget name="overlay" position="%d,%d" zPosition="12" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1"/>
 			<widget source="list" render="Listbox" position="%d,%d" size="%d,%d" scrollbarMode="showOnDemand">
 				<convert type="TemplatedMultiContent">
 					{"template": [
@@ -956,7 +961,7 @@ class M3UIPTVVoDSeries(Screen):
 					}
 				</convert>
 			</widget>
-		 	<widget name="poster" position="%d,%d" size="%d,%d"/>
+			 <widget name="poster" position="%d,%d" size="%d,%d"/>
 			<widget source="description" render="Label" position="%d,%d" zPosition="10" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1" />
 		</screen>""",
 			980, 600,  # screen
@@ -1043,7 +1048,7 @@ class M3UIPTVVoDSeries(Screen):
 		current_cover_url = current_cover_url.replace("\\", "")
 		if self.deferred_cover_url and self.deferred_cover_url == current_cover_url:
 			return
-		
+
 		if self.processing_cover:
 			self.deferred_cover_url = current_cover_url
 			return
@@ -1052,8 +1057,8 @@ class M3UIPTVVoDSeries(Screen):
 		if not self.deferred_cover_url:
 			try:
 				req = urllib.request.Request(current_cover_url, headers={
-        										'User-Agent': REQUEST_USER_AGENT #'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
-    										})
+												'User-Agent': REQUEST_USER_AGENT #'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+											})
 				response = urllib.request.urlopen(req, timeout=5)
 				if response.status != 200:
 					self.processing_cover = False
@@ -1063,10 +1068,10 @@ class M3UIPTVVoDSeries(Screen):
 				makedirs('/tmp/M3UIPTV', exist_ok=True)
 				with open('/tmp/M3UIPTV/poster.png', 'wb') as handler:
 					handler.write(response.read())
-				
+
 				piconsize = self["poster"].instance.size()
 				self.picload.setPara((piconsize.width(), piconsize.height(), 1, 1, 1, 1, '#FF111111'))
-				
+
 				if path.exists('/tmp/M3UIPTV/poster.png'):
 					self.picload.startDecode('/tmp/M3UIPTV/poster.png')
 				else:
@@ -1141,7 +1146,7 @@ class M3UIPTVVoDSeries(Screen):
 		except (TimeoutError, HTTPError, URLError) as err:
 			print("[M3UIPTVVoDSeries] keySelect, failure in getSeriesById, %s:" % type(err).__name__, err)
 			return False
-		
+
 	def loadSeriesList(self, state):
 		if not state:
 			self["overlay"].hide()
@@ -1275,7 +1280,7 @@ class M3UIPTVVoDMovies(Screen):
 					}
 				</convert>
 			</widget>
-		 	<widget name="poster" position="%d,%d" size="%d,%d"/>
+			 <widget name="poster" position="%d,%d" size="%d,%d"/>
 			<widget source="description" render="Label" position="%d,%d" zPosition="10" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1" />
 		</screen>""",
 			980, 600,  # screen
@@ -1351,13 +1356,13 @@ class M3UIPTVVoDMovies(Screen):
 		if self.processing_cover:
 			self.deferred_cover_url = current_cover_url
 			return
-		
+
 		self.processing_cover = True
 		if not self.deferred_cover_url:
 			try:
 				req = urllib.request.Request(current_cover_url, headers={
-        										'User-Agent': REQUEST_USER_AGENT #'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
-    										})
+												'User-Agent': REQUEST_USER_AGENT #'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+											})
 				response = urllib.request.urlopen(req, timeout=5)
 
 				if response.status != 200:
@@ -1368,10 +1373,10 @@ class M3UIPTVVoDMovies(Screen):
 				makedirs('/tmp/M3UIPTV', exist_ok=True)
 				with open('/tmp/M3UIPTV/poster.png', 'wb') as handler:
 					handler.write(response.read())
-				
+
 				piconsize = self["poster"].instance.size()
 				self.picload.setPara((piconsize.width(), piconsize.height(), 1, 1, 1, 1, '#FF111111'))
-				
+
 				if path.exists('/tmp/M3UIPTV/poster.png'):
 					self.picload.startDecode('/tmp/M3UIPTV/poster.png')
 				else:
@@ -1523,11 +1528,11 @@ class M3UIPTVManagerConfig(Screen):
 			<widget source="list" render="Listbox" position="%d,%d" size="%d,%d" scrollbarMode="showOnDemand">
 				<convert type="TemplatedMultiContent">
 					{"template": [
-		 					MultiContentEntryPixmapAlphaBlend(pos = (%d,%d), size = (%d,%d), flags = BT_SCALE | BT_KEEP_ASPECT_RATIO, png = 2),
+							 MultiContentEntryPixmapAlphaBlend(pos = (%d,%d), size = (%d,%d), flags = BT_SCALE | BT_KEEP_ASPECT_RATIO, png = 2),
 							MultiContentEntryText(pos = (%d,%d), size = (%d,%d), flags = RT_HALIGN_LEFT, text = 1), # index 0 is the MenuText,
-		 					MultiContentEntryText(pos = (%d,%d), size = (%d,%d), flags = RT_HALIGN_LEFT, text = 4),
-		 					MultiContentEntryPixmapAlphaBlend(pos = (%d,%d), size = (%d,%d), flags = BT_SCALE | BT_KEEP_ASPECT_RATIO, png = 3),
-		 					MultiContentEntryPixmapAlphaBlend(pos = (%d,%d), size = (%d,%d), flags = BT_SCALE | BT_KEEP_ASPECT_RATIO, png = 5),
+							 MultiContentEntryText(pos = (%d,%d), size = (%d,%d), flags = RT_HALIGN_LEFT, text = 4),
+							 MultiContentEntryPixmapAlphaBlend(pos = (%d,%d), size = (%d,%d), flags = BT_SCALE | BT_KEEP_ASPECT_RATIO, png = 3),
+							 MultiContentEntryPixmapAlphaBlend(pos = (%d,%d), size = (%d,%d), flags = BT_SCALE | BT_KEEP_ASPECT_RATIO, png = 5),
 						],
 					"fonts": [gFont("Regular",%d)],
 					"itemHeight":%d
@@ -1591,9 +1596,9 @@ class M3UIPTVManagerConfig(Screen):
 		self.buildList()
 		for provider in providers:
 			providers[provider].onProgressChanged.append(self.onProgressChanged)
-		
+
 		threads.deferToThread(self.loadInfoForProviders).addCallback(self.onProgressChanged)
-			
+
 		self["key_red"] = StaticText(_("Close"))
 		self["key_green"] = StaticText(_("Add provider"))
 		self["key_yellow"] = StaticText(_("Generate bouquets"))
@@ -2109,7 +2114,7 @@ class DaysScreen(Setup):
 		Setup.__init__(self, session, None)
 		self.title = _("M3UIPTV schedule") + " - " + _("Select days")
 		self.addSaveNotifier(self.updateSchedule)
-		
+
 	def createSetup(self):
 		configlist = []
 		days = (_("Monday"), _("Tuesday"), _("Wednesday"), _("Thursday"), _("Friday"), _("Saturday"), _("Sunday"))
