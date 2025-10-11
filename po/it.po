@@ -3,9 +3,9 @@ msgstr ""
 "Project-Id-Version: M3UIPTV\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-07-02 16:05+0300\n"
-"PO-Revision-Date: \n"
+"PO-Revision-Date: 2025-10-11 16:05+0100\n"
 "Last-Translator: \n"
-"Language-Team: Lululla\n"
+"Language-Team: Madhouse\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -130,11 +130,11 @@ msgstr "Consenti la visualizzazione della voce di menu \"Video on Demand\" nel m
 
 #: ../src/plugin.py:1787
 msgid "Alphabetically"
-msgstr ""
+msgstr "In ordine alfabetico"
 
 #: ../src/plugin.py:2070
 msgid "Also requires enabling in each individual provider that is to be updated."
-msgstr ""
+msgstr "Richiede inoltre l'abilitazione in ogni singolo provider da aggiornare."
 
 #: ../src/plugin.py:1782
 msgid "Append"
@@ -147,11 +147,11 @@ msgstr "Vuoi davvero rimuovere definitivamente il provider \"%s\" dalla tua conf
 
 #: ../src/plugin.py:2104
 msgid "At least one day of the week must be selected"
-msgstr ""
+msgstr "Deve essere selezionato almeno un giorno della settimana"
 
 #: ../src/plugin.py:1870
 msgid "Auto updates"
-msgstr ""
+msgstr "Aggiornamenti automatici"
 
 #: ../src/plugin.py:2044
 msgid "Automatically start time shift after"
@@ -177,7 +177,7 @@ msgstr "Bouquet da creare"
 
 #: ../src/plugin.py:1786
 msgid "Bouquet for provider and sub-bouquets for groups"
-msgstr ""
+msgstr "Bouquet per il fornitore e sotto-bouquet per i gruppi"
 
 #: ../src/plugin.py:2027
 msgid "Bouquet name character case"
@@ -219,7 +219,7 @@ msgstr "Cambia il sistema di riproduzione con uno dei lettori disponibili nel pl
 
 #: ../src/plugin.py:1867
 msgid "Channel ordering criteria"
-msgstr ""
+msgstr "Criteri di ordinamento dei canali"
 
 #: ../src/plugin.py:2022
 msgid "Check for Network"
@@ -227,7 +227,7 @@ msgstr "Controlla la rete"
 
 #: ../src/plugin.py:1582
 msgid "Clear all data"
-msgstr ""
+msgstr "Cancella tutti i dati"
 
 #: ../src/plugin.py:1579
 msgid "Close"
@@ -268,11 +268,11 @@ msgstr "Vuoi riprendere la riproduzione?"
 
 #: ../src/plugin.py:2029
 msgid "Download and display posters for VoD items"
-msgstr ""
+msgstr "Scarica e visualizza i poster per la lista VoD"
 
 #: ../src/plugin.py:2029
 msgid "Download and display posters for VoD items if available."
-msgstr ""
+msgstr "Scarica e mostra i poster per i VoD, se disponibili."
 
 #: ../src/plugin.py:1857
 msgid "Download picons"
@@ -311,11 +311,11 @@ msgstr "Abilitare il gestore IPTV"
 
 #: ../src/plugin.py:1847
 msgid "Enable Media Library"
-msgstr ""
+msgstr "Abilita Libreria multimediale"
 
 #: ../src/plugin.py:2033
 msgid "Enable catchup/archive entries in EPG screens for period"
-msgstr ""
+msgstr "Abilita le voci di catchup nelle schermate EPG"
 
 #: ../src/plugin.py:2038
 msgid "Enable new GStreamer playback"
@@ -323,7 +323,7 @@ msgstr "Abilita la nuova riproduzione GStreamer"
 
 #: ../src/plugin.py:2033 ../src/plugin.py:2034
 msgid "Enables possibility to return back in epg screens so to use old entries for invoke catchup/archive/timeshift."
-msgstr ""
+msgstr "Consente di tornare indietro nelle schermate EPG in modo da utilizzare vecchie voci per richiamare catchup/archive/timeshift."
 
 #: ../src/plugin.py:2066
 msgid "Enigma2 playback system"
@@ -336,15 +336,15 @@ msgstr "Ep%s"
 
 #: ../src/plugin.py:2031
 msgid "Fallback location for picons"
-msgstr ""
+msgstr "Posizione dei picons"
 
 #: ../src/plugin.py:2031
 msgid "Fallback loction for picons used when current active picon location can not be detected."
-msgstr ""
+msgstr "Posizione per i picon utilizzati quando non è possibile rilevare la posizione del picon attivo corrente."
 
 #: ../src/plugin.py:1626 ../src/plugin.py:1665
 msgid "Fetching VoD items"
-msgstr ""
+msgstr "Recupero degli elementi VoD"
 
 #: ../src/plugin.py:1821
 msgid "Filter"
@@ -356,7 +356,7 @@ msgstr "Flussonic"
 
 #: ../src/plugin.py:2097
 msgid "Friday"
-msgstr ""
+msgstr "Venerdì"
 
 #: ../src/menu.xml
 msgid "General settings for IPTV subsystem."
@@ -372,7 +372,7 @@ msgstr "Genera bouquet"
 
 #: ../src/plugin.py:1770
 msgid "HLS (M3U8)"
-msgstr ""
+msgstr "HLS (M3U8)"
 
 #: ../src/plugin.py:1228 ../src/plugin.py:1408
 msgid "IMDb search"
@@ -416,7 +416,7 @@ msgstr "Se la playlist è già memorizzata su un dispositivo locale, puoi utiliz
 
 #: ../src/plugin.py:1870
 msgid "Include this provider when the global update schedule runs."
-msgstr ""
+msgstr "Includi questo provider quando viene eseguita la pianificazione dell'aggiornamento globale."
 
 #: ../src/plugin.py:701
 msgid "Incorrect type service for PiP!"
@@ -432,7 +432,7 @@ msgstr "È una prova"
 
 #: ../src/plugin.py:2034
 msgid "Local EPG server listening port"
-msgstr ""
+msgstr "Porta di ascolto del server EPG locale"
 
 #: ../src/plugin.py:1537
 msgid "M3U IPTV Manager - providers"
@@ -481,27 +481,27 @@ msgstr "Numero massimo di thread durante i download di picon. Se la casella rest
 
 #: ../src/plugin.py:1855
 msgid "Media Library Access Token"
-msgstr ""
+msgstr "Token di accesso alla libreria multimediale"
 
 #: ../src/plugin.py:1853
 msgid "Media Library Password"
-msgstr ""
+msgstr "Password della libreria multimediale"
 
 #: ../src/plugin.py:1850
 msgid "Media Library URL"
-msgstr ""
+msgstr "URL della libreria multimediale"
 
 #: ../src/plugin.py:1852
 msgid "Media Library Username"
-msgstr ""
+msgstr "Username libreria multimediale"
 
 #: ../src/plugin.py:1849
 msgid "Media Library type"
-msgstr ""
+msgstr "Tipo di libreria multimediale"
 
 #: ../src/plugin.py:2097
 msgid "Monday"
-msgstr ""
+msgstr "Lunedi"
 
 #: ../src/menu.xml
 msgid "Movies"
@@ -575,16 +575,16 @@ msgstr "Gestore della playlist"
 
 #: ../src/plugin.py:959
 msgid "Please wait! Loading data from server."
-msgstr ""
+msgstr "Attendi! Caricamento dati dal server."
 
 #: ../src/plugin.py:1736
 msgid "Portal version"
-msgstr ""
+msgstr "Versione portale"
 
 #: ../src/plugin.py:1790 ../src/plugin.py:1791 ../src/plugin.py:1792
 #: ../src/plugin.py:2014
 msgid "Press OK"
-msgstr ""
+msgstr "Premi OK"
 
 #: ../src/plugin.py:1072
 msgid "Press OK to access selected item"
@@ -616,16 +616,16 @@ msgstr "Premere OK per selezionare la voce corrente"
 
 #: ../src/plugin.py:1873
 msgid "Press OK to select which bouquets/categories will be blacklisted."
-msgstr ""
+msgstr "Premere OK per selezionare quali bouquet/categorie saranno inseriti nella lista nera."
 
 #: ../src/plugin.py:1875 ../src/plugin.py:1876
 #, fuzzy
 msgid "Press OK to select which categories will be blacklisted."
-msgstr "Premere OK per selezionare una categoria"
+msgstr "Premere OK per selezionare una categoria dalla lista nera."
 
 #: ../src/plugin.py:2073
 msgid "Press OK to select which days of the week to perform the update."
-msgstr ""
+msgstr "Premere OK per selezionare i giorni della settimana in cui eseguire l'aggiornamento."
 
 #: ../src/plugin.py:1865
 msgid "Provider TSID retrival condition"
@@ -662,7 +662,7 @@ msgstr "Richiesta timeout"
 
 #: ../src/plugin.py:1870
 msgid "Requires the scheduler to be set up in the settings screen."
-msgstr ""
+msgstr "Richiede che la pianificazione sia configurata nella schermata delle impostazioni."
 
 #: ../src/IPTVCatchupPlayer.py:304
 #, python-format
@@ -676,7 +676,7 @@ msgstr "S%s"
 
 #: ../src/plugin.py:2097
 msgid "Saturday"
-msgstr ""
+msgstr "Sabato"
 
 #: ../src/plugin.py:1986
 msgid "Save"
@@ -684,15 +684,15 @@ msgstr "Salva"
 
 #: ../src/plugin.py:2073
 msgid "Schedule days of the week"
-msgstr ""
+msgstr "Pianifica i giorni della settimana"
 
 #: ../src/plugin.py:2072
 msgid "Schedule time of day"
-msgstr ""
+msgstr "Pianifica l'ora del giorno"
 
 #: ../src/plugin.py:2070
 msgid "Schedule update"
-msgstr ""
+msgstr "Pianifica l'aggiornamento"
 
 #: ../src/plugin.py:1839
 msgid "Scheme"
@@ -729,7 +729,7 @@ msgstr "Selezionare \"Sì\" per consentire l'uso della barra di ricerca per pass
 
 #: ../src/plugin.py:2070
 msgid "Select 'yes' for automated updates of providers."
-msgstr ""
+msgstr "Selezionare 'Si' per gli aggiornamenti automatici dei provider."
 
 #: ../src/plugin.py:2068
 msgid "Select a player to be in use."
@@ -737,7 +737,7 @@ msgstr "Seleziona un lettore da utilizzare."
 
 #: ../src/plugin.py:2092 ../src/plugin.py:2105
 msgid "Select days"
-msgstr ""
+msgstr "Seleziona i giorni"
 
 #: ../src/plugin.py:2051
 msgid "Select if timeshift should continue when set to record."
@@ -777,7 +777,7 @@ msgstr "Url del Server"
 
 #: ../src/plugin.py:2072
 msgid "Set the time of day to perform the update."
-msgstr ""
+msgstr "Imposta l'ora del giorno in cui eseguire l'aggiornamento."
 
 #: ../src/plugin.py:1868
 msgid "Sets custom User-Agent for use with services that requires specific one."
@@ -835,11 +835,11 @@ msgstr "Specifica come le voci xmltv verranno abbinate ai canali."
 
 #: ../src/plugin.py:1847
 msgid "Specify is there media library available on separate url."
-msgstr ""
+msgstr "Specificare se la libreria multimediale è disponibile su un URL separato."
 
 #: ../src/plugin.py:1850
 msgid "Specify media library URL."
-msgstr ""
+msgstr "Specificare l'URL della libreria multimediale."
 
 #: ../src/plugin.py:1849
 #, fuzzy
@@ -901,11 +901,11 @@ msgstr "Interrompe l'utilizzo del timeshift se è in corso una registrazione. (C
 
 #: ../src/plugin.py:1844
 msgid "Stream output format"
-msgstr ""
+msgstr "Formato di output del flusso"
 
 #: ../src/plugin.py:2097
 msgid "Sunday"
-msgstr ""
+msgstr "Domenica"
 
 #: ../src/plugin.py:1226 ../src/plugin.py:1406
 msgid "TMDb search"
@@ -921,7 +921,7 @@ msgstr "Server TVHeadend"
 
 #: ../src/plugin.py:1749
 msgid "TXT"
-msgstr ""
+msgstr "TXT"
 
 #: ../src/plugin.py:1836
 msgid "The URL where EPG data for this provider can be downloaded."
@@ -933,13 +933,15 @@ msgstr "Viene utilizzata l'API catchup."
 
 #: ../src/plugin.py:1816
 msgid "The format of the VOD playlist (m3u; m3u8; txt)"
-msgstr ""
+msgstr "Il formato della playlist VOD (m3u; m3u8; txt)"
 
 #: ../src/plugin.py:1844
 msgid ""
 "The format used to deliver the streams. Can be TS or HLS.\n"
 "NOTE: Setting playback system to DVB will make it impossible to use HLS as output format."
 msgstr ""
+"Il formato utilizzato per trasmettere i flussi. Può essere TS o HLS.\n"
+"NOTA: impostando il sistema di riproduzione su DVB, sarà impossibile utilizzare HLS come formato di output."
 
 #: ../src/plugin.py:1842
 msgid "The player used for playing Catchup/Archive. Can be GStreamer/HiSilicon, Extplayer3"
@@ -959,7 +961,7 @@ msgstr "Criterio di ricerca in base al quale il servizio verrà cercato nel file
 
 #: ../src/plugin.py:2097
 msgid "Thursday"
-msgstr ""
+msgstr "Giovedì"
 
 #: ../src/plugin.py:2023
 msgid "Timeout in seconds for the requests of getting playlist."
@@ -975,16 +977,16 @@ msgstr "Attiva/disattiva tutto"
 
 #: ../src/plugin.py:1770
 msgid "Transport stream (TS)"
-msgstr ""
+msgstr "Flusso di trasporto (TS)"
 
 #: ../src/plugin.py:2097
 msgid "Tuesday"
-msgstr ""
+msgstr "Martedì"
 
 #: ../src/StalkerProvider.py:591 ../src/StalkerProvider.py:592
 #: ../src/VODProvider.py:103 ../src/XtreemProvider.py:58
 msgid "UNCATEGORIZED"
-msgstr ""
+msgstr "NON CATEGORIZZATO"
 
 #: ../src/plugin.py:113
 msgid "UPPER case"
@@ -1005,7 +1007,7 @@ msgstr ""
 
 #: ../src/StalkerProvider.py:343
 msgid "Unknown"
-msgstr ""
+msgstr "Sconosciuto"
 
 #: ../src/plugin.py:1863
 msgid ""
@@ -1073,7 +1075,7 @@ msgstr "Nome utente"
 
 #: ../src/plugin.py:1816
 msgid "VOD playlist format"
-msgstr ""
+msgstr "Formato playlist VOD"
 
 #: ../src/plugin.py:2268 ../src/menu.xml
 msgid "Video On Demand"
@@ -1093,7 +1095,7 @@ msgstr "Video on Demand"
 
 #: ../src/plugin.py:1782
 msgid "VoD"
-msgstr ""
+msgstr "VoD"
 
 #: ../src/plugin.py:1468
 msgid "VoD Movie Categories"
@@ -1141,7 +1143,7 @@ msgstr "Sistema di riproduzione"
 
 #: ../src/plugin.py:2097
 msgid "Wednesday"
-msgstr ""
+msgstr "Mercoledì"
 
 #: ../src/plugin.py:2046
 msgid "When enabled, a warning will be displayed and the user will get an option to stop or to continue the time shift."
@@ -1166,7 +1168,7 @@ msgstr "Xtreme Codes"
 
 #: ../src/plugin.py:1796
 msgid "Xtream Codes (Username/Password)"
-msgstr ""
+msgstr "Xtream Codes (Username/Password)"
 
 #: ../src/plugin.py:1748 ../src/plugin.py:1782
 msgid "Xtreme Codes"
