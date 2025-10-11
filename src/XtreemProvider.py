@@ -214,7 +214,7 @@ class XtreemProvider(IPTVProcessor):
 							marker.insert(0, _("Released: %s") % str(date))
 						ext = episode.get("container_extension")
 						episode_url = "%s/series/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
-						se_num = f"S{season_num:02d}E{episode_num:02d}"
+						se_num = f"S{int(season_num or 0):02d}E{int(episode_num or 0):02d}"
 						title = title.replace(se_num, "").replace("." + ext, "")
 						title = f"{se_num} - {title}"
 						if title and (info or main_info) and title not in titles:
