@@ -4,7 +4,7 @@ from . import _
 from enigma import eServiceReference, eTimer, iPlayableService
 from Screens.InfoBar import InfoBar, MoviePlayer
 from Screens.MinuteInput import MinuteInput
-from Screens.Screen import Screen
+from Screens.Screen import ScreenSummary
 from Screens.MessageBox import MessageBox
 from Components.ServiceEventTracker import ServiceEventTracker
 from Components.Sources.Progress import Progress
@@ -428,19 +428,23 @@ class CatchupPlayer(MoviePlayer):
 		return CatchupPlayerSummary
 
 
-class CatchupPlayerSummary(Screen):
+class CatchupPlayerSummary(ScreenSummary):
 	skin = """
 	<screen position="0,0" size="800,480" resolution="800,480">
-		<widget source="session.CurrentService" render="Label" position="40,90" size="720,260" font="Regular;30" halign="center" valign="center" zPosition="2">
+		<widget source="session.CurrentService" render="Label" position="40,90" size="720,260" font="Regular;75" halign="center" valign="center" zPosition="2">
 			<convert type="ServiceName">Name</convert>
 		</widget>
 		<widget source="parent.progress_summary" render="Progress" position="40,340" size="720,30" borderColor="white" borderWidth="2" zPosition="2"/>
-		<widget source="parent.time_elapsed_summary" render="Label" position="40,385" size="320,70" font="Regular;25" halign="left" valign="center"/>
-		<widget source="parent.time_remaining_summary" render="Label" position="440,385" size="320,70" font="Regular;25" halign="right" valign="center"/>
-		<widget source="global.CurrentTime" render="Label" position="540,10" size="220,84" font="Regular;35" halign="left">
+		<widget source="parent.time_elapsed_summary" render="Label" position="40,385" size="320,70" font="Regular;60" halign="left" valign="center"/>
+		<widget source="parent.time_remaining_summary" render="Label" position="440,385" size="320,70" font="Regular;60" halign="right" valign="center"/>
+		<widget source="global.CurrentTime" render="Label" position="540,10" size="220,84" font="Regular;84" halign="left">
 			<convert type="ClockToText">Default</convert>
 		</widget>
 	</screen>"""
+
+	def __init__(self, session, parent):
+		ScreenSummary.__init__(self, session, parent=parent)
+		self.skinName = "CatchupPlayerSummary"
 
 
 def playArchiveEntry(self):
