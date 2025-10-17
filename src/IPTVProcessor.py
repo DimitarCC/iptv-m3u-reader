@@ -130,7 +130,7 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 						catchupSource = fsHost + "/" + fsChannelId + "/timeshift_rel-${offset}.m3u8" + fsUrlAppend
 					else:
 						catchupSource = fsHost + "/" + fsChannelId + "/" + fsListType + "-timeshift_rel-${offset}.m3u8" + fsUrlAppend
-				return catchupSource.replace("${start}", str(stime)).replace("${offset}", str(now - stime))
+				return catchupSource.replace("${start}", str(int(stime))).replace("${offset}", str(int(now - stime)))
 		else:
 			match = re.search(r"^(http[s]?:\/\/[^\/]+)\/(.*)\/([^\\?]*)(\\?.+=.+)?$", url)
 			if match:
@@ -144,7 +144,7 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 						catchupSource = fsHost + "/" + fsChannelId + "/timeshift_abs-${start}.ts" + fsUrlAppend
 					else:  # the catchup type was "flussonic" or "flussonic-hls"
 						catchupSource = fsHost + "/" + fsChannelId + "/timeshift_rel-${offset}.m3u8" + fsUrlAppend
-					return catchupSource.replace("${start}", str(stime)).replace("${offset}", str(now - stime))
+					return catchupSource.replace("${start}", str(int(stime))).replace("${offset}", str(int(now - stime)))
 
 	return url_play
 
