@@ -148,7 +148,7 @@ class M3UProvider(IPTVProcessor):
 								if curr_group not in groups and self.create_bouquets_strategy != 1:
 									groups[curr_group] = []
 							if next_line.startswith(("http://", "https://", "YT-DLP://", "YT://")):
-								url = next_line.replace(":", "%3a")
+								url = next_line.replace(":", "%3a").replace("{lutc}", str(int(time())))
 								url = self.constructCatchupSuffix(captchup_days if captchup_days else global_tvg_rec, url, CATCHUP_TYPES[self.catchup_type])
 								captchup_days = ""
 								found_url = True
@@ -192,7 +192,7 @@ class M3UProvider(IPTVProcessor):
 				else:
 					stype = get_resolution_from_name(ch_name)
 
-				sref = self.generateChannelReference(stype, tsid, url.replace(":", "%3a"), ch_name)
+				sref = self.generateChannelReference(stype, tsid, url.replace(":", "%3a").replace("{lutc}", str(int(time()))), ch_name)
 				if self.create_bouquets_strategy != 1:
 					if curr_group:
 						groups[curr_group].append((sref, epg_id if self.epg_match_strategy == 0 else ch_name, ch_name, tsid))
@@ -388,7 +388,7 @@ class M3UProvider(IPTVProcessor):
 					catchup_days = ""
 					if match:
 						catchup_days = match.group(1)
-					iptv_url = line.replace(":", "%3a")
+					iptv_url = line.replace(":", "%3a").replace("{lutc}", str(int(time())))
 					iptv_url = self.constructCatchupSuffix(catchup_days, iptv_url, CATCHUP_TYPES[self.catchup_type])
 					if self.custom_user_agent != "off":
 						iptv_url += f"#User-Agent={USER_AGENTS[self.custom_user_agent]}"
