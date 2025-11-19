@@ -28,14 +28,20 @@ class M3UProvider(IPTVProcessor):
 		self.play_system_catchup = "4097"
 
 	def getEpgUrlForSources(self):
-		self.checkForNetwrok()
-		req = self.constructRequest(self.url)
-		req_timeout_val = config.plugins.m3uiptv.req_timeout.value
-		if req_timeout_val != "off":
-			response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
+		if not self.isLocalPlaylist():
+			self.checkForNetwrok()
+			req = self.constructRequest(self.url)
+			req_timeout_val = config.plugins.m3uiptv.req_timeout.value
+			if req_timeout_val != "off":
+				response = urllib.request.urlopen(req, timeout=int(req_timeout_val))
+			else:
+				response = urllib.request.urlopen(req, timeout=10)  # set a timeout to prevent blocking
+			playlist = response.read().decode('utf-8')
 		else:
-			response = urllib.request.urlopen(req, timeout=10)  # set a timeout to prevent blocking
-		playlist = response.read().decode('utf-8')
+			if not fileExists(self.url):
+				return
+			fd = open(self.url, 'rb')
+			playlist = fd.read().decode('utf-8')
 		self.playlist = playlist
 		playlist_splitted = playlist.splitlines()
 		for line in playlist_splitted:
@@ -96,7 +102,7 @@ class M3UProvider(IPTVProcessor):
 				epg_match = self.searchForXMLTV(line, self.is_custom_xmltv)
 				if epg_match:
 					self.epg_url = epg_match.group(1)
-					self.is_dynamic_epg = not self.static_urls
+					self.is_dynamic_epg = not self.static_urls and not self.isLocalPlaylist()
 				continue
 			if self.ignore_vod and "group-title=\"VOD" in line:
 				continue
