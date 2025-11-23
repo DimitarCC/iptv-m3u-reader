@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-07-02 16:05+0300\n"
-"PO-Revision-Date: 2025-04-02 10:31+0300\n"
+"PO-Revision-Date: 2025-11-23 19:31+0200\n"
 "Last-Translator: kosmosspace@gmail.com\n"
 "Language-Team: airforce\n"
 "MIME-Version: 1.0\n"
@@ -67,9 +67,9 @@ msgid "%s: bouquets generated successfully"
 msgstr "%s: букеты успешно сгенерированы"
 
 #: ../src/plugin.py:1692
-#, fuzzy, python-format
+#, python-format
 msgid "%s: data removed successfully"
-msgstr "%s: букеты успешно удалены"
+msgstr "%s: данные успешно удалены"
 
 #: ../src/plugin.py:1644
 #, python-format
@@ -156,14 +156,12 @@ msgid "Automatically start timeshift after"
 msgstr "Автоматически запускать таймшифт после"
 
 #: ../src/plugin.py:1875
-#, fuzzy
 msgid "Blacklist VoD movie categories"
-msgstr "Категории фильмов VoD"
+msgstr "Черный список категорий фильмов VoD"
 
 #: ../src/plugin.py:1876
-#, fuzzy
 msgid "Blacklist VoD series categories"
-msgstr "Категории сериалов VoD"
+msgstr "Черный список категорий сериалов VoD"
 
 #: ../src/plugin.py:1860
 msgid "Bouquet creation strategy"
@@ -178,9 +176,8 @@ msgid "Bouquet name character case"
 msgstr "Имя букета с учетом регистра символов"
 
 #: ../src/plugin.py:1873
-#, fuzzy
 msgid "Bouquets blacklist"
-msgstr "Черный список букета"
+msgstr "Черный список букетов"
 
 #: ../src/plugin.py:1786
 msgid "Bouquets for 'All Channels' and groups"
@@ -444,9 +441,8 @@ msgid "M3UIPTV"
 msgstr "M3UIPTV"
 
 #: ../src/plugin.py:2092 ../src/plugin.py:2105
-#, fuzzy
 msgid "M3UIPTV schedule"
-msgstr "M3UIPTV"
+msgstr "M3UIPTV расписание"
 
 #: ../src/plugin.py:1802
 msgid "M3UIPTVManager"
@@ -609,12 +605,11 @@ msgstr "Нажмите OK, чтобы выбрать текущий пункт"
 
 #: ../src/plugin.py:1873
 msgid "Press OK to select which bouquets/categories will be blacklisted."
-msgstr ""
+msgstr "Нажмите OK, чтобы выбрать, какие букеты/категории будут занесены в черный список."
 
 #: ../src/plugin.py:1875 ../src/plugin.py:1876
-#, fuzzy
 msgid "Press OK to select which categories will be blacklisted."
-msgstr "Нажмите ОК для выбора категории"
+msgstr "Нажмите OK, чтобы выбрать категории, которые будут занесены в черный список."
 
 #: ../src/plugin.py:2073
 msgid "Press OK to select which days of the week to perform the update."
