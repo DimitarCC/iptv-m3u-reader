@@ -6,7 +6,7 @@ from .epgimport_helper import epgimport_helper
 from .Variables import REQUEST_USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, \
 					   CATCHUP_FLUSSONIC_TEXT, CATCHUP_VOD_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE, USER_AGENTS, \
 					   USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE, USER_IPTV_PROVIDER_VOD_MOVIES_BLACKLIST_FILE, \
-					   USER_IPTV_PROVIDER_VOD_SERIES_BLACKLIST_FILE
+					   USER_IPTV_PROVIDER_VOD_SERIES_BLACKLIST_FILE, SERVICEAPP_AVAILABLE
 from .VoDItem import VoDItem
 from .picon import Fetcher
 from Components.config import config
@@ -207,6 +207,8 @@ class IPTVProcessor():
 		# Fields for utilize substitutions if available
 		self.servicename_substitutions = {}
 		self.epg_substitions = {}
+		self.servicetype_substitions = {}
+		self.catchuptype_substitions = {}
 
 		# Fields for media library for M3U providers start here
 		self.has_media_library = False
@@ -434,12 +436,14 @@ class IPTVProcessor():
 		for f in self.onBouquetCreated:
 			f(self, error)
 
-	def generateChannelReference(self, type, tsid, url, name):
+	def generateChannelReference(self, type, tsid, url, name, stype=None):
+		if stype and stype in ["5001", "5002"] and not SERVICEAPP_AVAILABLE:
+			stype = None
 		if self.custom_user_agent == "off":
-			return "%s:0:%s:%X:%X:1:CCCC0000:0:0:0:%s:%s•%s" % (self.play_system, type, tsid, self.onid, url.replace(":", "%3a"), name, self.iptv_service_provider)
+			return "%s:0:%s:%X:%X:1:CCCC0000:0:0:0:%s:%s•%s" % (stype or self.play_system, type, tsid, self.onid, url.replace(":", "%3a"), name, self.iptv_service_provider)
 		else:
 			user_agent = USER_AGENTS[self.custom_user_agent]
-			return "%s:0:%s:%X:%X:1:CCCC0000:0:0:0:%s#User-Agent=%s:%s•%s" % (self.play_system, type, tsid, self.onid, url.replace(":", "%3a"), user_agent, name, self.iptv_service_provider)
+			return "%s:0:%s:%X:%X:1:CCCC0000:0:0:0:%s#User-Agent=%s:%s•%s" % (stype or self.play_system, type, tsid, self.onid, url.replace(":", "%3a"), user_agent, name, self.iptv_service_provider)
 
 	def getEpgUrl(self):  # if not overridden in the subclass
 		return self.custom_xmltv_url if self.is_custom_xmltv and self.custom_xmltv_url else self.epg_url
@@ -464,12 +468,14 @@ class IPTVProcessor():
 	def generateEPGChannelReference(self, original_sref):
 		return f"{':'.join(original_sref.split(':', 10)[:10])}:http%3a//m3u.iptv.com"
 
-	def constructCatchupSuffix(self, days, url, catchup_type):
+	def constructCatchupSuffix(self, days, url, catchup_type, catchupstype=None):
+		if catchupstype and catchupstype in ["5001", "5002"] and not SERVICEAPP_AVAILABLE:
+			catchupstype = None
 		if days.strip() and int(days) > 0:
 			days_int = int(days)
 			if days_int > 24:
 				days = str(days_int // 24)
-			captchup_addon = "%scatchuptype=%s&catchupdays=%s&catchupstype=%s" % ("&" if "?" in url else "?", catchup_type, days, self.play_system_catchup)
+			captchup_addon = "%scatchuptype=%s&catchupdays=%s&catchupstype=%s" % ("&" if "?" in url else "?", catchup_type, days, catchupstype or self.play_system_catchup)
 			if catchup_type == CATCHUP_XTREME_TEXT and self.server_timezone_offset:
 				captchup_addon += "&tz_offset=%d" % self.server_timezone_offset
 			return url + captchup_addon

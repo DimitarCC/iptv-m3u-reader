@@ -22,7 +22,7 @@ from .VODProvider import VODProvider
 from .IPTVProviders import providers, processService as processIPTVService
 from .IPTVCatchupPlayer import injectCatchupInEPG
 from .epgimport_helper import overwriteEPGImportEPGSourceInit
-from .Variables import PROVIDER_FOLDER, USER_IPTV_PROVIDERS_FILE, USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_STALKER, CATCHUP_FLUSSONIC, CATCHUP_VOD, REQUEST_USER_AGENT
+from .Variables import SERVICEAPP_AVAILABLE, PROVIDER_FOLDER, USER_IPTV_PROVIDERS_FILE, USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_STALKER, CATCHUP_FLUSSONIC, CATCHUP_VOD, REQUEST_USER_AGENT
 from Screens.Screen import Screen, ScreenSummary
 from Screens.InfoBar import InfoBar, MoviePlayer
 from Screens.InfoBarGenerics import streamrelay
@@ -43,7 +43,7 @@ from Components.Pixmap import Pixmap
 from Components.Sources.List import List
 from Components.Sources.Progress import Progress
 from Components.SystemInfo import BoxInfo
-from Tools.Directories import fileExists, isPluginInstalled, resolveFilename, SCOPE_CURRENT_SKIN
+from Tools.Directories import fileExists, resolveFilename, SCOPE_CURRENT_SKIN
 from Tools.BoundFunction import boundFunction
 from Tools.LoadPixmap import LoadPixmap
 from Navigation import Navigation
@@ -123,7 +123,7 @@ if searchPaths:
 	fpicon_locs = [(x.removesuffix("/"), x.removesuffix("/")) for x in searchPaths]
 config.plugins.m3uiptv.fallback_picon_loc = ConfigSelection(default="/picon", choices=fpicon_locs)
 vod_play_system_choices = [("4097", "HiSilicon" if BoxInfo.getItem("mediaservice") == "servicehisilicon" else "GStreamer")]
-if isPluginInstalled("ServiceApp"):
+if SERVICEAPP_AVAILABLE:
 	vod_play_system_choices.append(("5002", "Exteplayer3"))
 config.plugins.m3uiptv.vod_play_system = ConfigSelection(default="4097", choices=vod_play_system_choices)
 
@@ -156,11 +156,13 @@ class StalkerEPG(resource.Resource):
 		except:
 			return None
 
+
 class Substition():
 	def __init__(self, key, regex):
 		self.search_key = key
 		self.search_regex = regex
 		self.substitions = {}
+
 
 def tmdbScreenMovieHelper(VoDObj):
 	url = "%s/player_api.php?username=%s&password=%s&action=get_vod_info&vod_id=%s" % (VoDObj.providerObj.url, VoDObj.providerObj.username, VoDObj.providerObj.password, VoDObj.id)
@@ -180,6 +182,7 @@ def tmdbScreenMovieHelper(VoDObj):
 					tmdb.API_KEY = base64.b64decode('ZDQyZTZiODIwYTE1NDFjYzY5Y2U3ODk2NzFmZWJhMzk=')
 					return (VoDObj.name, "movie", tmdbTempDir + tmdb_id + ".jpg", tmdb_id, 2, url_backdrop), url_cover
 
+
 def readSubstitions(scheme):
 	def make_result_obj():
 		res = {}
@@ -197,21 +200,26 @@ def readSubstitions(scheme):
 				for line in content_lines:
 					line = line.rstrip(",").strip().replace("\t", "")
 					if line:
-						k,v = line.split(":")
+						k, v = line.split(":")
 						content_dict[k] = v
 				subst_item.substitions = content_dict
 				result_obj[subst_item.search_key].append(subst_item)
 
 	if not fileExists(USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE % scheme):
-		return {}, {}
+		return {}, {}, {}, {}
 	fd = open(USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE % scheme, 'rb')
 	result = make_result_obj()
 	result_epg = make_result_obj()
+	result_stype = make_result_obj()
+	result_catchup = make_result_obj()
 	for subst, elem in iterparse(fd):
 		if elem.tag == "substitutions":
 			subIter(elem.findall("servicename"), result)
 			subIter(elem.findall("epgid"), result_epg)
-	return result, result_epg
+			subIter(elem.findall("servicetype"), result_stype)
+			subIter(elem.findall("catchuptype"), result_catchup)
+	return result, result_epg, result_stype, result_catchup
+
 
 def readProviders():
 	if not fileExists(USER_IPTV_PROVIDERS_FILE):
@@ -269,9 +277,9 @@ def readProviders():
 						providerObj.media_library_object.username = providerObj.media_library_token
 						providerObj.media_library_object.password = providerObj.media_library_token
 
-				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True) # create provider subfolder if not exists
+				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True)  # create provider subfolder if not exists
 				providerObj.loadMedialLibraryItems()
-				providerObj.servicename_substitutions, providerObj.epg_substitions = readSubstitions(providerObj.scheme)
+				providerObj.servicename_substitutions, providerObj.epg_substitions, providerObj.servicetype_substitions, providerObj.catchuptype_substitions = readSubstitions(providerObj.scheme)
 
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("xtreemprovider"):
@@ -298,7 +306,7 @@ def readProviders():
 				providerObj.ch_order_strategy = int(provider.find("ch_order_strategy").text) if provider.find("ch_order_strategy") is not None else 0
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
-				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True) # create provider subfolder if not exists
+				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True)  # create provider subfolder if not exists
 				providerObj.loadInfoFromFile()
 				providerObj.loadMedialLibraryItems()
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
@@ -330,7 +338,7 @@ def readProviders():
 				providerObj.server_time_offset = provider.find("server_time_offset").text if provider.find("server_time_offset") is not None and provider.find("server_time_offset").text is not None else ""
 				if provider.find("provider_tsid_search_criteria") is not None:
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
-				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True) # create provider subfolder if not exists
+				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True)  # create provider subfolder if not exists
 				providerObj.loadInfoFromFile()
 				providerObj.loadMedialLibraryItems()
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
@@ -364,7 +372,7 @@ def readProviders():
 					providerObj.provider_tsid_search_criteria = provider.find("provider_tsid_search_criteria").text
 				providerObj.auto_updates = provider.find("auto_updates") is not None and provider.find("auto_updates").text == "on"
 				providerObj.last_vod_update_time = float(provider.find("last_vod_update_time").text) if provider.find("last_vod_update_time") is not None else 0
-				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True) # create provider subfolder if not exists
+				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True)  # create provider subfolder if not exists
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("vodprovider"):
 				providerObj = VODProvider()
@@ -376,10 +384,11 @@ def readProviders():
 				providerObj.ignore_vod = False
 				providerObj.onid = int(provider.find("onid").text)
 				providerObj.auto_updates = provider.find("auto_updates") is not None and provider.find("auto_updates").text == "on"
-				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True) # create provider subfolder if not exists
+				makedirs(PROVIDER_FOLDER % providerObj.scheme, exist_ok=True)  # create provider subfolder if not exists
 				providerObj.loadMedialLibraryItems()
 				providers[providerObj.scheme] = providerObj
 	fd.close()
+
 
 def writeProviders():
 	xml = []
@@ -517,7 +526,7 @@ def writeProviders():
 			xml.append("\t</vodprovider>\n")
 	xml.append("</providers>\n")
 	makedirs(path.dirname(USER_IPTV_PROVIDERS_FILE), exist_ok=True)  # create config folder recursive if not exists
-	makedirs(PROVIDER_FOLDER % val.scheme, exist_ok=True) # create provider subfolder if not exists
+	makedirs(PROVIDER_FOLDER % val.scheme, exist_ok=True)  # create provider subfolder if not exists
 	with write_lock:
 		f = open(USER_IPTV_PROVIDERS_FILE + ".writing", 'w')
 		f.write("".join(xml))
@@ -527,6 +536,8 @@ def writeProviders():
 		rename(USER_IPTV_PROVIDERS_FILE + ".writing", USER_IPTV_PROVIDERS_FILE)
 
 # Function for overwrite/extend some functions from Navigation.py so to inject own code
+
+
 def injectIntoNavigation(session):
 	import NavigationInstance
 	if hasattr(NavigationInstance.instance, "playServiceExtensions") and playServiceExtension not in NavigationInstance.instance.playServiceExtensions:
@@ -544,7 +555,7 @@ def injectIntoNavigation(session):
 		PictureInPicture.playServiceExtensions.append(record_pipServiceExtension)
 	elif not hasattr(PictureInPicture, "playServiceExtensions"):
 		PictureInPicture.playService = playServiceWithIPTVPiPATV
-	if QuadPiP and hasattr(QuadPiP, "playServiceExtensions" ) and playServiceQPiPExtension not in QuadPiP.playServiceExtensions:
+	if QuadPiP and hasattr(QuadPiP, "playServiceExtensions") and playServiceQPiPExtension not in QuadPiP.playServiceExtensions:
 		QuadPiP.playServiceExtensions.append(playServiceQPiPExtension)
 
 	NavigationInstance.instance.playRealService = playRealService.__get__(NavigationInstance.instance, Navigation)
@@ -556,13 +567,16 @@ def injectIntoNavigation(session):
 	injectCatchupInEPG()
 	overwriteEPGImportEPGSourceInit()
 
+
 def getCurrentServiceReferenceOriginal(self):
 	return self.originalPlayingServiceReference
+
 
 def getCurrentlyPlayingServiceOrGroup(self):
 	if not self.currentlyPlayingServiceOrGroup:
 		return None
 	return self.originalPlayingServiceReference or self.currentlyPlayingServiceOrGroup
+
 
 def playServiceQPiPExtension(instance, playref):
 	return playServiceExtension(None, playref, None, None)
@@ -578,10 +592,12 @@ def playServiceExtension(navigation_instance, playref, event, infoBar_instance):
 		return result[0], result[2]
 	return playref, False
 
+
 def record_pipServiceExtension(navigation_instance, playref):
 	if callable(processIPTVService):
 		return processIPTVService(playref, None)[0]
 	return playref
+
 
 def playServiceWithIPTVATV(self, ref, checkParentalControl=True, forceRestart=False, adjust=True, ignoreStreamRelay=False, event=None):
 		oldref = self.currentlyPlayingServiceOrGroup
@@ -601,7 +617,7 @@ def playServiceWithIPTVATV(self, ref, checkParentalControl=True, forceRestart=Fa
 				if not ignoreStreamRelay:
 					playref, isStreamRelay = streamrelay.streamrelayChecker(playref)
 				if not isStreamRelay:
-					try: # OpenATV 7.4 support
+					try:  # OpenATV 7.4 support
 						playref, wrappererror = self.serviceHook(playref)
 						if wrappererror:
 							return 1
@@ -644,7 +660,7 @@ def playServiceWithIPTVATV(self, ref, checkParentalControl=True, forceRestart=Fa
 				if not ignoreStreamRelay:
 					playref, isStreamRelay = streamrelay.streamrelayChecker(playref)
 				if not isStreamRelay:
-					try: # OpenATV 7.4 support
+					try:  # OpenATV 7.4 support
 						playref, wrappererror = self.serviceHook(playref)
 						if wrappererror:
 							return 1
@@ -687,6 +703,7 @@ def playServiceWithIPTVATV(self, ref, checkParentalControl=True, forceRestart=Fa
 			self.currentlyPlayingServiceOrGroup = InfoBarInstance.servicelist.servicelist.getCurrent()
 		return 1
 
+
 def playServiceWithIPTVPiPATV(self, service):
 		if service is None:
 			return False
@@ -718,6 +735,7 @@ def playServiceWithIPTVPiPATV(self, service):
 					Tools.Notifications.AddPopup(text=_("Incorrect type service for PiP!"), type=MessageBox.TYPE_ERROR, timeout=5, id="ZapPipError")
 		return False
 
+
 def recordServiceWithIPTVATV(self, ref, simulate=False, type=8):
 		import ServiceReference
 		service = None
@@ -736,6 +754,7 @@ def recordServiceWithIPTVATV(self, ref, simulate=False, type=8):
 				print("[Navigation] Record returned non-zero.")
 		return service
 
+
 def playRealService(self, nnref):
 	# self.pnav.stopService()
 	self.currentlyPlayingServiceReference = nnref
@@ -752,6 +771,7 @@ def playRealService(self, nnref):
 				current_service_source.newService(True)
 
 		InfoBarInstance.serviceStarted()
+
 
 class VoDMoviePlayer(MoviePlayer, SubsSupport, SubsSupportStatus):
 	def __init__(self, session, service, slist=None, lastservice=None):
@@ -791,7 +811,7 @@ class VoDMoviePlayer(MoviePlayer, SubsSupport, SubsSupportStatus):
 		}, -10)  # noqa: E123
 		self.__event_tracker = ServiceEventTracker(screen=self, eventmap={
 			iPlayableService.evStart: self.__evServiceStart,
-			iPlayableService.evEnd: self.__evServiceEnd,})
+			iPlayableService.evEnd: self.__evServiceEnd, })
 
 	def getLength(self):
 		seek = self.getSeek()
@@ -880,7 +900,7 @@ class VoDMoviePlayer(MoviePlayer, SubsSupport, SubsSupportStatus):
 			self.setProgress(curr_pos if self.current_pos == -1 else self.current_pos)
 
 	def __evServiceStart(self):
-		self.jumpPreviousNextMark(lambda x: 0, start=True) # Reset the stream to beginning since some network streams jumps to the end marker
+		self.jumpPreviousNextMark(lambda x: 0, start=True)  # Reset the stream to beginning since some network streams jumps to the end marker
 		if self.progress_timer:
 			self.progress_timer.start(1000)
 
@@ -940,6 +960,7 @@ class VoDMoviePlayer(MoviePlayer, SubsSupport, SubsSupportStatus):
 
 	def down(self):
 		pass
+
 
 class M3UIPTVVoDSeries(Screen):
 	MODE_GENRE = 0
@@ -1057,7 +1078,7 @@ class M3UIPTVVoDSeries(Screen):
 		if not self.deferred_cover_url:
 			try:
 				req = urllib.request.Request(current_cover_url, headers={
-												'User-Agent': REQUEST_USER_AGENT #'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+												'User-Agent': REQUEST_USER_AGENT  # 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
 											})
 				response = urllib.request.urlopen(req, timeout=5)
 				if response.status != 200:
@@ -1162,7 +1183,6 @@ class M3UIPTVVoDSeries(Screen):
 			self["list"].index = 0
 			self["list"].master.master.show()
 
-
 	def key_play(self):
 		if self.mode == self.MODE_EPISODE:
 			self.playMovie()
@@ -1233,7 +1253,7 @@ class M3UIPTVVoDSeries(Screen):
 					providerObj = current[3]
 					series = int(stream_data_split[1])
 					url = providerObj.getVoDPlayUrl(url, series=series)
-				ref = eServiceReference("%s:0:1:%x:1009:1:CCCC0000:0:0:0:%s:%s" % (config.plugins.m3uiptv.vod_play_system.value, int(current[5]) + (10000*series), url.replace(":", "%3a"), current[1]))
+				ref = eServiceReference("%s:0:1:%x:1009:1:CCCC0000:0:0:0:%s:%s" % (config.plugins.m3uiptv.vod_play_system.value, int(current[5]) + (10000 * series), url.replace(":", "%3a"), current[1]))
 				self.session.open(VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
 
 	def mdb(self):
@@ -1261,6 +1281,7 @@ class M3UIPTVVoDSeries(Screen):
 
 	def createSummary(self):
 		return PluginSummary
+
 
 class M3UIPTVVoDMovies(Screen):
 	MODE_CATEGORY = 0
@@ -1361,7 +1382,7 @@ class M3UIPTVVoDMovies(Screen):
 		if not self.deferred_cover_url:
 			try:
 				req = urllib.request.Request(current_cover_url, headers={
-												'User-Agent': REQUEST_USER_AGENT #'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+												'User-Agent': REQUEST_USER_AGENT  # 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
 											})
 				response = urllib.request.urlopen(req, timeout=5)
 
@@ -1521,6 +1542,7 @@ class M3UIPTVVoDMovies(Screen):
 	def createSummary(self):
 		return PluginSummary
 
+
 class M3UIPTVManagerConfig(Screen):
 	skin = ["""
 		<screen name="M3UIPTVManagerConfig" position="center,center" size="%d,%d">
@@ -1646,7 +1668,7 @@ class M3UIPTVManagerConfig(Screen):
 				providerObj.update_status_callback.append(self.updateDescription)
 
 	def buildList(self):
-		self["list"].list = list(sorted([(provider, providers[provider].iptv_service_provider,self.logos[providers[provider].type], self.vod_ico if len(providers[provider].vod_movies) > 0 or len(providers[provider].vod_series) > 0 else None,  "" if providers[provider].progress_percentage == -1 else (_("Fetching VoD items") + " " + str(providers[provider].progress_percentage) + "%"), self.activity_icons[providers[provider].getAccountActive()]) for provider in providers], key=lambda x: x[1]))
+		self["list"].list = list(sorted([(provider, providers[provider].iptv_service_provider, self.logos[providers[provider].type], self.vod_ico if len(providers[provider].vod_movies) > 0 or len(providers[provider].vod_series) > 0 else None, "" if providers[provider].progress_percentage == -1 else (_("Fetching VoD items") + " " + str(providers[provider].progress_percentage) + "%"), self.activity_icons[providers[provider].getAccountActive()]) for provider in providers], key=lambda x: x[1]))
 
 	def addProvider(self):
 		self.session.openWithCallback(self.providerCallback, M3UIPTVProviderEdit)
@@ -1685,7 +1707,7 @@ class M3UIPTVManagerConfig(Screen):
 
 	def onProgressChanged(self):
 		try:
-			self["list"].setList(list(sorted([(provider, providers[provider].iptv_service_provider,self.logos[providers[provider].type], self.vod_ico if len(providers[provider].vod_movies) > 0 or len(providers[provider].vod_series) > 0 else None,  "" if providers[provider].progress_percentage == -1 else (_("Fetching VoD items") + " " + str(providers[provider].progress_percentage) + "%"), self.activity_icons[providers[provider].getAccountActive()]) for provider in providers], key=lambda x: x[1])))
+			self["list"].setList(list(sorted([(provider, providers[provider].iptv_service_provider, self.logos[providers[provider].type], self.vod_ico if len(providers[provider].vod_movies) > 0 or len(providers[provider].vod_series) > 0 else None, "" if providers[provider].progress_percentage == -1 else (_("Fetching VoD items") + " " + str(providers[provider].progress_percentage) + "%"), self.activity_icons[providers[provider].getAccountActive()]) for provider in providers], key=lambda x: x[1])))
 		except:
 			pass
 
@@ -1736,7 +1758,7 @@ class M3UIPTVManagerConfig(Screen):
 					text.append(_("Account created") + ": " + strftime("%d/%m/%Y", localtime(int(created_at))))
 				if (exp_date := provider_info["user_info"].get("exp_date")) and str(exp_date).isdigit():
 					text.append(_("Account expires") + ": " + strftime("%d/%m/%Y", localtime(int(exp_date))))
-				if (exp_date := provider_info["user_info"].get("exp_date")) and  not str(exp_date).isdigit():
+				if (exp_date := provider_info["user_info"].get("exp_date")) and not str(exp_date).isdigit():
 					text.append(_("Account expires") + ": " + exp_date)
 				if is_trial := provider_info["user_info"].get("is_trial"):
 					text.append(_("Is trial") + ": " + ("no" if str(is_trial) == "0" else "yes"))
@@ -1761,6 +1783,7 @@ class M3UIPTVManagerConfig(Screen):
 
 	def createSummary(self):
 		return PluginSummary
+
 
 class M3UIPTVProviderEdit(Setup):
 	def __init__(self, session, provider=None):
@@ -1791,15 +1814,14 @@ class M3UIPTVProviderEdit(Setup):
 		self.epg_match_strategy = ConfigSelection(default=providerObj.epg_match_strategy, choices=[(0, _("By tvg-id")), (1, _("By channel name"))])
 		self.custom_user_agent = ConfigSelection(default=providerObj.custom_user_agent, choices=[("off", _("off")), ("android", "Android 15"), ("ios", "IOS 17"), ("windows", "Windows 11 (Edge)"), ("vlc", "VLC 3.0.18")])
 		self.output_format = ConfigSelection(default=providerObj.output_format, choices=[("ts", _("Transport stream (TS)")), ("m3u8", _("HLS (M3U8)"))])
-		epg_offset_choices = [(i, ngettext("%d hour", "%d hours", i) % i) for i in list(range(-12,12))]  # noqa: F821
+		epg_offset_choices = [(i, ngettext("%d hour", "%d hours", i) % i) for i in list(range(-12, 12))]  # noqa: F821
 		self.epg_time_offset = ConfigSelection(default=providerObj.epg_time_offset, choices=epg_offset_choices)
-		isServiceAppInstalled = isPluginInstalled("ServiceApp")
 		play_system_choices = [("1", "DVB"), ("4097", "HiSilicon" if BoxInfo.getItem("mediaservice") == "servicehisilicon" else "GStreamer")]
-		if isServiceAppInstalled:
+		if SERVICEAPP_AVAILABLE:
 			play_system_choices.append(("5002", "Exteplayer3"))
 		self.play_system = ConfigSelection(default=providerObj.play_system, choices=play_system_choices)
 		catchup_play_system_choices = [("4097", "HiSilicon" if BoxInfo.getItem("mediaservice") == "servicehisilicon" else "GStreamer")]
-		if isServiceAppInstalled:
+		if SERVICEAPP_AVAILABLE:
 			catchup_play_system_choices.append(("5002", "Exteplayer3"))
 		self.play_system_catchup = ConfigSelection(default=providerObj.play_system_catchup, choices=catchup_play_system_choices)
 		catchup_type_choices = [(CATCHUP_DEFAULT, _("Standard")), (CATCHUP_APPEND, _("Append")), (CATCHUP_SHIFT, _("Shift")), (CATCHUP_XTREME, _("Xtreme Codes")), (CATCHUP_STALKER, _("Stalker")), (CATCHUP_FLUSSONIC, _("Flussonic")), (CATCHUP_VOD, _("VoD"))]
@@ -1857,8 +1879,8 @@ class M3UIPTVProviderEdit(Setup):
 				configlist.append((_("Use custom XMLTV URL"), self.is_custom_xmltv, _("Use your own XMLTV url for EPG importing.")))
 				if self.is_custom_xmltv.value:
 					configlist.append((_("Custom XMLTV URL"), self.custom_xmltv_url, _("The URL where EPG data for this provider can be downloaded.")))
-				#if self.type.value == "Stalker" and self.create_epg.value and not self.is_custom_xmltv.value:
-				#	configlist.append((_("EPG entry GMT offset"), self.epg_time_offset, _("Set time offset in hours towards GMT.")))
+				# if self.type.value == "Stalker" and self.create_epg.value and not self.is_custom_xmltv.value:
+				# configlist.append((_("EPG entry GMT offset"), self.epg_time_offset, _("Set time offset in hours towards GMT.")))
 		configlist.append((_("Scheme"), self.scheme, _("Specifying the URL scheme that unicly identify the provider.\nCan be anything you like without spaces and special characters.")))
 		if self.type.value != "VOD":
 			configlist.append((_("Playback system"), self.play_system, _("The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3")))
@@ -1997,6 +2019,7 @@ class M3UIPTVProviderEdit(Setup):
 			shutil.rmtree(PROVIDER_FOLDER % self.scheme.value, True)
 			self.close(True)
 
+
 class BouquetBlacklist(Screen):
 	def __init__(self, session, providerObj, blacklist_type=0):
 		self.providerObj = providerObj
@@ -2031,6 +2054,7 @@ class BouquetBlacklist(Screen):
 			for bouquet in blacklist:
 				self.providerObj.removeBouquet(self.providerObj.cleanFilename(f"userbouquet.m3uiptv.{self.providerObj.iptv_service_provider}.{bouquet}.tv"))
 		self.close()
+
 
 class IPTVPluginConfig(Setup):
 	def __init__(self, session):
@@ -2084,7 +2108,7 @@ class IPTVPluginConfig(Setup):
 				configlist.append((_("Skip jumping to live while timeshifting with plugins"), config.timeshift.skipReturnToLive, _("If set to 'yes', allows you to use timeshift with alternative audio plugins.")))
 		if hasattr(config.usage, "timeshift_skipreturntolive"):
 			configlist.append((_("Skip jumping to live TV while timeshifting with plugins"), config.usage.timeshift_skipreturntolive, _("If set to 'yes', allows you to use timeshift with alternative audio plugins.")))
-		if isPluginInstalled("ServiceApp"):
+		if SERVICEAPP_AVAILABLE:
 			configlist.append(("---",))
 			configlist.append((_("Enigma2 playback system"), config.plugins.serviceapp.servicemp3.replace, _("Change the playback system to one of the players available in ServiceApp plugin.")))
 			if config.plugins.serviceapp.servicemp3.replace.value:
@@ -2107,6 +2131,7 @@ class IPTVPluginConfig(Setup):
 		if autoScheduleTimer is not None:
 			if config.plugins.m3uiptv.enabled.isChanged() or config.plugins.m3uiptv.schedule.isChanged() or config.plugins.m3uiptv.scheduletime.isChanged():
 				autoScheduleTimer.setSchedule()
+
 
 class DaysScreen(Setup):
 	def __init__(self, session):
@@ -2134,6 +2159,7 @@ class DaysScreen(Setup):
 			if any([self.config.days[i].isChanged() for i in self.config.days.keys()]):
 				autoScheduleTimer.setSchedule()
 
+
 class ShowText(TextBox):
 	def __init__(self, session, text, title):
 		TextBox.__init__(self, session, text=text, title=title, label="AboutScrollLabel")
@@ -2142,11 +2168,13 @@ class ShowText(TextBox):
 	def createSummary(self):
 		return ShowTextSummary
 
+
 class ShowTextSummary(ScreenSummary):
 	def __init__(self, session, parent):
 		ScreenSummary.__init__(self, session, parent=parent)
 		self.skinName = "AboutSummary"
 		self["AboutText"] = StaticText(parent.title + "\n\n" + parent["AboutScrollLabel"].getText())
+
 
 class PluginSummary(ScreenSummary):
 	def __init__(self, session, parent):
@@ -2174,6 +2202,7 @@ class PluginSummary(ScreenSummary):
 		self["SetupEntry"].text = item[1] if (item := (self.parent["list"].getCurrent())) else ""
 		self["SetupValue"].text = self.parent["description"].text
 
+
 def M3UIPTVMenu(session, close=None, **kwargs):
 	for node in mdom.getroot():
 		if node.tag == "menu" and node.get("key") == "iptvmenu":
@@ -2181,6 +2210,7 @@ def M3UIPTVMenu(session, close=None, **kwargs):
 				session.openWithCallback(boundFunction(MenuCallback, close), Menu, node, PluginLanguageDomain=PluginLanguageDomain)
 			else:
 				session.openWithCallback(boundFunction(MenuCallback, close), Menu, node)
+
 
 def M3UIPTVVoDMenu(session, close=None, **kwargs):
 	for node in mdom.getroot():
@@ -2190,24 +2220,30 @@ def M3UIPTVVoDMenu(session, close=None, **kwargs):
 			else:
 				session.openWithCallback(boundFunction(MenuCallback, close), Menu, node)
 
+
 def MenuCallback(close, answer=None):
 	if close and answer:
 		close(True)
 
+
 def main(session, **kwargs):
 	session.open(M3UIPTVManagerConfig)
+
 
 def startSetup(menuid):
 	if menuid != "setup":
 		return []
 	return [(_("IPTV"), M3UIPTVMenu, "iptvmenu", 10)]
 
+
 def startVoDSetup(menuid):
 	if menuid != "mainmenu":
 		return []
 	return [(_("Video on Demand"), M3UIPTVVoDMenu, "iptv_vod_menu", 100)]
 
+
 autoScheduleTimer = None
+
 
 def sessionstart(reason, session, **kwargs):
 	global autoScheduleTimer
@@ -2217,6 +2253,7 @@ def sessionstart(reason, session, **kwargs):
 		threads.deferToThread(startingCustomEPGExternal).addCallback(lambda ignore: finishedCustomEPGExternal())
 		if autoScheduleTimer is None:
 			autoScheduleTimer = AutoScheduleTimer()
+
 
 class AutoScheduleTimer():
 	def __init__(self):
@@ -2266,6 +2303,7 @@ class AutoScheduleTimer():
 					print(f"[M3UIPTV] Auto updating provider '{providerObj.iptv_service_provider}' failed with error: {str(err)}")
 		self.setSchedule()
 
+
 def startingCustomEPGExternal():
 	port = config.plugins.m3uiptv.epg_loc_port.value
 	site = server.Site(StalkerEPG())
@@ -2275,8 +2313,10 @@ def startingCustomEPGExternal():
 	except:
 		pass
 
+
 def finishedCustomEPGExternal():
 	pass
+
 
 def Plugins(path, **kwargs):
 	try:

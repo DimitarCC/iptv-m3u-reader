@@ -143,6 +143,16 @@ class M3UProvider(IPTVProcessor):
 					match = re.search(r"tvrec-depth=(\d+)", line, re.IGNORECASE)
 				if match:
 					captchup_days = match.group(1)
+
+				catchupreftype = None
+				if len(self.catchuptype_substitions) > 0:
+					subst_name = self.catchuptype_substitions["#EXTINF"] + self.catchuptype_substitions["#URL"]
+					for subst in subst_name:
+						subst_condition = subst.search_regex
+						subst_match = re.search(subst_condition, line if subst.search_key == "#EXTINF" else url)
+						if subst_match and subst_match.group(1) in subst.substitions:
+							catchupreftype = subst.substitions[subst_match.group(1)]
+
 				if self.static_urls or self.isLocalPlaylist():
 					found_url = False
 					next_line_nr = line_nr + 1
@@ -155,7 +165,7 @@ class M3UProvider(IPTVProcessor):
 									groups[curr_group] = []
 							if next_line.startswith(("http://", "https://", "YT-DLP://", "YT://")):
 								url = next_line.replace(":", "%3a").replace("{lutc}", str(int(time())))
-								url = self.constructCatchupSuffix(captchup_days if captchup_days else global_tvg_rec, url, CATCHUP_TYPES[self.catchup_type])
+								url = self.constructCatchupSuffix(captchup_days if captchup_days else global_tvg_rec, url, CATCHUP_TYPES[self.catchup_type], catchupreftype)
 								captchup_days = ""
 								found_url = True
 							else:
@@ -164,7 +174,7 @@ class M3UProvider(IPTVProcessor):
 							break
 				else:
 					url = self.scheme + "%3a//" + sid
-					url = self.constructCatchupSuffix(captchup_days if captchup_days else global_tvg_rec, url, CATCHUP_TYPES[self.catchup_type])
+					url = self.constructCatchupSuffix(captchup_days if captchup_days else global_tvg_rec, url, CATCHUP_TYPES[self.catchup_type], catchupreftype)
 					captchup_days = ""
 				stype = "1"
 
@@ -175,6 +185,14 @@ class M3UProvider(IPTVProcessor):
 						subst_match = re.search(subst_condition, line if subst.search_key == "#EXTINF" else url)
 						if subst_match and subst_match.group(1) in subst.substitions:
 							ch_name = subst.substitions[subst_match.group(1)]
+				sreftype = None
+				if len(self.servicetype_substitions) > 0:
+					subst_name = self.servicetype_substitions["#EXTINF"] + self.servicetype_substitions["#URL"]
+					for subst in subst_name:
+						subst_condition = subst.search_regex
+						subst_match = re.search(subst_condition, line if subst.search_key == "#EXTINF" else url)
+						if subst_match and subst_match.group(1) in subst.substitions:
+							sreftype = subst.substitions[subst_match.group(1)]
 
 				if len(self.epg_substitions) > 0:
 					subst_name = self.epg_substitions["#EXTINF"] + self.epg_substitions["#URL"]
@@ -198,7 +216,7 @@ class M3UProvider(IPTVProcessor):
 				else:
 					stype = get_resolution_from_name(ch_name)
 
-				sref = self.generateChannelReference(stype, tsid, url.replace(":", "%3a").replace("{lutc}", str(int(time()))), ch_name)
+				sref = self.generateChannelReference(stype, tsid, url.replace(":", "%3a").replace("{lutc}", str(int(time()))), ch_name, sreftype)
 				if self.create_bouquets_strategy != 1:
 					if curr_group:
 						groups[curr_group].append((sref, epg_id if self.epg_match_strategy == 0 else ch_name, ch_name, tsid))

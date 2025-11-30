@@ -13,14 +13,16 @@ def processService(nref, callback, event=None):
 			return nref, nref, False, nref.type
 		iptv_service = url_data[0]
 		iptvinfodata = url_data[1] if len(url_data) == 2 else "%3a//".join(url_data[1:])
+		match_cplay_system = re.search(r"catchupstype\=(\d+)[&]", sRef)
+		cplay_system = None
+		if match_cplay_system:
+			cplay_system = int(match_cplay_system.group(1))
 		if iptv_service not in providers:
-			match_cplay_system = re.search(r"catchupstype\=(\d+)[&]", sRef)
-			cplay_system = nref.type
-			if match_cplay_system:
-				cplay_system = int(match_cplay_system.group(1))
+			if cplay_system is None:
+				cplay_system = nref.type
 			return nref, nref, False, cplay_system
 		prov = providers[iptv_service]
 		ref, old_ref, is_dynamic = prov.processService(nref, iptvinfodata, callback, event)
-		return ref, old_ref, not prov.isPlayBackup, int(prov.play_system_catchup)
+		return ref, old_ref, not prov.isPlayBackup, cplay_system or int(prov.play_system_catchup)
 	else:
 		return nref, nref, False, nref.type
