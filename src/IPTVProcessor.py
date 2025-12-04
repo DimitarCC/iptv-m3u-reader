@@ -89,7 +89,7 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 	elif catchup_type == CATCHUP_VOD_TEXT:
 		sref_split = sref.split(":")
 		url = sref_split[10:][0]
-		url = url.replace("/index.m3u8", f"/video-{str(stime)}-{str(int(duration))}.m3u8").replace("/mpegts", f"/video-{str(stime)}-{str(int(duration))}.m3u8")
+		url = url.replace("/index.m3u8", f"/video-{str(stime)}-{str(int(duration))}.m3u8").replace("/mpegts", f"/video-{str(stime)}-{str(int(duration))}.m3u8").replace("/video.m3u8", f"/video-{str(stime)}-{str(int(duration))}.m3u8")
 		return url
 	elif catchup_type == CATCHUP_SHIFT_TEXT:
 		sref_split = sref.split(":")
