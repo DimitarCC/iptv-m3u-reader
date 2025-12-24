@@ -854,8 +854,8 @@ class VoDMoviePlayer(MoviePlayer, SubsSupport, SubsSupportStatus):
 		self.progress_timer.start(1000)
 
 	def setProgress(self, pos):
-		len = self.getLength()
-		if len is None or pos is None:
+		stream_len = self.getLength()
+		if stream_len is None or pos is None:
 			self["progress"].value = 0
 			self["progress_summary"].value = 0
 			text = "-00:00:00         00:00:00         +00:00:00"
@@ -872,22 +872,22 @@ class VoDMoviePlayer(MoviePlayer, SubsSupport, SubsSupportStatus):
 			self["time_remaining_summary"].setText(text_remaining)
 			return
 
-		if len <= 0:
+		if stream_len <= 0:
 			progress_val = 0
 		else:
-			progress_val = int((pos / len) * 100)
+			progress_val = int((pos / stream_len) * 100)
 			progress_val = max(min(progress_val, 100), 0)
-		r = max(len - pos, 0)
+		r = max(stream_len - pos, 0)
 
 		self["progress"].value = progress_val
 		self["progress_summary"].value = progress_val
-		text = "-%d:%02d:%02d         %d:%02d:%02d         +%d:%02d:%02d" % (pos / 3600, pos % 3600 / 60, pos % 60, len / 3600, len % 3600 / 60, len % 60, r / 3600, r % 3600 / 60, r % 60)
+		text = "-%d:%02d:%02d         %d:%02d:%02d         +%d:%02d:%02d" % (pos / 3600, pos % 3600 / 60, pos % 60, stream_len / 3600, stream_len % 3600 / 60, stream_len % 60, r / 3600, r % 3600 / 60, r % 60)
 		self["time_info"].setText(text)
 		self["time_info_summary"].setText(text)
 		text_elapsed = "-%d:%02d:%02d" % (pos / 3600, pos % 3600 / 60, pos % 60)
 		self["time_elapsed"].setText(text_elapsed)
 		self["time_elapsed_summary"].setText(text_elapsed)
-		text_duration = "%d:%02d:%02d" % (len / 3600, len % 3600 / 60, len % 60)
+		text_duration = "%d:%02d:%02d" % (stream_len / 3600, stream_len % 3600 / 60, stream_len % 60)
 		self["time_duration"].setText(text_duration)
 		self["time_duration_summary"].setText(text_duration)
 		text_remaining = "+%d:%02d:%02d" % (r / 3600, r % 3600 / 60, r % 60)
