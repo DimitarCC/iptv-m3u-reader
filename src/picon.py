@@ -31,7 +31,8 @@ class Fetcher():
 		self.provider = provider
 		self.pluginPiconDir = path.join(self.piconDir, "m3uiptv", self.provider.scheme)
 		self.downloaded = []
-		self.maxthreads = config.plugins.m3uiptv.picon_threads.value  # max simultaneous requests
+		self.maxthreads = config.plugins.m3uiptv.picon_threads.value if self.provider.picon_threads == 0 else self.provider.picon_threads  # max simultaneous requests
+		print("[Fetcher] MAX PICON DOWNLOAD THREADS = %i" % self.maxthreads)
 
 	def downloadURL(self, url, success, fail=None):
 		try:
@@ -58,7 +59,7 @@ class Fetcher():
 			os_makedirs(self.pluginPiconDir, exist_ok=True)
 			threads = [threading.Thread(target=self.downloadURL, args=(url, self.success, self.failure)) for url in (self.provider.picon_database if self.provider.picon_gen_strategy == 0 else self.provider.picon_sref_database)]
 			for thread in threads:
-				while threading.activeCount() > self.maxthreads:
+				while threading.active_count() > self.maxthreads:
 					sleep(1)
 				try:
 					thread.start()

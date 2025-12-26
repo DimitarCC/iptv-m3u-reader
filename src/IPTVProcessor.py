@@ -196,6 +196,7 @@ class IPTVProcessor():
 		self.picon_database = {}
 		self.picon_sref_database = {}
 		self.picon_gen_strategy = 0
+		self.picon_threads = 0
 		self.create_bouquets_strategy = 0
 		self.use_provider_tsid = False
 		self.provider_tsid_search_criteria = "tvg-chno=\"{TSID}\""

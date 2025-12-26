@@ -246,6 +246,7 @@ def readProviders():
 				providerObj.custom_xmltv_url = provider.find("custom_xmltv_url").text if provider.find("custom_xmltv_url") is not None and provider.find("custom_xmltv_url").text is not None else providerObj.custom_xmltv_url
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
 				providerObj.picon_gen_strategy = int(provider.find("picon_gen_strategy").text) if provider.find("picon_gen_strategy") is not None else 0
+				providerObj.picon_threads = int(provider.find("picon_threads").text) if provider.find("picon_threads") is not None else 0
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
 				providerObj.use_provider_tsid = provider.find("use_provider_tsid") is not None and provider.find("use_provider_tsid").text == "on"
 				providerObj.user_provider_ch_num = provider.find("user_provider_ch_num") is not None and provider.find("user_provider_ch_num").text == "on"
@@ -311,6 +312,7 @@ def readProviders():
 				providerObj.loadMedialLibraryItems()
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
 				providerObj.picon_gen_strategy = int(provider.find("picon_gen_strategy").text) if provider.find("picon_gen_strategy") is not None else 0
+				providerObj.picon_threads = int(provider.find("picon_threads").text) if provider.find("picon_threads") is not None else 0
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
 				providerObj.auto_updates = provider.find("auto_updates") is not None and provider.find("auto_updates").text == "on"
 				providers[providerObj.scheme] = providerObj
@@ -329,6 +331,7 @@ def readProviders():
 				providerObj.onid = int(provider.find("onid").text)
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
 				providerObj.picon_gen_strategy = int(provider.find("picon_gen_strategy").text) if provider.find("picon_gen_strategy") is not None else 0
+				providerObj.picon_threads = int(provider.find("picon_threads").text) if provider.find("picon_threads") is not None else 0
 				providerObj.use_provider_tsid = provider.find("use_provider_tsid") is not None and provider.find("use_provider_tsid").text == "on"
 				providerObj.user_provider_ch_num = provider.find("user_provider_ch_num") is not None and provider.find("user_provider_ch_num").text == "on"
 				providerObj.custom_user_agent = provider.find("custom_user_agent").text if provider.find("custom_user_agent") is not None else "off"
@@ -363,6 +366,7 @@ def readProviders():
 				providerObj.custom_xmltv_url = provider.find("custom_xmltv_url").text if provider.find("custom_xmltv_url") is not None and provider.find("custom_xmltv_url").text is not None else providerObj.custom_xmltv_url
 				providerObj.picons = provider.find("picons") is not None and provider.find("picons").text == "on"
 				providerObj.picon_gen_strategy = int(provider.find("picon_gen_strategy").text) if provider.find("picon_gen_strategy") is not None else 0
+				providerObj.picon_threads = int(provider.find("picon_threads").text) if provider.find("picon_threads") is not None else 0
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
 				providerObj.use_provider_tsid = provider.find("use_provider_tsid") is not None and provider.find("use_provider_tsid").text == "on"
 				providerObj.user_provider_ch_num = provider.find("user_provider_ch_num") is not None and provider.find("user_provider_ch_num").text == "on"
@@ -413,6 +417,7 @@ def writeProviders():
 			xml.append(f"\t\t<custom_xmltv_url><![CDATA[{val.custom_xmltv_url}]]></custom_xmltv_url>\n")
 			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
 			xml.append(f"\t\t<picon_gen_strategy>{val.picon_gen_strategy}</picon_gen_strategy>\n")
+			xml.append(f"\t\t<picon_threads>{val.picon_threads}</picon_threads>\n")
 			xml.append(f"\t\t<create_bouquets_strategy>{val.create_bouquets_strategy}</create_bouquets_strategy>\n")
 			xml.append(f"\t\t<use_provider_tsid>{'on' if val.use_provider_tsid else 'off'}</use_provider_tsid>\n")
 			xml.append(f"\t\t<user_provider_ch_num>{'on' if val.user_provider_ch_num else 'off'}</user_provider_ch_num>\n")
@@ -450,6 +455,7 @@ def writeProviders():
 			xml.append(f"\t\t<custom_xmltv_url><![CDATA[{val.custom_xmltv_url}]]></custom_xmltv_url>\n")
 			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
 			xml.append(f"\t\t<picon_gen_strategy>{val.picon_gen_strategy}</picon_gen_strategy>\n")
+			xml.append(f"\t\t<picon_threads>{val.picon_threads}</picon_threads>\n")
 			xml.append(f"\t\t<create_bouquets_strategy>{val.create_bouquets_strategy}</create_bouquets_strategy>\n")
 			xml.append(f"\t\t<use_provider_tsid>{'on' if val.use_provider_tsid else 'off'}</use_provider_tsid>\n")
 			xml.append(f"\t\t<user_provider_ch_num>{'on' if val.user_provider_ch_num else 'off'}</user_provider_ch_num>\n")
@@ -478,6 +484,7 @@ def writeProviders():
 			xml.append(f"\t\t<custom_xmltv_url><![CDATA[{val.custom_xmltv_url}]]></custom_xmltv_url>\n")
 			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
 			xml.append(f"\t\t<picon_gen_strategy>{val.picon_gen_strategy}</picon_gen_strategy>\n")
+			xml.append(f"\t\t<picon_threads>{val.picon_threads}</picon_threads>\n")
 			xml.append(f"\t\t<create_bouquets_strategy>{val.create_bouquets_strategy}</create_bouquets_strategy>\n")
 			xml.append(f"\t\t<use_provider_tsid>{'on' if val.use_provider_tsid else 'off'}</use_provider_tsid>\n")
 			xml.append(f"\t\t<user_provider_ch_num>{'on' if val.user_provider_ch_num else 'off'}</user_provider_ch_num>\n")
@@ -502,6 +509,7 @@ def writeProviders():
 			xml.append(f"\t\t<onid>{val.onid}</onid>\n")
 			xml.append(f"\t\t<picons>{'on' if val.picons else 'off'}</picons>\n")
 			xml.append(f"\t\t<picon_gen_strategy>{val.picon_gen_strategy}</picon_gen_strategy>\n")
+			xml.append(f"\t\t<picon_threads>{val.picon_threads}</picon_threads>\n")
 			xml.append(f"\t\t<create_bouquets_strategy>{val.create_bouquets_strategy}</create_bouquets_strategy>\n")
 			xml.append(f"\t\t<use_provider_tsid>{'on' if val.use_provider_tsid else 'off'}</use_provider_tsid>\n")
 			xml.append(f"\t\t<user_provider_ch_num>{'on' if val.user_provider_ch_num else 'off'}</user_provider_ch_num>\n")
@@ -1828,6 +1836,8 @@ class M3UIPTVProviderEdit(Setup):
 		self.catchup_type = ConfigSelection(default=providerObj.catchup_type, choices=catchup_type_choices)
 		self.epg_url = ConfigText(default=providerObj.epg_url, fixed_size=False)
 		self.picons = ConfigYesNo(default=providerObj.picons)
+		picon_thread_choices = [(0, _("off")), (1, _("No Threads"))] + [(i, str(i)) for i in list(range(50, 1000, 50))] 
+		self.picon_threads = ConfigSelection(default=providerObj.picon_threads, choices=picon_thread_choices)
 		self.create_bouquets_strategy = ConfigSelection(default=providerObj.create_bouquets_strategy, choices=[(0, _("Only bouquets for groups")), (1, _("Only bouquet for 'All Channels'")), (2, _("Bouquets for 'All Channels' and groups")), (3, _("Bouquet for provider and sub-bouquets for groups"))])
 		self.ch_order_strategy = ConfigSelection(default=providerObj.ch_order_strategy, choices=[(0, _("Use provider order")), (1, _("By channel number")), (2, _("Alphabetically"))])
 		self.auto_updates = ConfigYesNo(default=providerObj.auto_updates)
@@ -1902,6 +1912,8 @@ class M3UIPTVProviderEdit(Setup):
 			configlist.append((_("Download picons"), self.picons, _("Download picons, if available from the provider, and install them. Picon download is done in the background after bouquet generation.")))
 			if self.picons.value:
 				configlist.append((_("Picons type"), self.picon_gen_strategy, _("Determine how the picons will be named - SNP or SRP.")))
+				configlist.append((_("Picon max threads"), self.picon_threads, _("Maximum number of threads during picon downloads. If the box returns errors or fails to download some picons, set a lower number.")))
+
 			configlist.append((_("Bouquet creation strategy"), self.create_bouquets_strategy, _("Configure what type of bouquets should be created.")))
 			configlist.append((_("Use provider TSID"), self.use_provider_tsid, _("Use the TSID provided from the IPTV provider (if available).\nUseful when want to always have same service references for EPG.")))
 			if self.use_provider_tsid.value:
@@ -1963,6 +1975,7 @@ class M3UIPTVProviderEdit(Setup):
 			providerObj.create_epg = self.create_epg.value
 			providerObj.picons = self.picons.value
 			providerObj.picon_gen_strategy = self.picon_gen_strategy.value
+			providerObj.picon_threads = self.picon_threads.value
 			providerObj.create_bouquets_strategy = self.create_bouquets_strategy.value
 			providerObj.use_provider_tsid = self.use_provider_tsid.value
 			providerObj.user_provider_ch_num = self.user_provider_ch_num.value
