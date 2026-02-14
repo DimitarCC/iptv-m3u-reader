@@ -1836,7 +1836,7 @@ class M3UIPTVProviderEdit(Setup):
 		self.catchup_type = ConfigSelection(default=providerObj.catchup_type, choices=catchup_type_choices)
 		self.epg_url = ConfigText(default=providerObj.epg_url, fixed_size=False)
 		self.picons = ConfigYesNo(default=providerObj.picons)
-		picon_thread_choices = [(0, _("off")), (1, _("No Threads"))] + [(i, str(i)) for i in list(range(50, 1000, 50))] 
+		picon_thread_choices = [(0, _("off")), (1, _("No Threads"))] + [(i, str(i)) for i in list(range(50, 1000, 50))]
 		self.picon_threads = ConfigSelection(default=providerObj.picon_threads, choices=picon_thread_choices)
 		self.create_bouquets_strategy = ConfigSelection(default=providerObj.create_bouquets_strategy, choices=[(0, _("Only bouquets for groups")), (1, _("Only bouquet for 'All Channels'")), (2, _("Bouquets for 'All Channels' and groups")), (3, _("Bouquet for provider and sub-bouquets for groups"))])
 		self.ch_order_strategy = ConfigSelection(default=providerObj.ch_order_strategy, choices=[(0, _("Use provider order")), (1, _("By channel number")), (2, _("Alphabetically"))])
@@ -2091,7 +2091,7 @@ class IPTVPluginConfig(Setup):
 			configlist.append((_("Fallback location for picons"), config.plugins.m3uiptv.fallback_picon_loc, _("Fallback loction for picons used when current active picon location can not be detected.")))
 		configlist.append(("---",))
 		configlist.append((_("Enable catchup/archive entries in EPG screens for period"), config.epg.histminutes, _("Enables possibility to return back in epg screens so to use old entries for invoke catchup/archive/timeshift.")))
-		configlist.append((_("Local EPG server listening port") + " *", config.plugins.m3uiptv.epg_loc_port, _("Enables possibility to return back in epg screens so to use old entries for invoke catchup/archive/timeshift.")))
+		configlist.append((_("Local EPG server listening port") + " *", config.plugins.m3uiptv.epg_loc_port, _("A local port for the EPG server. Mainly used for Stalker portals due to lack of persistent EPG.")))
 		configlist.append(("---",))
 		if hasattr(config, "recording") and hasattr(config.recording, "setstreamto1"):
 			configlist.append((_("Recordings - convert IPTV servicetypes to  1"), config.recording.setstreamto1, _("Recording 4097, 5001 and 5002 streams not possible with external players, so convert recordings to servicetype 1.")))
