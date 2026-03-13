@@ -430,7 +430,7 @@ class CatchupPlayer(MoviePlayer):
 
 class CatchupPlayerSummary(ScreenSummary):
 	skin = """
-	<screen position="0,0" size="800,480" resolution="800,480">
+	<screen name="CatchupPlayerSummary" position="0,0" size="800,480" resolution="800,480">
 		<widget source="session.CurrentService" render="Label" position="40,90" size="720,260" font="Regular;75" halign="center" valign="center" zPosition="2">
 			<convert type="ServiceName">Name</convert>
 		</widget>
