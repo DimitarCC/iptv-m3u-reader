@@ -597,14 +597,13 @@ def playServiceExtension(navigation_instance, playref, event, infoBar_instance):
 		if infoBar_instance:
 			infoBar_instance.session.screen["Event_Now"].updateSource(playref)
 			infoBar_instance.session.screen["Event_Next"].updateSource(playref)
-		return result[0], result[2], result[2]
-	return playref, False, False
+		return result[0], result[2]
+	return playref, False
 
 
 def record_pipServiceExtension(navigation_instance, playref):
 	if callable(processIPTVService):
-		result = processIPTVService(playref, None)
-		return result[0], result[2]
+		return processIPTVService(playref, None)[0]
 	return playref
 
 
