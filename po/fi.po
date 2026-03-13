@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-02 16:05+0300\n"
-"PO-Revision-Date: 2025-07-03 17:04+0300\n"
+"POT-Creation-Date: 2026-02-14 10:50+0200\n"
+"PO-Revision-Date: 2026-02-14 14:35+0200\n"
 "Last-Translator: Orlandox <huoltovalikko.com>\n"
 "Language-Team: Orlandox\n"
 "Language: fi\n"
@@ -16,38 +16,38 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.6\n"
+"X-Generator: Poedit 3.8\n"
 
-#: ../src/plugin.py:1677
+#: ../src/plugin.py:1730
 #, python-format
 msgid "\"%s\" bouquets have been generated successfully"
 msgstr "\"%s\" suosikkilistat luotiin onnistuneesti"
 
-#: ../src/IPTVProcessor.py:496
+#: ../src/IPTVProcessor.py:558
 #, python-format
 msgid "# only leave the groups you want to remove in blacklist below and then rename the file to %s and regenerate the bouquets"
 msgstr "# jätä vain poistettavat ryhmät alla olevalle mustalle listalle ja nimeä tiedosto uudelleen nimellä %s ja luo suosikkilistat uudelleen"
 
-#: ../src/plugin.py:1752 ../src/plugin.py:1771
+#: ../src/plugin.py:1806 ../src/plugin.py:1825
 #, python-format
 msgid "%d hour"
 msgid_plural "%d hours"
 msgstr[0] "%d tunti"
 msgstr[1] "%d tuntia"
 
-#: ../src/plugin.py:105
+#: ../src/plugin.py:112
 #, python-format
 msgid "%d second"
 msgid_plural "%d seconds"
 msgstr[0] "%d sekunti"
 msgstr[1] "%d sukuntia"
 
-#: ../src/plugin.py:1982
+#: ../src/plugin.py:2041
 #, python-format
 msgid "%s: Blacklist Bouquets"
 msgstr "%s: Mustat listat"
 
-#: ../src/plugin.py:1660 ../src/plugin.py:1661
+#: ../src/plugin.py:1713 ../src/plugin.py:1714
 #, python-format
 msgid ""
 "%s: an error occured during bouquet creation\n"
@@ -58,218 +58,222 @@ msgstr ""
 "\n"
 "Virheen tyyppi: %s"
 
-#: ../src/plugin.py:1676
+#: ../src/plugin.py:1729
 #, python-format
 msgid "%s: bouquets generated successfully"
 msgstr "%s: suosikkilistat luotiin onnistuneesti"
 
-#: ../src/plugin.py:1692
+#: ../src/plugin.py:1745
 #, python-format
 msgid "%s: data removed successfully"
 msgstr "%s: tiedot poistettiin onnistuneesti"
 
-#: ../src/plugin.py:1644
+#: ../src/plugin.py:1697
 #, python-format
 msgid "%s: starting bouquet creation"
 msgstr "%s: aloitetaan suosikkilistan luominen"
 
-#: ../src/plugin.py:1673
+#: ../src/plugin.py:1726
 #, python-format
 msgid "%s: unable to create bouquet"
 msgstr "%s: suosikkilistaa ei saatu luotua"
 
-#: ../src/plugin.py:1855
+#: ../src/plugin.py:2094
+msgid "A local port for the EPG server. Mainly used for Stalker portals due to lack of persistent EPG."
+msgstr "Paikallinen portti EPG-palvelimelle. Käytetään pääasiassa Stalker-portaaleissa pysyvän EPG:n puutteen vuoksi."
+
+#: ../src/plugin.py:1910
 msgid "Access token used for authenticating in Media Library server."
 msgstr "Käyttöoikeustunniste, jota käytetään todentamiseen Mediakirjastopalvelimessa."
 
-#: ../src/plugin.py:1713
+#: ../src/plugin.py:1766
 msgid "Account created"
 msgstr "Tili luotu"
 
-#: ../src/plugin.py:1715 ../src/plugin.py:1717
+#: ../src/plugin.py:1768 ../src/plugin.py:1770
 msgid "Account expires"
 msgstr "Tili vanhenee"
 
-#: ../src/plugin.py:1711
+#: ../src/plugin.py:1764
 msgid "Account status"
 msgstr "Tilin tila"
 
-#: ../src/plugin.py:1580
+#: ../src/plugin.py:1633
 msgid "Add provider"
 msgstr "Lisää palveluntarjoaja"
 
-#: ../src/plugin.py:967 ../src/plugin.py:1283
+#: ../src/plugin.py:1019 ../src/plugin.py:1335
 msgid "All"
 msgstr "Kaikki"
 
-#: ../src/M3UProvider.py:236 ../src/M3UProvider.py:260
-#: ../src/StalkerProvider.py:590 ../src/XtreemProvider.py:42
+#: ../src/M3UProvider.py:269 ../src/M3UProvider.py:293
+#: ../src/StalkerProvider.py:596 ../src/XtreemProvider.py:44
 msgid "All channels"
 msgstr "Kaikki kanavat"
 
-#: ../src/plugin.py:1894
+#: ../src/plugin.py:1951
 msgid "All fields must be filled in."
 msgstr "Kaikki kentät on täytettävä."
 
-#: ../src/plugin.py:2026
+#: ../src/plugin.py:2086
 msgid "Allow showing of 'Video on Demand' entry in the extensions (BLUE button) menu."
 msgstr "Salli 'Tilaus-TV (VoD)' -valikkokohdan näyttäminen laajennukset-valikossa (SININEN-näppäin)."
 
-#: ../src/plugin.py:2025
+#: ../src/plugin.py:2085
 msgid "Allow showing of 'Video on Demand' menu entry in Main Menu."
 msgstr "Salli 'Tilaus-TV (VoD)' -valikkokohdan näyttäminen päävalikossa."
 
-#: ../src/plugin.py:1787
+#: ../src/plugin.py:1842
 msgid "Alphabetically"
 msgstr "Aakkosjärjestyksessä"
 
-#: ../src/plugin.py:2070
+#: ../src/plugin.py:2130
 msgid "Also requires enabling in each individual provider that is to be updated."
 msgstr "Vaatii myös jokaisen päivitettävän palveluntarjoajan aktivoinnin."
 
-#: ../src/plugin.py:1782
+#: ../src/plugin.py:1835
 msgid "Append"
 msgstr "Liitä"
 
-#: ../src/plugin.py:1963
+#: ../src/plugin.py:2021
 #, python-format
 msgid "Are you sure you want to permanently remove provider \"%s\" from your configuration?"
 msgstr "Haluatko varmasti poistaa palveluntarjoajan \"%s\" pysyvästi määrityksistäsi?"
 
-#: ../src/plugin.py:2104
+#: ../src/plugin.py:2165
 msgid "At least one day of the week must be selected"
 msgstr "Vähintään yksi viikonpäivä on valittava"
 
-#: ../src/plugin.py:1870
+#: ../src/plugin.py:1927
 msgid "Auto updates"
 msgstr "Automaattiset päivitykset"
 
-#: ../src/plugin.py:2044
+#: ../src/plugin.py:2104
 msgid "Automatically start time shift after"
 msgstr "Käynnistä ajansiirto automaattisesti tämän ajan jälkeen"
 
-#: ../src/plugin.py:2042
+#: ../src/plugin.py:2102
 msgid "Automatically start timeshift after"
 msgstr "Käynnistä ajansiirto automaattisesti tämän ajan jälkeen"
 
-#: ../src/plugin.py:1875
+#: ../src/plugin.py:1932
 msgid "Blacklist VoD movie categories"
 msgstr "Mustan listan tilaus-TV (VoD) -elokuvaluokat"
 
-#: ../src/plugin.py:1876
+#: ../src/plugin.py:1933
 msgid "Blacklist VoD series categories"
 msgstr "Mustan listan tilaus-TV (VoD) -sarjojen luokat"
 
-#: ../src/plugin.py:1860
+#: ../src/plugin.py:1917
 msgid "Bouquet creation strategy"
 msgstr "Suosikkilistojen luomisstrategia"
 
-#: ../src/plugin.py:1786
+#: ../src/plugin.py:1841
 msgid "Bouquet for provider and sub-bouquets for groups"
 msgstr "Suosikkilista palveluntarjoajalle ja alisuosikkilistat ryhmille"
 
-#: ../src/plugin.py:2027
+#: ../src/plugin.py:2087
 msgid "Bouquet name character case"
 msgstr "Suosikkilistan nimen merkkityyppi"
 
-#: ../src/plugin.py:1873
+#: ../src/plugin.py:1930
 msgid "Bouquets blacklist"
 msgstr "Suosikkilistojen musta lista"
 
-#: ../src/plugin.py:1786
+#: ../src/plugin.py:1841
 msgid "Bouquets for 'All Channels' and groups"
 msgstr "Suosikkilistat 'kaikille kanaville' ja ryhmille"
 
-#: ../src/plugin.py:1768
+#: ../src/plugin.py:1822
 msgid "By channel name"
 msgstr "Kanavan nimen mukaan"
 
-#: ../src/plugin.py:1787
+#: ../src/plugin.py:1842
 msgid "By channel number"
 msgstr "Kanavan numeron mukaan"
 
-#: ../src/plugin.py:1768
+#: ../src/plugin.py:1822
 msgid "By tvg-id"
 msgstr "tvg-id:n mukaan"
 
-#: ../src/plugin.py:992 ../src/plugin.py:1296 ../src/plugin.py:1985
+#: ../src/plugin.py:1044 ../src/plugin.py:1348 ../src/plugin.py:2044
 msgid "Cancel"
 msgstr "Peruuta"
 
-#: ../src/plugin.py:1846
+#: ../src/plugin.py:1901
 msgid "Catchup Type"
 msgstr "Alusta aloittamisen tyyppi"
 
-#: ../src/plugin.py:2066
+#: ../src/plugin.py:2126
 msgid "Change the playback system to one of the players available in ServiceApp plugin."
 msgstr "Vaihda toistojärjestelmä johonkin ServiceApp-lisäosasta saatavilla olevista soittimista."
 
-#: ../src/plugin.py:1867
+#: ../src/plugin.py:1924
 msgid "Channel ordering criteria"
 msgstr "Kanavien järjestyskriteerit"
 
-#: ../src/plugin.py:2022
+#: ../src/plugin.py:2082
 msgid "Check for Network"
 msgstr "Tarkista verkko"
 
-#: ../src/plugin.py:1582
+#: ../src/plugin.py:1635
 msgid "Clear all data"
 msgstr "Tyhjennä kaikki tiedot"
 
-#: ../src/plugin.py:1579
+#: ../src/plugin.py:1632
 msgid "Close"
 msgstr "Sulje"
 
-#: ../src/plugin.py:1860
+#: ../src/plugin.py:1917
 msgid "Configure what type of bouquets should be created."
 msgstr "Määritä, minkä tyyppisiä suosikkilistoja tulisi luoda."
 
-#: ../src/plugin.py:1830
+#: ../src/plugin.py:1885
 msgid "Creates files needed for importing EPG via EPGImport plugin"
 msgstr "Luo tiedostoja, joita tarvitaan EPG:n tuomiseen EPGImport-lisäosan kautta"
 
-#: ../src/plugin.py:1868
+#: ../src/plugin.py:1925
 msgid "Custom User-Agent"
 msgstr "Mukautettu käyttäjäagentti"
 
-#: ../src/plugin.py:1836
+#: ../src/plugin.py:1891
 msgid "Custom XMLTV URL"
 msgstr "Muokattu XMLTV-URL-osoite"
 
-#: ../src/plugin.py:1804
+#: ../src/plugin.py:1859
 #, python-format
 msgid "Delete \"%s\""
 msgstr "Poista \"%s\""
 
-#: ../src/plugin.py:1859
+#: ../src/plugin.py:1914
 msgid "Determine how the picons will be named - SNP or SRP."
 msgstr "Määritä, kuinka piconit nimetään - SNP tai SRP."
 
-#: ../src/plugin.py:2022
+#: ../src/plugin.py:2082
 msgid "Do a check is network available before try to retrieve the iptv playlist. If no network try backup services."
 msgstr "Tarkista, onko verkko käytettävissä, ennen kuin yrität noutaa iptv-soittolistan. Jos verkkoa ei ole, kokeile varmuuskopiointipalveluja."
 
-#: ../src/IPTVCatchupPlayer.py:304
+#: ../src/IPTVCatchupPlayer.py:303
 msgid "Do you want to resume playback?"
 msgstr "Haluatko jatkaa toistoa?"
 
-#: ../src/plugin.py:2029
+#: ../src/plugin.py:2089
 msgid "Download and display posters for VoD items"
 msgstr "Lataa ja näytä julisteet Tilaus-TV (VoD) -kohteita varten"
 
-#: ../src/plugin.py:2029
+#: ../src/plugin.py:2089
 msgid "Download and display posters for VoD items if available."
 msgstr "Lataa ja näytä julisteet Tilaus-TV (VoD) -kohteita varten, jos saatavilla."
 
-#: ../src/plugin.py:1857
+#: ../src/plugin.py:1912
 msgid "Download picons"
 msgstr "Lataa piconit"
 
-#: ../src/plugin.py:1857
+#: ../src/plugin.py:1912
 msgid "Download picons, if available from the provider, and install them. Picon download is done in the background after bouquet generation."
 msgstr "Lataa piconit, jos saatavilla palveluntarjoajalta, ja asenna ne. Piconien lataus tapahtuu taustalla suosikkilistan luomisen jälkeen."
 
-#: ../src/XtreemProvider.py:202 ../src/XtreemProvider.py:204
+#: ../src/XtreemProvider.py:204 ../src/XtreemProvider.py:206
 #, python-format
 msgid "Duration: %s"
 msgstr "Kesto: %s"
@@ -284,64 +288,64 @@ msgstr "EPG-tuonti: Tuodaan %s %s tapahtumaa"
 msgid "EPG Import: Importing events for %s completed"
 msgstr "EPG-tuonti: %s tapahtumien tuonti valmis"
 
-#: ../src/plugin.py:1833
+#: ../src/plugin.py:1888
 msgid "EPG matching condition"
 msgstr "EPG:n yhteensopivuus"
 
-#: ../src/plugin.py:2021
+#: ../src/plugin.py:2081
 msgid "Enable IPTV functionality and managment."
 msgstr "Ota IPTV-toiminnallisuus ja -hallinta käyttöön."
 
-#: ../src/plugin.py:2021
+#: ../src/plugin.py:2081
 msgid "Enable IPTV manager"
 msgstr "Ota IPTV-hallinta käyttöön"
 
-#: ../src/plugin.py:1847
+#: ../src/plugin.py:1902
 msgid "Enable Media Library"
 msgstr "Ota Mediakirjasto käyttöön"
 
-#: ../src/plugin.py:2033
+#: ../src/plugin.py:2093
 msgid "Enable catchup/archive entries in EPG screens for period"
 msgstr "Alusta aloittamisen-/arkistomerkintöjen ajanjakso EPG-näytöissä"
 
-#: ../src/plugin.py:2038
+#: ../src/plugin.py:2098
 msgid "Enable new GStreamer playback"
 msgstr "Ota uusi GStreamer-toisto käyttöön"
 
-#: ../src/plugin.py:2033 ../src/plugin.py:2034
+#: ../src/plugin.py:2093
 msgid "Enables possibility to return back in epg screens so to use old entries for invoke catchup/archive/timeshift."
 msgstr "Sallii mahdollisuuden palata takaisin epg-näytöille, jotta vanhoja merkintöjä voidaan käyttää alusta aloittamiseen/arkistointiin/ajansiirtoon."
 
-#: ../src/plugin.py:2066
+#: ../src/plugin.py:2126
 msgid "Enigma2 playback system"
 msgstr "Enigma2 toistojärjestelmä"
 
-#: ../src/StalkerProvider.py:1081 ../src/XtreemProvider.py:198
+#: ../src/StalkerProvider.py:1083 ../src/XtreemProvider.py:200
 #, python-format
 msgid "Ep%s"
 msgstr "J%s"
 
-#: ../src/plugin.py:2031
+#: ../src/plugin.py:2091
 msgid "Fallback location for picons"
 msgstr "Piconien varapaikka"
 
-#: ../src/plugin.py:2031
+#: ../src/plugin.py:2091
 msgid "Fallback loction for picons used when current active picon location can not be detected."
 msgstr "Piconien varapaikka, jota käytetään, kun nykyisen aktiivisen piconin sijaintia ei voida havaita."
 
-#: ../src/plugin.py:1626 ../src/plugin.py:1665
+#: ../src/plugin.py:1679 ../src/plugin.py:1718
 msgid "Fetching VoD items"
 msgstr "Haetaan VoD-kohteita"
 
-#: ../src/plugin.py:1821
+#: ../src/plugin.py:1876
 msgid "Filter"
 msgstr "Suodatin"
 
-#: ../src/plugin.py:1782
+#: ../src/plugin.py:1835
 msgid "Flussonic"
 msgstr "Flussonic"
 
-#: ../src/plugin.py:2097
+#: ../src/plugin.py:2158
 msgid "Friday"
 msgstr "Perjantai"
 
@@ -349,107 +353,103 @@ msgstr "Perjantai"
 msgid "General settings for IPTV subsystem."
 msgstr "IPTV-alijärjestelmän yleiset asetukset."
 
-#: ../src/plugin.py:1830
+#: ../src/plugin.py:1885
 msgid "Generate EPG files for EPGImport plugin"
 msgstr "Luo EPG-tiedostoja EPGImport-lisäosalle"
 
-#: ../src/plugin.py:1581
+#: ../src/plugin.py:1634
 msgid "Generate bouquets"
 msgstr "Luo suosikkilistat"
 
-#: ../src/plugin.py:1770
+#: ../src/plugin.py:1824
 msgid "HLS (M3U8)"
 msgstr "HLS (M3U8)"
 
-#: ../src/plugin.py:1228 ../src/plugin.py:1408
+#: ../src/plugin.py:1279 ../src/plugin.py:1460
 msgid "IMDb search"
 msgstr "IMDb-haku"
 
-#: ../src/plugin.py:1698
+#: ../src/plugin.py:1751
 msgid "INFO"
 msgstr "INFO"
 
-#: ../src/plugin.py:2180 ../src/menu.xml
+#: ../src/plugin.py:2249 ../src/menu.xml
 msgid "IPTV"
 msgstr "IPTV"
 
-#: ../src/plugin.py:2016
+#: ../src/plugin.py:2076
 msgid "IPTV Settings"
 msgstr "IPTV asetukset"
 
-#: ../src/plugin.py:2263
-msgid "IPTV manager Plugin"
-msgstr "IPTV-hallinta lisäosa"
-
-#: ../src/plugin.py:1818
+#: ../src/plugin.py:1873
 msgid "If enabled URL will be static and not aliases. That means if the URL of a service changes in the playlist bouquet entry will stop working."
 msgstr "Jos käytössä, URL-osoite on staattinen, ei aliaksia. Tämä tarkoittaa, että jos palvelun URL-osoite muuttuu soittolistassa, palvelu lakkaa toimimasta."
 
-#: ../src/plugin.py:2038
+#: ../src/plugin.py:2098
 msgid "If enabled, the new GStreamer playback engine will be used."
 msgstr "Jos tämä on käytössä, uutta GStreamer-toistomoottoria käytetään."
 
-#: ../src/plugin.py:2057
+#: ../src/plugin.py:2117
 msgid "If set to 'yes', allows you to use the seekbar to jump to a point within the event."
 msgstr "Jos asetukseksi on asetettu 'kyllä', voit käyttää hakupalkkia siirtyäksesi johonkin kohtaan ohjelmassa."
 
-#: ../src/plugin.py:2061 ../src/plugin.py:2063
+#: ../src/plugin.py:2121 ../src/plugin.py:2123
 msgid "If set to 'yes', allows you to use timeshift with alternative audio plugins."
 msgstr "Jos asetus on 'kyllä', voit käyttää ajansiirtoa vaihtoehtoisten äänilisäosien kanssa."
 
-#: ../src/plugin.py:1814
+#: ../src/plugin.py:1869
 msgid "If the playlist is already stored on a local device you can use the local file path in this field, e.g. /tmp/myplaylist.m3u"
 msgstr "Jos soittolista on jo tallennettu paikalliseen laitteeseen, voit käyttää paikallista tiedostopolkua tässä kentässä, esim. /tmp/myplaylist.m3u"
 
-#: ../src/plugin.py:1870
+#: ../src/plugin.py:1927
 msgid "Include this provider when the global update schedule runs."
 msgstr "Ota tämä palveluntarjoaja mukaan, kun yleinen päivitysaikataulu suoritetaan."
 
-#: ../src/plugin.py:701
+#: ../src/plugin.py:743
 msgid "Incorrect type service for PiP!"
 msgstr "Väärän tyyppinen palvelu PiP:lle!"
 
-#: ../src/plugin.py:1820
+#: ../src/plugin.py:1875
 msgid "Interval in which the playlist will be automatically updated"
 msgstr "Aika, jonka välein soittolista päivitetään automaattisesti"
 
-#: ../src/plugin.py:1719
+#: ../src/plugin.py:1772
 msgid "Is trial"
 msgstr "On kokeilu"
 
-#: ../src/plugin.py:2034
+#: ../src/plugin.py:2094
 msgid "Local EPG server listening port"
 msgstr "Paikallisen EPG-palvelimen kuunteluportti"
 
-#: ../src/plugin.py:1537
+#: ../src/plugin.py:1590
 msgid "M3U IPTV Manager - providers"
 msgstr "M3U IPTV -hallinta - palveluntarjoajat"
 
-#: ../src/plugin.py:1707
+#: ../src/plugin.py:1760
 msgid "M3U IPTV Provider Info"
 msgstr "M3U IPTV -palveluntarjoajan tiedot"
 
-#: ../src/plugin.py:1748 ../src/plugin.py:1749
+#: ../src/plugin.py:1802 ../src/plugin.py:1803
 msgid "M3U/M3U8"
 msgstr "M3U/M3U8"
 
-#: ../src/plugin.py:2263 ../src/menu.xml
+#: ../src/menu.xml
 msgid "M3UIPTV"
 msgstr "M3UIPTV"
 
-#: ../src/plugin.py:2092 ../src/plugin.py:2105
+#: ../src/plugin.py:2153 ../src/plugin.py:2166
 msgid "M3UIPTV schedule"
 msgstr "M3UIPTV aikataulu"
 
-#: ../src/plugin.py:1802
+#: ../src/plugin.py:1857
 msgid "M3UIPTVManager"
 msgstr "M3UIPTV-hallinta"
 
-#: ../src/plugin.py:1826
+#: ../src/plugin.py:1881
 msgid "MAC address"
 msgstr "MAC-osoite"
 
-#: ../src/plugin.py:1826
+#: ../src/plugin.py:1881
 msgid "MAC address used for authenticating in Stalker portal."
 msgstr "MAC-osoite, jota käytetään todentamiseen Stalker-portaalissa."
 
@@ -457,35 +457,35 @@ msgstr "MAC-osoite, jota käytetään todentamiseen Stalker-portaalissa."
 msgid "Manage M3U/Xtreme Codes playlist IPTV providers and adds support for playing IPTV services from autogenerated bouquets."
 msgstr "Hallinnoi M3U/Xtreme Codes -soittolistan IPTV-palveluntarjoajia ja lisää tuen IPTV-palvelujen toistamiseen automaattisesti luoduista suosikkilistoista."
 
-#: ../src/plugin.py:1721
+#: ../src/plugin.py:1774
 msgid "Maximum connections"
 msgstr "Maksimimäärä yhteyksiä"
 
-#: ../src/plugin.py:2024
+#: ../src/plugin.py:1915 ../src/plugin.py:2084
 msgid "Maximum number of threads during picon downloads. If the box returns errors or fails to download some picons, set a lower number."
 msgstr "Säikeiden enimmäismäärä piconien latausten aikana. Jos boksi palauttaa virheitä tai ei pysty lataamaan joitain piconeja, aseta pienempi luku."
 
-#: ../src/plugin.py:1855
+#: ../src/plugin.py:1910
 msgid "Media Library Access Token"
 msgstr "Mediakirjaston käyttöoikeustunniste"
 
-#: ../src/plugin.py:1853
+#: ../src/plugin.py:1908
 msgid "Media Library Password"
 msgstr "Mediakirjaston salasana"
 
-#: ../src/plugin.py:1850
+#: ../src/plugin.py:1905
 msgid "Media Library URL"
 msgstr "Mediakirjaston URL-osoite"
 
-#: ../src/plugin.py:1852
+#: ../src/plugin.py:1907
 msgid "Media Library Username"
 msgstr "Mediakirjaston käyttäjätunnus"
 
-#: ../src/plugin.py:1849
+#: ../src/plugin.py:1904
 msgid "Media Library type"
 msgstr "Mediakirjaston tyyppi"
 
-#: ../src/plugin.py:2097
+#: ../src/plugin.py:2158
 msgid "Monday"
 msgstr "Maanantai"
 
@@ -493,64 +493,68 @@ msgstr "Maanantai"
 msgid "Movies"
 msgstr "Elokuvat"
 
-#: ../src/plugin.py:686
+#: ../src/plugin.py:1839
+msgid "No Threads"
+msgstr "Ei säikeitä"
+
+#: ../src/plugin.py:728
 msgid "No free tuner!"
 msgstr "Ei vapaata viritintä!"
 
-#: ../src/plugin.py:1786
+#: ../src/plugin.py:1841
 msgid "Only bouquet for 'All Channels'"
 msgstr "Vain suosikkilista 'kaikille kanaville'"
 
-#: ../src/plugin.py:1786
+#: ../src/plugin.py:1841
 msgid "Only bouquets for groups"
 msgstr "Vain suosikkilistat ryhmille"
 
-#: ../src/plugin.py:113
+#: ../src/plugin.py:120
 msgid "Original case"
 msgstr "Alkuperäinen kirjainkoko"
 
-#: ../src/plugin.py:1824
+#: ../src/plugin.py:1879
 msgid "Password"
 msgstr "Salasana"
 
-#: ../src/plugin.py:1853
+#: ../src/plugin.py:1908
 msgid "Password used for authenticating in Media Library server."
 msgstr "Mediakirjastopalvelimen todentamiseen käytetty salasana."
 
-#: ../src/plugin.py:1824
+#: ../src/plugin.py:1879
 msgid "Password used for authenticating in the streaming server."
 msgstr "Salasana, jota käytetään todentamiseen striimaus-palvelimessa."
 
-#: ../src/plugin.py:1806
+#: ../src/plugin.py:1861
 #, python-format
 msgid "Permanently remove provider \"%s\" from your configuration."
 msgstr "Poista palveluntarjoaja \"%s\" pysyvästi määrityksistäsi."
 
-#: ../src/plugin.py:2024
+#: ../src/plugin.py:1915 ../src/plugin.py:2084
 msgid "Picon max threads"
 msgstr "Piconien maksimi säikeet"
 
-#: ../src/plugin.py:1767
+#: ../src/plugin.py:1821
 msgid "Picons by name (SNP)"
 msgstr "Piconit nimen mukaan (SNP)"
 
-#: ../src/plugin.py:1767
+#: ../src/plugin.py:1821
 msgid "Picons by service reference (SRP)"
 msgstr "Piconit kanavan referenssin mukaan (SRP)"
 
-#: ../src/plugin.py:1859
+#: ../src/plugin.py:1914
 msgid "Picons type"
 msgstr "Piconien tyyppi"
 
-#: ../src/IPTVCatchupPlayer.py:85
+#: ../src/IPTVCatchupPlayer.py:84
 msgid "Play Archive"
 msgstr "Toisto-arkisto"
 
-#: ../src/plugin.py:1841
+#: ../src/plugin.py:1896
 msgid "Playback system"
 msgstr "Toistojärjestelmä"
 
-#: ../src/plugin.py:1842
+#: ../src/plugin.py:1897
 msgid "Playback system for Catchup/Archive"
 msgstr "Alusta aloittamisen/Arkiston toistojärjestelmä"
 
@@ -558,140 +562,140 @@ msgstr "Alusta aloittamisen/Arkiston toistojärjestelmä"
 msgid "Playlist manager"
 msgstr "Soittolistan hallinta"
 
-#: ../src/plugin.py:959
+#: ../src/plugin.py:1011
 msgid "Please wait! Loading data from server."
 msgstr "Odota! Ladataan tietoja palvelimelta."
 
-#: ../src/plugin.py:1736
+#: ../src/plugin.py:1789
 msgid "Portal version"
 msgstr "Portaaliversio"
 
-#: ../src/plugin.py:1790 ../src/plugin.py:1791 ../src/plugin.py:1792
-#: ../src/plugin.py:2014
+#: ../src/plugin.py:1845 ../src/plugin.py:1846 ../src/plugin.py:1847
+#: ../src/plugin.py:2074
 msgid "Press OK"
 msgstr "Paina OK"
 
-#: ../src/plugin.py:1072
+#: ../src/plugin.py:1124
 msgid "Press OK to access selected item"
 msgstr "Paina OK päästäksesi valittuun kohteeseen"
 
-#: ../src/plugin.py:1584
+#: ../src/plugin.py:1637
 msgid "Press OK to edit the currently selected provider"
 msgstr "Paina OK muokataksesi valittua palveluntarjoajaa"
 
-#: ../src/plugin.py:1371 ../src/plugin.py:1465 ../src/plugin.py:1475
+#: ../src/plugin.py:1423 ../src/plugin.py:1517 ../src/plugin.py:1527
 msgid "Press OK to play selected movie"
 msgstr "Paina OK toistaaksesi valitun elokuvan"
 
-#: ../src/plugin.py:1192
+#: ../src/plugin.py:1243
 msgid "Press OK to play selected show"
 msgstr "Paina OK toistaaksesi valitun ohjelman"
 
-#: ../src/plugin.py:1183 ../src/plugin.py:1469
+#: ../src/plugin.py:1234 ../src/plugin.py:1521
 msgid "Press OK to select a category"
 msgstr "Paina OK valitaksesi kategorian"
 
-#: ../src/plugin.py:1080 ../src/plugin.py:1188
+#: ../src/plugin.py:1132 ../src/plugin.py:1239
 msgid "Press OK to select a series"
 msgstr "Paina OK valitaksesi sarjan"
 
-#: ../src/plugin.py:1196
+#: ../src/plugin.py:1247
 msgid "Press OK to select the current item"
 msgstr "Paina OK valitaksesi nykyisen kohteen"
 
-#: ../src/plugin.py:1873
+#: ../src/plugin.py:1930
 msgid "Press OK to select which bouquets/categories will be blacklisted."
 msgstr "Paina OK valitaksesi, mitkä suosikkilistat/luokat laitetaan mustalle listalle."
 
-#: ../src/plugin.py:1875 ../src/plugin.py:1876
+#: ../src/plugin.py:1932 ../src/plugin.py:1933
 msgid "Press OK to select which categories will be blacklisted."
 msgstr "Paina OK valitaksesi, mitkä luokat laitetaan mustalle listalle."
 
-#: ../src/plugin.py:2073
+#: ../src/plugin.py:2133
 msgid "Press OK to select which days of the week to perform the update."
 msgstr "Paina OK valitaksesi, minä viikonpäivinä päivitys suoritetaan."
 
-#: ../src/plugin.py:1865
+#: ../src/plugin.py:1922
 msgid "Provider TSID retrival condition"
 msgstr "Palveluntarjoajan TSID:n hakuehto"
 
-#: ../src/plugin.py:1812
+#: ../src/plugin.py:1867
 msgid "Provider Type"
 msgstr "Palveluntarjoajan tyyppi"
 
-#: ../src/plugin.py:1813
+#: ../src/plugin.py:1868
 msgid "Provider name"
 msgstr "Palveluntarjoajan nimi"
 
-#: ../src/plugin.py:2037
+#: ../src/plugin.py:2097
 msgid "Recording 4097, 5001 and 5002 streams not possible with external players, so convert recordings to servicetype 1."
 msgstr "4097-, 5001- ja 5002-striimien tallentaminen ei ole mahdollista ulkoisilla soittimilla, joten muunna tallenteet palvelutyyppiin 1."
 
-#: ../src/plugin.py:2037
+#: ../src/plugin.py:2097
 msgid "Recordings - convert IPTV servicetypes to  1"
 msgstr "Tallenteet - muunna IPTV-palvelutyypit 1:ksi"
 
-#: ../src/plugin.py:1820
+#: ../src/plugin.py:1875
 msgid "Refresh interval"
 msgstr "Päivitysväli"
 
-#: ../src/XtreemProvider.py:208 ../src/XtreemProvider.py:212
+#: ../src/XtreemProvider.py:210 ../src/XtreemProvider.py:214
 #, python-format
 msgid "Released: %s"
 msgstr "Julkaistu: %s"
 
-#: ../src/plugin.py:2023
+#: ../src/plugin.py:2083
 msgid "Request timeout"
 msgstr "Pyynnön aikakatkaisu"
 
-#: ../src/plugin.py:1870
+#: ../src/plugin.py:1927
 msgid "Requires the scheduler to be set up in the settings screen."
 msgstr "Edellyttää, että ajastin on määritetty asetusnäytössä."
 
-#: ../src/IPTVCatchupPlayer.py:304
+#: ../src/IPTVCatchupPlayer.py:303
 #, python-format
 msgid "Resume position at %s"
 msgstr "Jatka kohdasta %s"
 
-#: ../src/XtreemProvider.py:192 ../src/XtreemProvider.py:194
+#: ../src/XtreemProvider.py:194 ../src/XtreemProvider.py:196
 #, python-format
 msgid "S%s"
 msgstr "K%s"
 
-#: ../src/plugin.py:2097
+#: ../src/plugin.py:2158
 msgid "Saturday"
 msgstr "Lauantai"
 
-#: ../src/plugin.py:1986
+#: ../src/plugin.py:2045
 msgid "Save"
 msgstr "Tallenna"
 
-#: ../src/plugin.py:2073
+#: ../src/plugin.py:2133
 msgid "Schedule days of the week"
 msgstr "Aikatauluta viikonpäivät"
 
-#: ../src/plugin.py:2072
+#: ../src/plugin.py:2132
 msgid "Schedule time of day"
 msgstr "Aikatauluta kellonaika"
 
-#: ../src/plugin.py:2070
+#: ../src/plugin.py:2130
 msgid "Schedule update"
 msgstr "Aikatauluta päivitys"
 
-#: ../src/plugin.py:1839
+#: ../src/plugin.py:1894
 msgid "Scheme"
 msgstr "Skeema"
 
-#: ../src/plugin.py:1894
+#: ../src/plugin.py:1951
 #, python-format
 msgid "Scheme must be unique. \"%s\" is already in use. Please update this field."
 msgstr "Skeeman on oltava uniikki. \"%s\" on jo käytössä. Päivitä tämä kenttä."
 
-#: ../src/plugin.py:993 ../src/plugin.py:1297
+#: ../src/plugin.py:1045 ../src/plugin.py:1349
 msgid "Search"
 msgstr "Etsi"
 
-#: ../src/plugin.py:1865
+#: ../src/plugin.py:1922
 msgid ""
 "Search condition to get TSID provided from IPTV provider.\n"
 "Useful when want to always have same service references for EPG."
@@ -699,71 +703,71 @@ msgstr ""
 "Hakuehto TSID:n saatavuuteen IPTV-palveluntarjoajalta.\n"
 "Hyödyllinen, kun haluat aina käyttää samoja palveluviitteitä EPG:lle."
 
-#: ../src/IPTVCatchupPlayer.py:420
+#: ../src/IPTVCatchupPlayer.py:419
 msgid "Seek back"
 msgstr "Etsi taaksepäin"
 
-#: ../src/IPTVCatchupPlayer.py:416
+#: ../src/IPTVCatchupPlayer.py:415
 msgid "Seek forwards"
 msgstr "Etsi eteenpäin"
 
-#: ../src/plugin.py:2059
+#: ../src/plugin.py:2119
 msgid "Select 'Yes' to allow use of the seek bar to jump to a selected point within the event."
 msgstr "Valitse 'Kyllä', jos haluat sallia hakupalkin käytön siirtyäksesi valittuun kohtaan ohjelmassa."
 
-#: ../src/plugin.py:2070
+#: ../src/plugin.py:2130
 msgid "Select 'yes' for automated updates of providers."
 msgstr "Valitse 'Kyllä', jos haluat päivittää palveluntarjoajia automaattisesti."
 
-#: ../src/plugin.py:2068
+#: ../src/plugin.py:2128
 msgid "Select a player to be in use."
 msgstr "Valitse soitin, jota käytetään."
 
-#: ../src/plugin.py:2092 ../src/plugin.py:2105
+#: ../src/plugin.py:2153 ../src/plugin.py:2166
 msgid "Select days"
 msgstr "Valitse päivät"
 
-#: ../src/plugin.py:2051
+#: ../src/plugin.py:2111
 msgid "Select if timeshift should continue when set to record."
 msgstr "Valitse, jatketaanko ajansiirtoa, kun tallennus on asetettu."
 
-#: ../src/plugin.py:1988
+#: ../src/plugin.py:2047
 msgid "Select the bouquets you want to blacklist and press ok. Blacklisted bouquets will be removed and not regenerated on rebuild. To reactive a bouquet, deselect it and regenerate bouquets."
 msgstr "Valitse suosikkilistat, jotka haluat lisätä mustalle listalle, ja paina ok. Mustalla listalla olevat suosikkilistat poistetaan, eikä niitä generoida uudelleen luomisen yhteydessä. Jos haluat aktivoida suosikkilistan uudelleen, poista sen valinta ja luo suosikkilistat uudelleen."
 
-#: ../src/plugin.py:2068
+#: ../src/plugin.py:2128
 msgid "Select the player which will be used for Enigma2 playback."
 msgstr "Valitse soitin, jota käytetään Enigma2-toistoon."
 
-#: ../src/plugin.py:1728
+#: ../src/plugin.py:1781
 msgid "Server https port"
 msgstr "Palvelimen https-portti"
 
-#: ../src/plugin.py:1726
+#: ../src/plugin.py:1779
 msgid "Server port"
 msgstr "Palvelimen portti"
 
-#: ../src/plugin.py:1732
+#: ../src/plugin.py:1785
 msgid "Server protocol"
 msgstr "Palvelimen protokolla"
 
-#: ../src/plugin.py:1730
+#: ../src/plugin.py:1783
 msgid "Server rtmp port"
 msgstr "Palvelimen rtmp-portti"
 
-#: ../src/plugin.py:1734
+#: ../src/plugin.py:1787
 msgid "Server timezone"
 msgstr "Palvelimen aikavyöhyke"
 
-#: ../src/plugin.py:1724
+#: ../src/plugin.py:1777
 msgid "Server url"
 msgstr "Palvelimen url"
 
-#: ../src/plugin.py:2072
+#: ../src/plugin.py:2132
 msgid "Set the time of day to perform the update."
 msgstr "Aseta kellonaika päivityksen suorittamista varten."
 
-#: ../src/plugin.py:1868
+#: ../src/plugin.py:1925
 msgid "Sets custom User-Agent for use with services that requires specific one."
 msgstr "Asettaa mukautetun käyttäjäagentin käytettäväksi palveluiden kanssa, jotka vaativat tietyn sellaisen."
 
@@ -771,79 +775,79 @@ msgstr "Asettaa mukautetun käyttäjäagentin käytettäväksi palveluiden kanss
 msgid "Settings"
 msgstr "Asetukset"
 
-#: ../src/plugin.py:1782
+#: ../src/plugin.py:1835
 msgid "Shift"
 msgstr "Siirto"
 
-#: ../src/plugin.py:2026
+#: ../src/plugin.py:2086
 msgid "Show 'Video on Demand' extensions entry"
 msgstr "Näytä 'Tilaus-TV (VoD)' laajennuksissa"
 
-#: ../src/plugin.py:2025
+#: ../src/plugin.py:2085
 msgid "Show 'Video on Demand' menu entry"
 msgstr "Näytä 'Tilaus-TV (VoD)' menussa"
 
-#: ../src/plugin.py:2046
+#: ../src/plugin.py:2106
 msgid "Show warning when time shift is stopped"
 msgstr "Näytä varoitus, kun ajansiirto pysäytetään"
 
-#: ../src/plugin.py:2048
+#: ../src/plugin.py:2108
 msgid "Show warning when timeshift is stopped"
 msgstr "Näytä varoitus, kun ajansiirto pysäytetään"
 
-#: ../src/plugin.py:1828
+#: ../src/plugin.py:1883
 msgid "Skip VOD entries"
 msgstr "Ohita Tilaus-TV:t (VoD)"
 
-#: ../src/plugin.py:1828
+#: ../src/plugin.py:1883
 msgid "Skip VOD entries in the playlist"
 msgstr "Ohita Tilaus-TV:t (VoD) soittolistassa"
 
-#: ../src/plugin.py:2063
+#: ../src/plugin.py:2123
 msgid "Skip jumping to live TV while timeshifting with plugins"
 msgstr "Ohita suoraan TV-lähetykseen hyppy ajansiirron ollessa päällä lisäosilla"
 
-#: ../src/plugin.py:2061
+#: ../src/plugin.py:2121
 msgid "Skip jumping to live while timeshifting with plugins"
 msgstr "Ohita suoraan lähetykseen hyppy ajansiirron ollessa päällä lisäosilla"
 
-#: ../src/plugin.py:1867
+#: ../src/plugin.py:1924
 msgid "Specify how channels will be ordered in bouquets."
 msgstr "Määritä, miten kanavat järjestetään suosikkilistoihin."
 
-#: ../src/plugin.py:1833
+#: ../src/plugin.py:1888
 msgid "Specify how xmltv entries will be matched to channels."
 msgstr "Määritä, kuinka xmltv-merkinnät yhdistetään kanaviin."
 
-#: ../src/plugin.py:1847
+#: ../src/plugin.py:1902
 msgid "Specify is there media library available on separate url."
 msgstr "Määritä, onko mediakirjasto saatavilla erillisessä url-osoitteessa."
 
-#: ../src/plugin.py:1850
+#: ../src/plugin.py:1905
 msgid "Specify media library URL."
 msgstr "Määritä mediakirjaston URL-osoite."
 
-#: ../src/plugin.py:1849
+#: ../src/plugin.py:1904
 msgid "Specify media library type."
 msgstr "Määritä mediakirjaston tyyppi."
 
-#: ../src/plugin.py:2027
+#: ../src/plugin.py:2087
 msgid "Specify the character case used for bouquet names and titles."
 msgstr "Määritä suosikkilistojen nimissä ja otsikoissa käytettävä merkkityyppi."
 
-#: ../src/plugin.py:1812
+#: ../src/plugin.py:1867
 msgid "Specify the provider type."
 msgstr "Määritä palveluntarjoajan tyyppi."
 
-#: ../src/plugin.py:1813
+#: ../src/plugin.py:1868
 msgid "Specify the provider user friendly name that will be used for the bouquet name and for displaying in the infobar."
 msgstr "Määritä palveluntarjoajan käyttäjäystävällinen nimi, jota käytetään suosikkilistan nimessä ja näytettäessä tietopalkki."
 
-#: ../src/plugin.py:2028
+#: ../src/plugin.py:2088
 msgid "Specify the type of services that will be generated for VoD items."
 msgstr "Määritä palvelutyypit, jotka luodaan VoD-kohteille."
 
-#: ../src/plugin.py:1839
+#: ../src/plugin.py:1894
 msgid ""
 "Specifying the URL scheme that unicly identify the provider.\n"
 "Can be anything you like without spaces and special characters."
@@ -851,43 +855,43 @@ msgstr ""
 "Määritetään URL-skeema, josta tunnistaa palveluntarjoajan yksiselitteisesti.\n"
 "Voi olla mitä tahansa, ilman välilyöntejä ja erikoismerkkejä."
 
-#: ../src/plugin.py:1782
+#: ../src/plugin.py:1835
 msgid "Stalker"
 msgstr "Stalker"
 
-#: ../src/plugin.py:1748
+#: ../src/plugin.py:1802
 msgid "Stalker portal"
 msgstr "Stalker-portaali"
 
-#: ../src/plugin.py:1782
+#: ../src/plugin.py:1835
 msgid "Standard"
 msgstr "Vakio"
 
-#: ../src/plugin.py:2055
+#: ../src/plugin.py:2115
 msgid "Stop time shift while recording"
 msgstr "Pysäytä ajansiirto tallennuksen aikana"
 
-#: ../src/plugin.py:2053
+#: ../src/plugin.py:2113
 msgid "Stop timeshift while recording?"
 msgstr "Pysäytä ajansiirto tallennuksen aikana?"
 
-#: ../src/plugin.py:2055
+#: ../src/plugin.py:2115
 msgid "Stops time shift being used if a recording is in progress. (Advisable for USB sticks.)"
 msgstr "Lopettaa ajansiirron käytön, jos tallennus on käynnissä. (Suositeltavaa USB-tikuille.)"
 
-#: ../src/plugin.py:2053
+#: ../src/plugin.py:2113
 msgid "Stops timeshift being used if a recording is in progress. (Advisable for USB sticks)"
 msgstr "Lopettaa ajansiirron käytön, jos tallennus on käynnissä. (Suositeltavaa USB-tikuille.)"
 
-#: ../src/plugin.py:1844
+#: ../src/plugin.py:1899
 msgid "Stream output format"
 msgstr "Striimin ulostuloformaatti"
 
-#: ../src/plugin.py:2097
+#: ../src/plugin.py:2158
 msgid "Sunday"
 msgstr "Sunnuntai"
 
-#: ../src/plugin.py:1226 ../src/plugin.py:1406
+#: ../src/plugin.py:1277 ../src/plugin.py:1458
 msgid "TMDb search"
 msgstr "TMDb-haku"
 
@@ -895,27 +899,27 @@ msgstr "TMDb-haku"
 msgid "TV Shows"
 msgstr "TV-sarjat"
 
-#: ../src/plugin.py:1748
+#: ../src/plugin.py:1802
 msgid "TVHeadend server"
 msgstr "TVHeadend-palvelin"
 
-#: ../src/plugin.py:1749
+#: ../src/plugin.py:1803
 msgid "TXT"
 msgstr "TXT"
 
-#: ../src/plugin.py:1836
+#: ../src/plugin.py:1891
 msgid "The URL where EPG data for this provider can be downloaded."
 msgstr "URL-osoite, josta tämän palveluntarjoajan EPG-tiedot voidaan ladata."
 
-#: ../src/plugin.py:1846
+#: ../src/plugin.py:1901
 msgid "The catchup API used."
 msgstr "Käytetty alusta aloittamisen API."
 
-#: ../src/plugin.py:1816
+#: ../src/plugin.py:1871
 msgid "The format of the VOD playlist (m3u; m3u8; txt)"
 msgstr "Tilaus-TV:n (VoD) -soittolistan formaatti (m3u; m3u8; txt)"
 
-#: ../src/plugin.py:1844
+#: ../src/plugin.py:1899
 msgid ""
 "The format used to deliver the streams. Can be TS or HLS.\n"
 "NOTE: Setting playback system to DVB will make it impossible to use HLS as output format."
@@ -923,60 +927,60 @@ msgstr ""
 "Striimien lähtömuoto. Voi olla TS tai HLS.\n"
 "HUOM: Toistojärjestelmän asettaminen DVB:ksi tekee mahdottomaksi käyttää HLS:ää lähtömuotona."
 
-#: ../src/plugin.py:1842
+#: ../src/plugin.py:1897
 msgid "The player used for playing Catchup/Archive. Can be GStreamer/HiSilicon, Extplayer3"
 msgstr "Alusta aloittamisen/arkiston toistamiseen käytetty soitin. Voi olla GStreamer/HiSilicon, Extplayer3"
 
-#: ../src/plugin.py:1841
+#: ../src/plugin.py:1896
 msgid "The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3"
 msgstr "Käytetty soitin. Voi olla DVB, GStreamer, HiSilicon, Extplayer3"
 
-#: ../src/plugin.py:1814
+#: ../src/plugin.py:1869
 msgid "The playlist URL (*.m3u; *.m3u8) or streaming server URL. Including the port if differs from 80."
 msgstr "Soittolistan URL-osoite (*.m3u; *.m3u8) tai striimaus-palvelimen URL-osoite. Sisältäen portin, jos se eroaa 80:stä."
 
-#: ../src/plugin.py:1821
+#: ../src/plugin.py:1876
 msgid "The search criteria by which the service will be searched in the playlist file."
 msgstr "Hakukriteeri, jolla kanavaa haetaan soittolistatiedostosta."
 
-#: ../src/plugin.py:2097
+#: ../src/plugin.py:2158
 msgid "Thursday"
 msgstr "Torstai"
 
-#: ../src/plugin.py:2023
+#: ../src/plugin.py:2083
 msgid "Timeout in seconds for the requests of getting playlist."
 msgstr "Soittolistan hakupyyntöjen aikakatkaisu sekunneissa."
 
-#: ../src/plugin.py:2051
+#: ../src/plugin.py:2111
 msgid "Timeshift-save action on zap"
 msgstr "Ajansiirto-tallennustoiminto kanavanvaihdossa"
 
-#: ../src/plugin.py:1987
+#: ../src/plugin.py:2046
 msgid "Toggle all"
 msgstr "Vaihda kaikki valinnat"
 
-#: ../src/plugin.py:1770
+#: ../src/plugin.py:1824
 msgid "Transport stream (TS)"
 msgstr "Transport stream (TS)"
 
-#: ../src/plugin.py:2097
+#: ../src/plugin.py:2158
 msgid "Tuesday"
 msgstr "Tiistai"
 
-#: ../src/StalkerProvider.py:591 ../src/StalkerProvider.py:592
-#: ../src/VODProvider.py:103 ../src/XtreemProvider.py:58
+#: ../src/StalkerProvider.py:597 ../src/StalkerProvider.py:598
+#: ../src/VODProvider.py:105 ../src/XtreemProvider.py:60
 msgid "UNCATEGORIZED"
 msgstr "LUOKITTAMATON"
 
-#: ../src/plugin.py:113
+#: ../src/plugin.py:120
 msgid "UPPER case"
 msgstr "ISOT kirjaimet"
 
-#: ../src/plugin.py:1814
+#: ../src/plugin.py:1869
 msgid "URL"
 msgstr "URL"
 
-#: ../src/plugin.py:1674
+#: ../src/plugin.py:1727
 #, python-format
 msgid ""
 "Unable to create bouquet \"%s\"!\n"
@@ -985,11 +989,11 @@ msgstr ""
 "Suosikkilistaa \"%s\" ei voi luoda!\n"
 "Mahdollinen syy voi olla, ettei verkkoa ole saatavilla."
 
-#: ../src/StalkerProvider.py:343
+#: ../src/StalkerProvider.py:350
 msgid "Unknown"
 msgstr "Tuntematon"
 
-#: ../src/plugin.py:1863
+#: ../src/plugin.py:1920
 msgid ""
 "Use channel numbers and ordering provided by the IPTV provider.\n"
 "It will work only for 'ALL' bouquets.\n"
@@ -999,27 +1003,27 @@ msgstr ""
 "Se toimii vain 'KAIKKI'-suosikkilistojen kanssa.\n"
 "Jos globaali numerointi on määritetty, kanavanumerot voivat vaihdella riippuen siitä, kuinka monta suosikkilistaa on ennen sitä."
 
-#: ../src/plugin.py:1863
+#: ../src/plugin.py:1920
 msgid "Use channel numbers from provider"
 msgstr "Käytä palveluntarjoajan kanavanumeroita"
 
-#: ../src/plugin.py:1834
+#: ../src/plugin.py:1889
 msgid "Use custom XMLTV URL"
 msgstr "Käytä mukautettua XMLTV-URL-osoitetta"
 
-#: ../src/plugin.py:1861
+#: ../src/plugin.py:1918
 msgid "Use provider TSID"
 msgstr "Käytä palveluntarjoajan TSID:tä"
 
-#: ../src/plugin.py:1787
+#: ../src/plugin.py:1842
 msgid "Use provider order"
 msgstr "Käytä palveluntarjoajan järjestystä"
 
-#: ../src/plugin.py:1818
+#: ../src/plugin.py:1873
 msgid "Use static URLs"
 msgstr "Käytä staattisia URL-osoitteita"
 
-#: ../src/plugin.py:1861
+#: ../src/plugin.py:1918
 msgid ""
 "Use the TSID provided from the IPTV provider (if available).\n"
 "Useful when want to always have same service references for EPG."
@@ -1027,35 +1031,35 @@ msgstr ""
 "Käytä IPTV-palveluntarjoajan antamaa TSID:tä (jos saatavilla).\n"
 "Hyödyllinen, kun haluat aina käyttää samoja palveluviitteitä EPG:lle."
 
-#: ../src/plugin.py:2059
+#: ../src/plugin.py:2119
 msgid "Use time shift SeekBar while time shifting"
 msgstr "Käytä ajansiirron etsintäpalkkia ajansiirron aikana"
 
-#: ../src/plugin.py:2057
+#: ../src/plugin.py:2117
 msgid "Use timeshift seekbar while timeshifting?"
 msgstr "Käytä ajansiirron etsintäpalkkia ajansiirron aikana?"
 
-#: ../src/plugin.py:1834
+#: ../src/plugin.py:1889
 msgid "Use your own XMLTV url for EPG importing."
 msgstr "Käytä omaa XMLTV-URL-osoitettasi EPG-tuontiin."
 
-#: ../src/plugin.py:1852
+#: ../src/plugin.py:1907
 msgid "User name used for authenticating in the Media Library server."
 msgstr "Mediakirjastopalvelimen todentamiseen käytetty käyttäjätunnus."
 
-#: ../src/plugin.py:1823
+#: ../src/plugin.py:1878
 msgid "User name used for authenticating in the streaming server."
 msgstr "Käyttäjätunnus, jota käytetään todentamiseen striimaus-palvelimessa."
 
-#: ../src/plugin.py:1823
+#: ../src/plugin.py:1878
 msgid "Username"
 msgstr "Käyttäjätunnus"
 
-#: ../src/plugin.py:1816
+#: ../src/plugin.py:1871
 msgid "VOD playlist format"
 msgstr "Tilaus-TV:n (VoD) -soittolistan formaatti"
 
-#: ../src/plugin.py:2268 ../src/menu.xml
+#: ../src/plugin.py:2344 ../src/menu.xml
 msgid "Video On Demand"
 msgstr "Tilaus-TV (VoD)"
 
@@ -1067,105 +1071,106 @@ msgstr "Tilaus-TV:n (VoD) elokuvien luettelo."
 msgid "Video On Demand TV Shows listing."
 msgstr "Tilaus-TV:n (VoD) TV-sarjojen luettelo."
 
-#: ../src/plugin.py:1748 ../src/plugin.py:2185
+#: ../src/plugin.py:1802 ../src/plugin.py:2255
 msgid "Video on Demand"
 msgstr "Tilaus-TV (VoD)"
 
-#: ../src/plugin.py:1782
+#: ../src/plugin.py:1835
 msgid "VoD"
 msgstr "Tilaus-TV (VoD)"
 
-#: ../src/plugin.py:1468
+#: ../src/plugin.py:1520
 msgid "VoD Movie Categories"
 msgstr "Tilaus-TV (VoD) -elokuvaluokat"
 
-#: ../src/plugin.py:1474
+#: ../src/plugin.py:1526
 #, python-format
 msgid "VoD Movie Category: %s"
 msgstr "Tilaus-TV (VoD) -elokuvaluokat: %s"
 
-#: ../src/plugin.py:1464
+#: ../src/plugin.py:1516
 msgid "VoD Movie Search"
 msgstr "Tilaus-TV (VoD) -elokuvahaku"
 
-#: ../src/plugin.py:1436
+#: ../src/plugin.py:1488
 msgid "VoD Movie: enter search terms"
 msgstr "Tilaus-TV (VoD) elokuvat: syötä hakutermit"
 
-#: ../src/plugin.py:1182
+#: ../src/plugin.py:1233
 msgid "VoD Series Categories"
 msgstr "Tilaus-TV (VoD) -sarjojen luokat"
 
-#: ../src/plugin.py:1187
+#: ../src/plugin.py:1238
 #, python-format
 msgid "VoD Series Category: %s"
 msgstr "Tilaus-TV (VoD) -sarjojen luokat: %s"
 
-#: ../src/plugin.py:1195
+#: ../src/plugin.py:1246
 msgid "VoD Series Search"
 msgstr "Tilaus-TV (VoD) -sarjojen haku"
 
-#: ../src/plugin.py:1191
+#: ../src/plugin.py:1242
 #, python-format
 msgid "VoD Series: %s"
 msgstr "Tilaus-TV (VoD) -sarjat: %s"
 
-#: ../src/plugin.py:1150
+#: ../src/plugin.py:1201
 msgid "VoD Series: enter search terms"
 msgstr "Tilaus-TV (VoD) sarjat: syötä hakutermit"
 
-#: ../src/plugin.py:2028
+#: ../src/plugin.py:2088
 msgid "VoD playback system"
 msgstr "VoD-toistojärjestelmä"
 
-#: ../src/plugin.py:2097
+#: ../src/plugin.py:2158
 msgid "Wednesday"
 msgstr "Keskiviikko"
 
-#: ../src/plugin.py:2046
+#: ../src/plugin.py:2106
 msgid "When enabled, a warning will be displayed and the user will get an option to stop or to continue the time shift."
 msgstr "Kun tämä on käytössä, näyttöön tulee varoitus ja käyttäjä saa vaihtoehdon lopettaa tai jatkaa ajansiirtoa."
 
-#: ../src/plugin.py:2048
+#: ../src/plugin.py:2108
 msgid "When enabled, a warning will be displayed and the user will get an option to stop or to continue the timeshift."
 msgstr "Kun tämä on käytössä, näyttöön tulee varoitus ja käyttäjä saa vaihtoehdon lopettaa tai jatkaa ajansiirtoa."
 
-#: ../src/plugin.py:2044
+#: ../src/plugin.py:2104
 msgid "When enabled, time shift starts automatically in background after specified time."
 msgstr "Kun tämä on käytössä, ajansiirto alkaa automaattisesti taustalla, määritetyn ajan kuluttua."
 
-#: ../src/plugin.py:2042
+#: ../src/plugin.py:2102
 msgid "When enabled, timeshift starts automatically in background after the specified time."
 msgstr "Kun tämä on käytössä, ajansiirto alkaa automaattisesti taustalla, määritetyn ajan kuluttua."
 
-#: ../src/plugin.py:1796
+#: ../src/plugin.py:1851
 msgid "Xtream Codes (Token)"
 msgstr "Xtreme Codes (Käyttöoikeustunniste)"
 
-#: ../src/plugin.py:1796
+#: ../src/plugin.py:1851
 msgid "Xtream Codes (Username/Password)"
 msgstr "Xtreme Codes (Käyttäjätunnus/Salasana)"
 
-#: ../src/plugin.py:1748 ../src/plugin.py:1782
+#: ../src/plugin.py:1802 ../src/plugin.py:1835
 msgid "Xtreme Codes"
 msgstr "Xtreme Codes"
 
-#: ../src/plugin.py:1802
+#: ../src/plugin.py:1857
 msgid "add new provider"
 msgstr "lisää uusi palveluntarjoaja"
 
-#: ../src/plugin.py:1802
+#: ../src/plugin.py:1857
 msgid "edit provider"
 msgstr "muokkaa palveluntarjoajaa"
 
-#: ../src/plugin.py:113
+#: ../src/plugin.py:120
 msgid "lower case"
 msgstr "pienet kirjaimet"
 
-#: ../src/plugin.py:105 ../src/plugin.py:1752 ../src/plugin.py:1769
+#: ../src/plugin.py:112 ../src/plugin.py:1806 ../src/plugin.py:1823
+#: ../src/plugin.py:1839
 msgid "off"
 msgstr "pois päältä"
 
-#: ../src/plugin.py:1752
+#: ../src/plugin.py:1806
 msgid "on"
 msgstr "päällä"
