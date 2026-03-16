@@ -212,7 +212,7 @@ class XtreemProvider(IPTVProcessor):
 							if date[:4].isdigit():
 								date = date[:4]
 							marker.insert(0, _("Released: %s") % str(date))
-						ext = episode.get("container_extension")
+						ext = episode.get("container_extension") or ""  # if "container_extension" is missing the "" avoids crashing defered
 						episode_url = "%s/series/%s/%s/%s.%s" % (self.url, self.username, self.password, id, ext)
 						se_num = f"S{int(season_num or 0):02d}E{int(episode_num or 0):02d}"
 						title = title.replace(se_num, "").replace("." + ext, "")
