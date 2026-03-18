@@ -959,8 +959,11 @@ class VoDMoviePlayer(MoviePlayer, SubsSupport, SubsSupportStatus):
 		if not playing:
 			return
 		ref = self.session.nav.getCurrentServiceReferenceOriginal()
-		if ref:
-			delResumePoint(ref)
+		if ref and (sref := ref.toString()) in resumePointCache:
+			rp = resumePointCache[sref]
+			if sref[2]:
+				# Retain resume point (needed for status icons). Set "last" value the same as "length" value so we know we are at the end.
+				resumePointCache[sref] = [int(time()), resumePointCache[sref][2], resumePointCache[sref][2]] 
 		self.handleLeave("quit")
 
 	def up(self):
@@ -970,7 +973,40 @@ class VoDMoviePlayer(MoviePlayer, SubsSupport, SubsSupportStatus):
 		pass
 
 
-class M3UIPTVVoDSeries(Screen):
+class StatusIcon:
+	def __init__(self):
+		self.iconFolder = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "icons/folder.png"))
+		self.iconUnwatched = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "icons/part_unwatched.png"))
+		self.iconPart = []
+		for i in range(5):
+			self.iconPart.append(LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "icons/part_%d_4.png" % i)))
+
+	def insertIcon(self, x):
+		x = list(x)
+		x.insert(2, self.iconFolder)
+		if isinstance(self, M3UIPTVVoDSeries) and self.mode == M3UIPTVVoDSeries.MODE_EPISODE or isinstance(self, M3UIPTVVoDMovies) and self.mode in (M3UIPTVVoDMovies.MODE_MOVIE, M3UIPTVVoDMovies.MODE_SEARCH):
+			ref = self.getPlayRef(x).toString()
+			if (rp := resumePointCache.get(ref)) is not None:
+				last = rp[1]
+				length = rp[2]
+				if self.iconPart[0] and (last > 900000) and (not length or (last < length - 900000)) and last <= (length * 0.1):
+					x[2] = self.iconPart[0]
+				elif self.iconPart[1] and (last > 900000) and (not length or (last < length - 900000)) and last > (length * 0.1) and last <= (length * 0.4):
+					x[2] = self.iconPart[1]
+				elif self.iconPart[2] and (last > 900000) and (not length or (last < length - 900000)) and last > (length * 0.4) and last <= (length * 0.7):
+					x[2] = self.iconPart[2]
+				elif self.iconPart[3] and (last > 900000) and (not length or (last < length - 900000)):
+					x[2] = self.iconPart[3]
+				elif self.iconPart[4] and last >= length - 900000:
+					x[2] = self.iconPart[4]
+				else:  # should not get here
+					x[2] = self.iconPart[0]
+			else:
+				x[2] = self.iconUnwatched
+		return tuple(x)
+
+
+class M3UIPTVVoDSeries(Screen, StatusIcon):
 	MODE_GENRE = 0
 	MODE_SERIES = 1
 	MODE_SEARCH = 2
@@ -1005,6 +1041,7 @@ class M3UIPTVVoDSeries(Screen):
 
 	def __init__(self, session):
 		Screen.__init__(self, session)
+		StatusIcon.__init__(self)
 		self.skinName = [self.skinName, "M3UIPTVVoDMovies"]
 		self["list"] = List([])
 		self["description"] = StaticText()
@@ -1117,17 +1154,17 @@ class M3UIPTVVoDSeries(Screen):
 			self["poster"].instance.setPixmap(None)
 			self.processing_cover = False
 		elif self.mode == self.MODE_EPISODE:
-			if (current := self["list"].getCurrent()) and ((info := current[2]) is not None and (plot := info.get("plot")) is not None or current[4]):
-				self["description"].text = (plot + " " if plot else "") + ("%s" % current[4] if current[4] else "")
-				current_cover_url = current[6] or info.get("cover")
+			if (current := self["list"].getCurrent()) and ((info := current[3]) is not None and (plot := info.get("plot")) is not None or current[5]):
+				self["description"].text = (plot + " " if plot else "") + ("%s" % current[5] if current[5] else "")
+				current_cover_url = current[7] or info.get("cover")
 			else:
 				self["description"].text = _("Press OK to access selected item")
 				current_cover_url = None
 				self["poster"].instance.setPixmap(None)
 		elif self.mode == self.MODE_SERIES or self.mode == self.MODE_SEARCH:
-			if (current := self["list"].getCurrent()) and (plot := current[3]):
+			if (current := self["list"].getCurrent()) and (plot := current[4]):
 				self["description"].text = plot
-				current_cover_url = current[4]
+				current_cover_url = current[5]
 			else:
 				self["description"].text = _("Press OK to select a series")
 				current_cover_url = None
@@ -1161,7 +1198,7 @@ class M3UIPTVVoDSeries(Screen):
 				self["list"].index = 0
 			elif self.mode in (self.MODE_SERIES, self.MODE_SEARCH):
 				id = current[0]
-				provider = current[2]
+				provider = current[3]
 				self["overlay"].show()
 				self["list"].master.master.hide()
 				threads.deferToThread(self.getSeriesById, provider, id).addCallback(self.loadSeriesList)
@@ -1232,37 +1269,44 @@ class M3UIPTVVoDSeries(Screen):
 		if self.mode == self.MODE_GENRE:
 			self.title = _("VoD Series Categories")
 			self["description"].text = _("Press OK to select a category")
-			self["list"].setList([(x, x) for x in self.categories])
+			# (category_name, category_name)
+			self["list"].setList([self.insertIcon((x, x)) for x in self.categories])
 			self["poster"].instance and self["poster"].instance.setPixmap(None)
 		elif self.mode == self.MODE_SERIES:
 			self.title = _("VoD Series Category: %s") % self.category
 			self["description"].text = _("Press OK to select a series")
-			self["list"].setList([x for x in sorted(self.allseries[self.category], key=lambda x: x[1].lower())])
+			# (series_id, name, provider_scheme, plot, poster)
+			self["list"].setList([self.insertIcon(x) for x in sorted(self.allseries[self.category], key=lambda x: x[1].lower())])
 		elif self.mode == self.MODE_EPISODE:
 			self.title = _("VoD Series: %s") % self.seriesName
 			self["description"].text = _("Press OK to play selected show")
-			self["list"].setList([x for x in self.episodes])
+			# (stream_url, episode_name, episode_info_dict, provider_obj, episode_info_str, date_str, None)
+			self["list"].setList([self.insertIcon(x) for x in self.episodes])
 		elif self.mode == self.MODE_SEARCH:
 			self.title = _("VoD Series Search")
 			self["description"].text = _("Press OK to select the current item")
-			self["list"].setList(sorted([(series[0], series[1], series[2], series[3], series[4], c) for i, series in enumerate(self.allseries[self.all]) if (c := self.search(i))], key=lambda x: (-x[5], x[1])))
+			# (series_id, name, provider_scheme, plot, poster, search weight)
+			self["list"].setList(sorted([self.insertIcon((series[0], series[1], series[2], series[3], series[4], c)) for i, series in enumerate(self.allseries[self.all]) if (c := self.search(i))], key=lambda x: (-x[-1], x[1])))
 		self["key_yellow"].text = self.mdbText()
+
+	def getPlayRef(self, current):
+		series = 0
+		stream_data = current[0]
+		stream_data_split = stream_data.split("||")
+		url = stream_data_split[0]
+		if len(stream_data_split) > 1:
+			providerObj = current[4]
+			series = int(stream_data_split[1])
+			url = providerObj.getVoDPlayUrl(url, series=series)
+		return eServiceReference("%s:0:1:%x:1009:1:CCCC0000:0:0:0:%s:%s" % (config.plugins.m3uiptv.vod_play_system.value, int(current[6]) + (10000 * series), url.replace(":", "%3a"), current[1]))
 
 	def playMovie(self):
 		if current := self["list"].getCurrent():
 			infobar = InfoBar.instance
-			series = 0
 			if infobar:
 				LastService = self.session.nav.getCurrentServiceReferenceOriginal()
-				stream_data = current[0]
-				stream_data_split = stream_data.split("||")
-				url = stream_data_split[0]
-				if len(stream_data_split) > 1:
-					providerObj = current[3]
-					series = int(stream_data_split[1])
-					url = providerObj.getVoDPlayUrl(url, series=series)
-				ref = eServiceReference("%s:0:1:%x:1009:1:CCCC0000:0:0:0:%s:%s" % (config.plugins.m3uiptv.vod_play_system.value, int(current[5]) + (10000 * series), url.replace(":", "%3a"), current[1]))
-				self.session.open(VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
+				ref = self.getPlayRef(current)
+				self.session.openWithCallback(self.buildList, VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
 
 	def mdb(self):
 		if self.mode != self.MODE_GENRE and (current := self["list"].getCurrent()):
@@ -1291,7 +1335,7 @@ class M3UIPTVVoDSeries(Screen):
 		return PluginSummary
 
 
-class M3UIPTVVoDMovies(Screen):
+class M3UIPTVVoDMovies(Screen, StatusIcon):
 	MODE_CATEGORY = 0
 	MODE_MOVIE = 1
 	MODE_SEARCH = 2
@@ -1323,6 +1367,7 @@ class M3UIPTVVoDMovies(Screen):
 
 	def __init__(self, session):
 		Screen.__init__(self, session)
+		StatusIcon.__init__(self)
 		self["list"] = List([])
 		self["description"] = StaticText()
 		self.picload = ePicLoad()
@@ -1515,27 +1560,30 @@ class M3UIPTVVoDMovies(Screen):
 		if self.mode == self.MODE_SEARCH:
 			self.title = _("VoD Movie Search")
 			self["description"].text = _("Press OK to play selected movie")
-			self["list"].setList(sorted([(movie, movie.name, c) for i, movie in enumerate(self.allmovies) if (c := self.search(i))], key=lambda x: (-x[2], x[1])))
+			self["list"].setList(sorted([self.insertIcon((movie, movie.name, c)) for i, movie in enumerate(self.allmovies) if (c := self.search(i))], key=lambda x: (-x[-1], x[1])))
 		elif self.mode == self.MODE_CATEGORY:
 			self.title = _("VoD Movie Categories")
 			self["description"].text = _("Press OK to select a category")
-			self["list"].setList([(x, x) for x in self.categories])
+			self["list"].setList([self.insertIcon((x, x)) for x in self.categories])
 			self["list"].index = self.categories.index(self.category)
 			self["poster"].instance and self["poster"].instance.setPixmap(None)
 		else:
 			self.title = _("VoD Movie Category: %s") % self.category
 			self["description"].text = _("Press OK to play selected movie")
-			self["list"].setList(sorted([(movie, movie.name) for movie in self.allmovies if self.category == self.all or self.category == movie.category], key=lambda x: x[1].lower()))
+			self["list"].setList(sorted([self.insertIcon((movie, movie.name)) for movie in self.allmovies if self.category == self.all or self.category == movie.category], key=lambda x: x[1].lower()))
 		self["key_yellow"].text = self.mdbText()
+
+	def getPlayRef(self, current):
+		url = current[0].providerObj.getVoDPlayUrl(current[0].url, current[0].id)
+		return eServiceReference("%s:0:1:%x:1009:1:CCCC0000:0:0:0:%s:%s" % (config.plugins.m3uiptv.vod_play_system.value, current[0].id, url.replace(":", "%3a"), current[0].name))
 
 	def playMovie(self):
 		if current := self["list"].getCurrent():
 			infobar = InfoBar.instance
 			if infobar:
 				LastService = self.session.nav.getCurrentServiceReferenceOriginal()
-				url = current[0].providerObj.getVoDPlayUrl(current[0].url, current[0].id)
-				ref = eServiceReference("%s:0:1:%x:1009:1:CCCC0000:0:0:0:%s:%s" % (config.plugins.m3uiptv.vod_play_system.value, current[0].id, url.replace(":", "%3a"), current[0].name))
-				self.session.open(VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
+				ref = self.getPlayRef(current)
+				self.session.openWithCallback(self.buildList, VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
 
 	def keyCancel(self):
 		if len(self.categories) > 1 and self.mode in (self.MODE_MOVIE, self.MODE_SEARCH):
@@ -1559,7 +1607,7 @@ class M3UIPTVManagerConfig(Screen):
 				<convert type="TemplatedMultiContent">
 					{"template": [
 							 MultiContentEntryPixmapAlphaBlend(pos = (%d,%d), size = (%d,%d), flags = BT_SCALE | BT_KEEP_ASPECT_RATIO, png = 2),
-							MultiContentEntryText(pos = (%d,%d), size = (%d,%d), flags = RT_HALIGN_LEFT, text = 1), # index 0 is the MenuText,
+							 MultiContentEntryText(pos = (%d,%d), size = (%d,%d), flags = RT_HALIGN_LEFT, text = 1), # index 0 is the MenuText,
 							 MultiContentEntryText(pos = (%d,%d), size = (%d,%d), flags = RT_HALIGN_LEFT, text = 4),
 							 MultiContentEntryPixmapAlphaBlend(pos = (%d,%d), size = (%d,%d), flags = BT_SCALE | BT_KEEP_ASPECT_RATIO, png = 3),
 							 MultiContentEntryPixmapAlphaBlend(pos = (%d,%d), size = (%d,%d), flags = BT_SCALE | BT_KEEP_ASPECT_RATIO, png = 5),
