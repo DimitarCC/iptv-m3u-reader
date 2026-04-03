@@ -1,7 +1,7 @@
 # for localized messages
 from . import _
 
-from twisted.internet import threads
+from twisted.internet import threads, reactor
 from .epgimport_helper import epgimport_helper
 from .Variables import REQUEST_USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, \
 					   CATCHUP_FLUSSONIC_TEXT, CATCHUP_VOD_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE, USER_AGENTS, \
@@ -64,11 +64,6 @@ import shutil
 import base64
 from time import time
 from datetime import datetime
-
-try:
-	from multiprocessing import Process
-except ImportError:
-	Process = None
 
 write_lock = threading.Lock()
 
@@ -587,13 +582,7 @@ class IPTVProcessor():
 
 	def piconsDownload(self):
 		if self.picons:
-			if Process:
-				p = Process(target=piconsDownloadProcess, args=(self,))
-				p.start()
-			else:
-				fetcher = Fetcher(self)
-				fetcher.fetchall()
-				fetcher.createSoftlinks()
+			reactor.callInThread(piconsDownloadProcess, self)
 
 	# This function should be made available to the interface.
 	# Removes all picons for the current provider.
