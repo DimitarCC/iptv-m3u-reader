@@ -2143,7 +2143,6 @@ class IPTVPluginConfig(Setup):
 		configlist.append(("---",))
 		if hasattr(config, "recording") and hasattr(config.recording, "setstreamto1"):
 			configlist.append((_("Recordings - convert IPTV servicetypes to  1"), config.recording.setstreamto1, _("Recording 4097, 5001 and 5002 streams not possible with external players, so convert recordings to servicetype 1.")))
-			configlist.append((_("Enable new GStreamer playback"), config.misc.usegstplaybin3, _("If enabled, the new GStreamer playback engine will be used.")))
 			configlist.append(("---",))
 		if hasattr(config, "timeshift"):
 			if hasattr(config.timeshift, "startdelay"):
