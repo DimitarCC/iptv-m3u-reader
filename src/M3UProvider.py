@@ -163,7 +163,7 @@ class M3UProvider(IPTVProcessor):
 								curr_group = next_line[8:].strip()
 								if curr_group not in groups and self.create_bouquets_strategy != 1:
 									groups[curr_group] = []
-							if next_line.startswith(("http://", "https://", "YT-DLP://", "YT://")):
+							if next_line.startswith(("http://", "https://", "rtsp://", "rtmp://", "YT-DLP://", "YT://")):
 								url = next_line.replace(":", "%3a").replace("{lutc}", str(int(time())))
 								url = self.constructCatchupSuffix(captchup_days if captchup_days else global_tvg_rec, url, CATCHUP_TYPES[self.catchup_type], catchupreftype)
 								captchup_days = ""
@@ -407,7 +407,7 @@ class M3UProvider(IPTVProcessor):
 					if event and catchup_source and findurl:
 						nref_new = origRef + ":" + catchup_source.replace(":", "%3a")
 						break
-				elif findurl and line.startswith(("http://", "https://")):
+				elif findurl and line.startswith(("http://", "https://", "rtsp://", "rtmp://")):
 					match = re.search(r"catchupdays=(\d.*?)", iptvinfodata)
 					catchup_days = ""
 					if match:
