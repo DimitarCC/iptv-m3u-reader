@@ -259,7 +259,9 @@ class CatchupPlayer(MoviePlayer):
 			self.setProgress(p)
 
 	def getPosition(self):
-		if BoxInfo.getItem("mediaservice") == "servicehisilicon" and self.catchup_ref_type == 4097:
+		if self.catchup_ref_type == 1:
+			return self.current_time_manual
+		elif BoxInfo.getItem("mediaservice") == "servicehisilicon" and self.catchup_ref_type == 4097:
 			return self.current_time_manual
 		seekable = self.getSeek()
 		if seekable is not None:

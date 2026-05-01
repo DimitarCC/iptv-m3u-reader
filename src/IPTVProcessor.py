@@ -3,7 +3,7 @@ from . import _
 
 from twisted.internet import threads, reactor
 from .epgimport_helper import epgimport_helper
-from .Variables import REQUEST_USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_STALKER_TEXT, \
+from .Variables import REQUEST_USER_AGENT, CATCHUP_DEFAULT, CATCHUP_DEFAULT_TEXT, CATCHUP_APPEND_TEXT, CATCHUP_SHIFT_TEXT, CATCHUP_XTREME_TEXT, CATCHUP_XTREME_TEXT_60, CATCHUP_STALKER_TEXT, \
 					   CATCHUP_FLUSSONIC_TEXT, CATCHUP_VOD_TEXT, USER_IPTV_PROVIDER_BLACKLIST_FILE, USER_IPTV_VOD_MOVIES_FILE, USER_IPTV_VOD_SERIES_FILE, USER_AGENTS, \
 					   USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE, USER_IPTV_PROVIDER_VOD_MOVIES_BLACKLIST_FILE, \
 					   USER_IPTV_PROVIDER_VOD_SERIES_BLACKLIST_FILE, SERVICEAPP_AVAILABLE
@@ -96,7 +96,9 @@ def constructCatchUpUrl(sref, url_play, stime, etime, duration):
 		if "?" in url:
 			return f"{url}&utc={str(stime)}&lutc={str(int(now))}{url_addon}"
 		return f"{url}?utc={str(stime)}&lutc={str(int(now))}{url_addon}"
-	elif catchup_type == CATCHUP_XTREME_TEXT:
+	elif catchup_type == CATCHUP_XTREME_TEXT or catchup_type == CATCHUP_XTREME_TEXT_60:
+		if catchup_type == CATCHUP_XTREME_TEXT_60:
+			duration = duration // 60
 		sref_split = sref.split(":")
 		url = sref_split[10:][0]
 		stime_offset = stime

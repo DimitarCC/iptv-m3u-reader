@@ -7,7 +7,7 @@ from enigma import eDVBDB
 from Components.config import config
 from os import path
 from .IPTVProcessor import IPTVProcessor
-from .Variables import USER_IPTV_VOD_MOVIES_FILE, REQUEST_USER_AGENT, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_PROVIDER_INFO_FILE, USER_IPTV_VOD_SERIES_FILE, CATCHUP_XTREME, CATCHUP_XTREME_TEXT, USER_IPTV_SERIES_CATEGORIES_FILE
+from .Variables import USER_IPTV_VOD_MOVIES_FILE, REQUEST_USER_AGENT, USER_IPTV_MOVIE_CATEGORIES_FILE, USER_IPTV_PROVIDER_INFO_FILE, USER_IPTV_VOD_SERIES_FILE, CATCHUP_XTREME, CATCHUP_TYPES, USER_IPTV_SERIES_CATEGORIES_FILE
 
 db = eDVBDB.getInstance()
 
@@ -22,7 +22,7 @@ class XtreemProvider(IPTVProcessor):
 		self.create_epg = True
 		self.catchup_type = CATCHUP_XTREME
 		self.play_system_vod = "4097"
-		self.play_system_catchup = "4097"
+		self.play_system_catchup = "1"
 
 	def getEpgUrl(self):
 		return self.custom_xmltv_url if self.is_custom_xmltv and self.custom_xmltv_url else "%s/xmltv.php?username=%s&password=%s" % (self.url, self.username, self.password)
@@ -74,7 +74,7 @@ class XtreemProvider(IPTVProcessor):
 			surl = "%s/live/%s/%s/%s.%s" % (self.url, self.username, self.password, stream_id, self.output_format)
 			catchup_days = service.get("tv_archive_duration")
 			if catchup_days:
-				surl = self.constructCatchupSuffix(str(catchup_days), surl, CATCHUP_XTREME_TEXT)
+				surl = self.constructCatchupSuffix(str(catchup_days), surl, CATCHUP_TYPES[self.catchup_type], self.play_system_catchup)
 			stype = "1"
 			if ("UHD" in ch_name or "4K" in ch_name) and " HD" not in ch_name:
 				stype = "1F"

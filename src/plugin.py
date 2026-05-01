@@ -22,7 +22,7 @@ from .VODProvider import VODProvider
 from .IPTVProviders import providers, processService as processIPTVService
 from .IPTVCatchupPlayer import injectCatchupInEPG
 from .epgimport_helper import overwriteEPGImportEPGSourceInit
-from .Variables import SERVICEAPP_AVAILABLE, PROVIDER_FOLDER, USER_IPTV_PROVIDERS_FILE, USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_STALKER, CATCHUP_FLUSSONIC, CATCHUP_VOD, REQUEST_USER_AGENT
+from .Variables import SERVICEAPP_AVAILABLE, PROVIDER_FOLDER, USER_IPTV_PROVIDERS_FILE, USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_XTREME_60, CATCHUP_STALKER, CATCHUP_FLUSSONIC, CATCHUP_VOD, REQUEST_USER_AGENT
 from Screens.Screen import Screen, ScreenSummary
 from Screens.InfoBar import InfoBar, MoviePlayer
 from Screens.InfoBarGenerics import streamrelay
@@ -292,6 +292,7 @@ def readProviders():
 				providerObj.refresh_interval = int(provider.find("refresh_interval").text)
 				providerObj.username = provider.find("username").text
 				providerObj.password = provider.find("password").text
+				providerObj.catchup_type = int(provider.find("catchup_type").text) if provider.find("catchup_type") is not None and provider.find("catchup_type").text is not None else str(CATCHUP_DEFAULT)
 				providerObj.play_system = provider.find("system").text
 				providerObj.play_system_catchup = provider.find("system_catchup").text if provider.find("system_catchup") is not None and provider.find("system_catchup").text is not None else providerObj.play_system
 				providerObj.create_epg = provider.find("epg") is not None and provider.find("epg").text == "on"
@@ -448,6 +449,7 @@ def writeProviders():
 			xml.append(f"\t\t<scheme><![CDATA[{val.scheme}]]></scheme>\n")
 			xml.append(f"\t\t<system>{val.play_system}</system>\n")
 			xml.append(f"\t\t<system_catchup>{val.play_system_catchup}</system_catchup>\n")
+			xml.append(f"\t\t<catchup_type>{val.catchup_type}</catchup_type>\n")
 			xml.append(f"\t\t<epg>{'on' if val.create_epg else 'off'}</epg>\n")
 			xml.append(f"\t\t<onid>{val.onid}</onid>\n")
 			xml.append(f"\t\t<server_timezone_offset>{val.server_timezone_offset}</server_timezone_offset><!-- timezone offset of the server in seconds from the perspective of the client -->\n")
@@ -1876,11 +1878,13 @@ class M3UIPTVProviderEdit(Setup):
 		if SERVICEAPP_AVAILABLE:
 			play_system_choices.append(("5002", "Exteplayer3"))
 		self.play_system = ConfigSelection(default=providerObj.play_system, choices=play_system_choices)
-		catchup_play_system_choices = [("4097", "HiSilicon" if BoxInfo.getItem("mediaservice") == "servicehisilicon" else "GStreamer")]
+		catchup_play_system_choices = [("1", "DVB"), ("4097", "HiSilicon" if BoxInfo.getItem("mediaservice") == "servicehisilicon" else "GStreamer")]
 		if SERVICEAPP_AVAILABLE:
 			catchup_play_system_choices.append(("5002", "Exteplayer3"))
 		self.play_system_catchup = ConfigSelection(default=providerObj.play_system_catchup, choices=catchup_play_system_choices)
-		catchup_type_choices = [(CATCHUP_DEFAULT, _("Standard")), (CATCHUP_APPEND, _("Append")), (CATCHUP_SHIFT, _("Shift")), (CATCHUP_XTREME, _("Xtreme Codes")), (CATCHUP_STALKER, _("Stalker")), (CATCHUP_FLUSSONIC, _("Flussonic")), (CATCHUP_VOD, _("VoD"))]
+		catchup_type_choices = [(CATCHUP_DEFAULT, _("Standard")), (CATCHUP_APPEND, _("Append")), (CATCHUP_SHIFT, _("Shift")), (CATCHUP_XTREME, _("Xtreme Codes")), (CATCHUP_XTREME_60, _("Xtreme Codes 60")), (CATCHUP_STALKER, _("Stalker")), (CATCHUP_FLUSSONIC, _("Flussonic")), (CATCHUP_VOD, _("VoD"))]
+		if self.type.value == "Xtreeme":
+			catchup_type_choices = [(CATCHUP_XTREME, _("Xtreme Codes")), (CATCHUP_XTREME_60, _("Xtreme Codes 60"))]
 		self.catchup_type = ConfigSelection(default=providerObj.catchup_type, choices=catchup_type_choices)
 		self.epg_url = ConfigText(default=providerObj.epg_url, fixed_size=False)
 		self.picons = ConfigYesNo(default=providerObj.picons)
@@ -1945,8 +1949,9 @@ class M3UIPTVProviderEdit(Setup):
 			configlist.append((_("Playback system for Catchup/Archive"), self.play_system_catchup, _("The player used for playing Catchup/Archive. Can be GStreamer/HiSilicon, Extplayer3")))
 			if self.type.value in ("Xtreeme", "Stalker"):
 				configlist.append((_("Stream output format"), self.output_format, _("The format used to deliver the streams. Can be TS or HLS.\nNOTE: Setting playback system to DVB will make it impossible to use HLS as output format.")))
-			if self.type.value == "M3U":
+			if self.type.value in ("Xtreeme", "M3U"):
 				configlist.append((_("Catchup Type"), self.catchup_type, _("The catchup API used.")))
+			if self.type.value == "M3U":
 				configlist.append((_("Enable Media Library"), self.has_media_library, _("Specify is there media library available on separate url.")))
 				if self.has_media_library.value:
 					configlist.append((_("Media Library type"), self.media_library_type, _("Specify media library type.")))
@@ -2030,11 +2035,12 @@ class M3UIPTVProviderEdit(Setup):
 			providerObj.provider_tsid_search_criteria = self.provider_tsid_search_criteria.value
 			providerObj.custom_user_agent = self.custom_user_agent.value
 			providerObj.ch_order_strategy = self.ch_order_strategy.value
+			if self.type.value in ("Xtreeme", "M3U"):
+				providerObj.catchup_type = self.catchup_type.value
 			if self.type.value == "M3U":
 				providerObj.refresh_interval = self.refresh_interval.value
 				providerObj.static_urls = self.staticurl.value
 				providerObj.search_criteria = self.search_criteria.value
-				providerObj.catchup_type = self.catchup_type.value
 				providerObj.epg_url = self.epg_url.value
 				providerObj.is_custom_xmltv = self.is_custom_xmltv.value
 				providerObj.custom_xmltv_url = self.custom_xmltv_url.value
