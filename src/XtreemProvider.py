@@ -57,6 +57,21 @@ class XtreemProvider(IPTVProcessor):
 			if (category_id := group.get("category_id")) and (category_name := group.get("category_name")):
 				groups[category_id] = (category_name, [])
 
+		# sort groups robustly:
+		# - keep "ALL_CHANNELS" first
+		# - numeric keys sorted by integer value
+		# - other keys sorted case-insensitive
+		def _group_sort_key(key):
+			if key == "ALL_CHANNELS":
+				return (-1, "")
+			try:
+				# allow keys that are already ints or numeric strings
+				return (0, int(key))
+			except Exception:
+				return (1, str(key).lower())
+
+		groups = dict(sorted(groups.items(), key=lambda kv: _group_sort_key(kv[0])))
+
 		groups["EMPTY"] = (_("UNCATEGORIZED"), [])  # put "EMPTY" in last place
 
 		blacklist = self.readBlacklist()
