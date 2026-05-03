@@ -84,6 +84,24 @@ class XtreemProvider(IPTVProcessor):
 			category_id = service.get("category_id")
 			if not (stream_id and ch_name):
 				continue
+			if len(self.servicename_substitutions) > 0:
+				subst_name = self.servicename_substitutions["#EXTINF"] + self.servicename_substitutions["#URL"]
+				for subst in subst_name:
+					if str(ch_num) in subst.substitions:
+						ch_name = subst.substitions[str(ch_num)]
+			sreftype = None
+			if len(self.servicetype_substitions) > 0:
+				subst_name = self.servicetype_substitions["#EXTINF"] + self.servicetype_substitions["#URL"]
+				for subst in subst_name:
+					if str(ch_num) in subst.substitions:
+						sreftype = subst.substitions[str(ch_num)]
+
+			if len(self.epg_substitions) > 0:
+				subst_name = self.epg_substitions["#EXTINF"] + self.epg_substitions["#URL"]
+				for subst in subst_name:
+					if str(epg_id) in subst.substitions:
+						epg_id = subst.substitions[str(epg_id)]
+
 			if self.use_provider_tsid and ch_num:
 				tsid = int(ch_num)
 			surl = "%s/live/%s/%s/%s.%s" % (self.url, self.username, self.password, stream_id, self.output_format)
@@ -95,7 +113,7 @@ class XtreemProvider(IPTVProcessor):
 				stype = "1F"
 			elif "HD" in ch_name:
 				stype = "19"
-			sref = self.generateChannelReference(stype, tsid, surl.replace(":", "%3a"), ch_name)
+			sref = self.generateChannelReference(stype, tsid, surl.replace(":", "%3a"), ch_name, sreftype)
 
 			if self.create_bouquets_strategy > 0 and self.create_bouquets_strategy < 3:  # config option here: for user-optional, all-channels bouquet
 				if category_id not in groups or groups[category_id][0] not in blacklist:

@@ -316,6 +316,9 @@ def readProviders():
 				providerObj.picon_threads = int(provider.find("picon_threads").text) if provider.find("picon_threads") is not None else 0
 				providerObj.create_bouquets_strategy = int(provider.find("create_bouquets_strategy").text) if provider.find("create_bouquets_strategy") is not None else 0
 				providerObj.auto_updates = provider.find("auto_updates") is not None and provider.find("auto_updates").text == "on"
+
+				providerObj.servicename_substitutions, providerObj.epg_substitions, providerObj.servicetype_substitions, providerObj.catchuptype_substitions = readSubstitions(providerObj.scheme)
+				
 				providers[providerObj.scheme] = providerObj
 			for provider in elem.findall("stalkerprovider"):
 				providerObj = StalkerProvider()
