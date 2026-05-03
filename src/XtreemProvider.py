@@ -87,14 +87,14 @@ class XtreemProvider(IPTVProcessor):
 			if len(self.servicename_substitutions) > 0:
 				subst_name = self.servicename_substitutions["#EXTINF"] + self.servicename_substitutions["#URL"]
 				for subst in subst_name:
-					if str(ch_num) in subst.substitions:
-						ch_name = subst.substitions[str(ch_num)]
+					if str(stream_id) in subst.substitions:
+						ch_name = subst.substitions[str(stream_id)]
 			sreftype = None
 			if len(self.servicetype_substitions) > 0:
 				subst_name = self.servicetype_substitions["#EXTINF"] + self.servicetype_substitions["#URL"]
 				for subst in subst_name:
-					if str(ch_num) in subst.substitions:
-						sreftype = subst.substitions[str(ch_num)]
+					if str(stream_id) in subst.substitions:
+						sreftype = subst.substitions[str(stream_id)]
 
 			if len(self.epg_substitions) > 0:
 				subst_name = self.epg_substitions["#EXTINF"] + self.epg_substitions["#URL"]
