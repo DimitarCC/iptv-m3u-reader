@@ -169,6 +169,9 @@ class CatchupPlayer(MoviePlayer):
 		self.start_curr = start_orig
 		self.duration_curr = duration
 		self.current_time_manual = 0
+		self.allow_eof = False
+		self.eof_timer = eTimer()
+		self.eof_timer.callback.append(self.onEofTimer)
 		self.progress_timer = eTimer()
 		self.progress_timer.callback.append(self.onProgressTimer)
 		self.progress_timer.start(self.progress_change_interval)
@@ -194,6 +197,8 @@ class CatchupPlayer(MoviePlayer):
 			iPlayableService.evStart: self.__evServiceStart,
 			iPlayableService.evEnd: self.__evServiceEnd, })
 		self["SeekActions"].setEnabled(True)
+		if self.catchup_ref_type == 1:
+			self.__evServiceStart()
 
 	def setProgress(self, pos):
 		r = self.duration - pos
@@ -249,11 +254,15 @@ class CatchupPlayer(MoviePlayer):
 		self.current_seek_step = 0
 		self.current_seek_step_multiplier = 1
 
+	def onEofTimer(self):
+		self.eof_timer.stop()
+		self.allow_eof = True
+
 	def onProgressTimer(self):
 		curr_pos = self.start_curr + self.getPosition()
 		self.current_time_manual += 1
 		if curr_pos >= self.end_orig:
-			self.doEofInternal(True)
+			self.doEofCatchup(True)
 		p = curr_pos - self.start_orig
 		if not self.skip_progress_update:
 			self.setProgress(p)
@@ -291,6 +300,9 @@ class CatchupPlayer(MoviePlayer):
 			saveResumePoints()
 
 	def __evServiceStart(self):
+		self.allow_eof = False
+		if self.eof_timer:
+			self.eof_timer.start(3000, True)
 		self.current_time_manual = 0
 		if self.progress_timer:
 			self.progress_timer.start(self.progress_change_interval)
@@ -299,8 +311,10 @@ class CatchupPlayer(MoviePlayer):
 		self.invoked_seek_stime = -1
 		self.onProgressTimer()
 		if not self.isSeeking:
+			print("[CATCHUP PLAYER] Checking for resume point...")
 			self.resume_point = self.getResumePoint()
 			if self.resume_point is not None:
+				print("[CATCHUP PLAYER] Found resume point at %d seconds, asking user if they want to resume..." % self.resume_point)
 				x = self.resume_point
 				Notifications.AddNotificationWithCallback(self.playLastCB, MessageBox, _("Do you want to resume playback?") + "\n" + (_("Resume position at %s") % ("%d:%02d:%02d" % (x / 3600, x % 3600 / 60, x % 60))), timeout=30, default="yes" in config.usage.on_movie_start.value)
 		self.isSeeking = False
@@ -355,8 +369,8 @@ class CatchupPlayer(MoviePlayer):
 
 		new_start = self.start_orig + pts
 
-		if pts >= self.duration:
-			self.doEofInternal(True)
+		# if pts >= self.duration:
+		# 	self.doEofCatchup(True)
 
 		if pts == 0:
 			self.duration_curr = self.duration
@@ -371,8 +385,10 @@ class CatchupPlayer(MoviePlayer):
 
 	def setResumePoint(self):
 		service = self.session.nav.getCurrentService()
+		print("[CATCHUP PLAYER] Setting resume point...")
 		if (service is not None):
 			curr_pos = self.start_curr + self.getPosition()
+			print("[CATCHUP PLAYER]  Setting resume point... Current position is %d seconds" % curr_pos)
 			pos = curr_pos - self.start_orig
 			key = self.orig_sref + "|st=" + str(self.start_orig)
 			lru = int(time())
@@ -380,7 +396,7 @@ class CatchupPlayer(MoviePlayer):
 			resumePointCache[key] = [lru, pos, sl]
 			saveResumePoints()
 
-	def doEofInternal(self, playing):
+	def doEofCatchup(self, playing):
 		if not self.execing:
 			return
 		if not playing:
@@ -390,6 +406,11 @@ class CatchupPlayer(MoviePlayer):
 			self.progress_timer.callback.remove(self.onProgressTimer)
 		self.delResumePoint()
 		self.handleLeave("quit")
+
+	def doEofInternal(self, playing):
+		if self.catchup_ref_type == 1 and not self.allow_eof:
+			return
+		self.doEofCatchup(playing)
 
 	def up(self):
 		self.current_seek_step += 600
