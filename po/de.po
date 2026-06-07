@@ -745,7 +745,7 @@ msgstr "Wählen Sie die Bouquets aus, die Sie auf die schwarze Liste setzen möc
 
 #: ../src/plugin.py:2068
 msgid "Select the player which will be used for Enigma2 playback."
-msgstr "Wählen Sie den Player, der für die Enigma2-Wiedergabe verwendet werden soll."
+msgstr "Player für die Enigma2-Wiedergabe."
 
 #: ../src/plugin.py:1728
 msgid "Server https port"
