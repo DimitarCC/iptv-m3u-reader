@@ -2151,7 +2151,7 @@ class IPTVPluginConfig(Setup):
 		except:
 			config.usage.http_buffersize = ConfigSelection(default=2048, choices=[(1024, _("1 MB")), (2048, _("2 MB")), (4096, _("4 MB")), (8192, _("8 MB")), (16384, _("16 MB")), (20480, _("20 MB"))])
 			configlist.append((_("Size of buffer for http streaming"), config.usage.http_buffersize, _("Configure the buffer size for http streaming. A larger buffer can help with stuttering when the network connection is not stable, but also increases the delay between the stream and live TV.")))
-		if possible_picon_locations:
+		if possible_picon_locations and len(possible_picon_locations) > 1:
 			configlist.append((_("Fallback location for picons"), config.plugins.m3uiptv.fallback_picon_loc, _("Fallback loction for picons used when current active picon location can not be detected.")))
 		configlist.append(("---",))
 		configlist.append((_("Enable catchup/archive entries in EPG screens for period"), config.epg.histminutes, _("Enables possibility to return back in epg screens so to use old entries for invoke catchup/archive/timeshift.")))
