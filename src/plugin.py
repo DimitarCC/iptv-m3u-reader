@@ -1,5 +1,5 @@
 # for localized messages
-from . import _, PluginLanguageDomain
+from . import _, PluginLanguageDomain, getMountChoices, getMountDefault
 
 from sys import modules
 from time import time, localtime, mktime, strftime
@@ -35,6 +35,7 @@ from Screens.VirtualKeyBoard import VirtualKeyBoard
 from Components.ServiceEventTracker import ServiceEventTracker
 from Components.ActionMap import ActionMap, HelpableActionMap, NumberActionMap
 from Components.config import config, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigText, ConfigPassword, ConfigSelectionNumber, ConfigNumber, ConfigClock, ConfigSubDict, ConfigEnableDisable
+from Components.Harddisk import harddiskmanager
 from Components.ParentalControl import parentalControl
 from Components.SelectionList import SelectionList, SelectionEntryComponent
 from Components.Sources.StaticText import StaticText
@@ -72,15 +73,6 @@ except ImportError:
 	except ImportError:
 		IMDB = None
 
-try:
-	from Components.Renderer.Picon import searchPaths
-except ImportError:
-	try:
-		from Components.Renderer.Picon import piconLocator
-		searchPaths = piconLocator.searchPaths
-	except ImportError:
-		searchPaths = None
-
 # Add imports for SubsSupport plugin if installed
 try:
 	from Plugins.Extensions.SubsSupport import SubsSupport, SubsSupportStatus
@@ -105,6 +97,13 @@ import threading
 import urllib
 import os
 
+
+def __onPartitionChange(*args, **kwargs):
+	global possible_picon_locations
+	possible_picon_locations = getMountChoices()
+	config.plugins.m3uiptv.fallback_picon_loc.setChoices(choices=possible_picon_locations, default=getMountDefault(possible_picon_locations))
+
+
 write_lock = threading.Lock()
 
 config.plugins.m3uiptv = ConfigSubsection()
@@ -120,10 +119,11 @@ config.plugins.m3uiptv.picon_threads = ConfigSelectionNumber(min=50, max=1000, s
 config.plugins.m3uiptv.bouquet_names_case = ConfigSelection(default=2, choices=[(0, _("Original case")), (1, _("lower case")), (2, _("UPPER case"))])
 choicelistcatchup = [(i, ngettext("%d second", "%d seconds", i) % i) for i in [1, 2, 3, 5, 7, 10, 15]]  # noqa: F821
 config.plugins.m3uiptv.catchup_eof_timeout = ConfigSelection(default=3, choices=choicelistcatchup)
-fpicon_locs = []
-if searchPaths:
-	fpicon_locs = [(x.removesuffix("/"), x.removesuffix("/")) for x in searchPaths]
-config.plugins.m3uiptv.fallback_picon_loc = ConfigSelection(default="/picon", choices=fpicon_locs)
+possible_picon_locations = getMountChoices()  # mount must exist, /picon folder present is not necessary
+config.plugins.m3uiptv.fallback_picon_loc = ConfigSelection(default=getMountDefault(possible_picon_locations), choices=possible_picon_locations)
+harddiskmanager.on_partition_list_change.append(__onPartitionChange)  # to update backuplocation choices on mountpoint change
+# force second call in 60 seconds so there is a higher chance lastPiconPath is already available, this ensures the default corresponds with lastPiconPath.
+reactor.callLater(60, __onPartitionChange)
 vod_play_system_choices = [("4097", "HiSilicon" if BoxInfo.getItem("mediaservice") == "servicehisilicon" else "GStreamer")]
 if SERVICEAPP_AVAILABLE:
 	vod_play_system_choices.append(("5002", "Exteplayer3"))
@@ -2151,7 +2151,7 @@ class IPTVPluginConfig(Setup):
 		except:
 			config.usage.http_buffersize = ConfigSelection(default=2048, choices=[(1024, _("1 MB")), (2048, _("2 MB")), (4096, _("4 MB")), (8192, _("8 MB")), (16384, _("16 MB")), (20480, _("20 MB"))])
 			configlist.append((_("Size of buffer for http streaming"), config.usage.http_buffersize, _("Configure the buffer size for http streaming. A larger buffer can help with stuttering when the network connection is not stable, but also increases the delay between the stream and live TV.")))
-		if searchPaths:
+		if possible_picon_locations:
 			configlist.append((_("Fallback location for picons"), config.plugins.m3uiptv.fallback_picon_loc, _("Fallback loction for picons used when current active picon location can not be detected.")))
 		configlist.append(("---",))
 		configlist.append((_("Enable catchup/archive entries in EPG screens for period"), config.epg.histminutes, _("Enables possibility to return back in epg screens so to use old entries for invoke catchup/archive/timeshift.")))
