@@ -330,7 +330,7 @@ msgstr "Местоположение пиконов"
 
 #: ../src/plugin.py:2031
 msgid "Fallback loction for picons used when current active picon location can not be detected."
-msgstr "Местоположение пиконов, выберите текущее местоположение пиконов если не удаётся обнаружить автоматически."
+msgstr "Резервное местоположение пиконов, используемое в случаии, если текущее активное местоположение не определено."
 
 #: ../src/plugin.py:1626 ../src/plugin.py:1665
 msgid "Fetching VoD items"
@@ -728,7 +728,7 @@ msgstr "Выберите плеер, который будет использо�
 
 #: ../src/plugin.py:2092 ../src/plugin.py:2105
 msgid "Select days"
-msgstr ""
+msgstr "Выбрать дни"
 
 #: ../src/plugin.py:2051
 msgid "Select if timeshift should continue when set to record."
