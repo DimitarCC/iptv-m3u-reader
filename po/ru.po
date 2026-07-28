@@ -83,7 +83,7 @@ msgstr "%s: невозможно создать букет"
 
 #: ../src/plugin.py:1855
 msgid "Access token used for authenticating in Media Library server."
-msgstr "Токен, используемый для аутентификации на сервере медиабиблиотеки."
+msgstr "Токен, используемый для аутентификации на сервере медиатеки."
 
 #: ../src/plugin.py:1713
 msgid "Account created"
@@ -205,7 +205,7 @@ msgstr "Тип Catchup"
 
 #: ../src/plugin.py:2066
 msgid "Change the playback system to one of the players available in ServiceApp plugin."
-msgstr "Измените систему воспроизведения на один из плееров, доступных в плагине ServiceApp."
+msgstr "Измените тип системного воспроизведения на один из плееров, доступных в ServiceApp."
 
 #: ../src/plugin.py:1867
 msgid "Channel ordering criteria"
@@ -229,7 +229,7 @@ msgstr "Настройте, какой тип букетов следует со
 
 #: ../src/plugin.py:1830
 msgid "Creates files needed for importing EPG via EPGImport plugin"
-msgstr "Создает файлы, необходимые для импорта EPG через плагин EPGImport"
+msgstr "Генерация файлов, необходимые для импорта EPG используя плагин EPGImport"
 
 #: ../src/plugin.py:1868
 msgid "Custom User-Agent"
@@ -250,7 +250,7 @@ msgstr "Тип пиконов для скачивания — SNP-(по назв
 
 #: ../src/plugin.py:2022
 msgid "Do a check is network available before try to retrieve the iptv playlist. If no network try backup services."
-msgstr "Проверьте, доступна ли сеть, прежде чем пытаться получить плейлист iptv. Если сети нет, воспользуйтесь услугой резервного копирования."
+msgstr "Перед загрузки плейлиста IPTV проверьте наличие подключения к сети. Если подключение отсутствует, воспользуйтесь резервными сервисами."
 
 #: ../src/IPTVCatchupPlayer.py:304
 msgid "Do you want to resume playback?"
@@ -270,7 +270,7 @@ msgstr "Загрузить пиконы"
 
 #: ../src/plugin.py:1857
 msgid "Download picons, if available from the provider, and install them. Picon download is done in the background after bouquet generation."
-msgstr "Загрузите пиконы, если они доступны у провайдера, и установите их. Загрузка пиконов происходит в фоновом режиме после генерации букета."
+msgstr "Загрузите пиконы, если они доступны на сервере провайдера, и установите их. Загрузка пиконов происходит в фоновом режиме после генерации букета."
 
 #: ../src/XtreemProvider.py:202 ../src/XtreemProvider.py:204
 #, python-format
@@ -280,12 +280,12 @@ msgstr "Продолжительность: %s"
 #: ../src/epgimport_helper.py:159
 #, python-format
 msgid "EPG Import: Importing %s %s events"
-msgstr "Импорт EPG: Импорт %s %s событий"
+msgstr "EPG Import: Импорт %s %s событий"
 
 #: ../src/epgimport_helper.py:172
 #, python-format
 msgid "EPG Import: Importing events for %s completed"
-msgstr "Импорт EPG: Импорт событий для %s завершен"
+msgstr "EPG Import: Импорт событий для %s завершен"
 
 #: ../src/plugin.py:1833
 msgid "EPG matching condition"
@@ -301,7 +301,7 @@ msgstr "Включить менеджер IPTV"
 
 #: ../src/plugin.py:1847
 msgid "Enable Media Library"
-msgstr "Включить медиатеку"
+msgstr "Включить Медиатеку"
 
 #: ../src/plugin.py:2033
 msgid "Enable catchup/archive entries in EPG screens for period"
@@ -317,7 +317,7 @@ msgstr "Дает возможность вернуться назад, чтоб�
 
 #: ../src/plugin.py:2066
 msgid "Enigma2 playback system"
-msgstr "Система воспроизведения Enigma2"
+msgstr "Тип системы воспроизведения Enigma2"
 
 #: ../src/StalkerProvider.py:1081 ../src/XtreemProvider.py:198
 #, python-format
@@ -330,7 +330,7 @@ msgstr "Местоположение пиконов"
 
 #: ../src/plugin.py:2031
 msgid "Fallback loction for picons used when current active picon location can not be detected."
-msgstr "Местоположение пиконов, выберите текущее местоположение пиконов если не удаётся обнаружить автоматически."
+msgstr "Резервное местоположение пиконов, используемое в случаии, если текущее активное местоположение не определено."
 
 #: ../src/plugin.py:1626 ../src/plugin.py:1665
 msgid "Fetching VoD items"
@@ -354,7 +354,7 @@ msgstr "Общие настройки в подсистеме IPTV."
 
 #: ../src/plugin.py:1830
 msgid "Generate EPG files for EPGImport plugin"
-msgstr "Генерация файлов EPG для плагина EPGImport"
+msgstr "Генерация файла EPG используя плагин EPGImport"
 
 #: ../src/plugin.py:1581
 msgid "Generate bouquets"
@@ -402,7 +402,7 @@ msgstr "Если установлено значение 'да', позволя�
 
 #: ../src/plugin.py:1814
 msgid "If the playlist is already stored on a local device you can use the local file path in this field, e.g. /tmp/myplaylist.m3u"
-msgstr "Если плейлист уже сохранен на локальном устройстве, вы можете использовать в этом поле путь к локальному файлу, например, /tmp/myplaylist.m3u"
+msgstr "Если плейлист уже сохранен на локальном устройстве, вы можете использовать в этом поле путь к локальному файлу, например: /tmp/myplaylist.m3u"
 
 #: ../src/plugin.py:1870
 msgid "Include this provider when the global update schedule runs."
@@ -422,14 +422,14 @@ msgstr "Пробная версия"
 
 #: ../src/plugin.py:2034
 msgid "Local EPG server listening port"
-msgstr "Порт для прослушивания локального сервера EPG"
+msgstr "Порт прослушивания локального сервера EPG"
 
 msgid "A local port for the EPG server. Mainly used for Stalker portals due to lack of persistent EPG."
 msgstr "Локальный порт для сервера EPG. В основном используется для порталов Stalker из-за отсутствия постоянного EPG."
 
 #: ../src/plugin.py:1537
 msgid "M3U IPTV Manager - providers"
-msgstr "M3U IPTV Manager - провайдеры"
+msgstr "M3U IPTV Менеджер - провайдеры"
 
 #: ../src/plugin.py:1707
 msgid "M3U IPTV Provider Info"
@@ -449,7 +449,7 @@ msgstr "M3UIPTV расписание"
 
 #: ../src/plugin.py:1802
 msgid "M3UIPTVManager"
-msgstr "M3UIPTV менеджер"
+msgstr "M3UIPTV Менеджер"
 
 #: ../src/plugin.py:1826
 msgid "MAC address"
@@ -473,11 +473,11 @@ msgstr "Максимальное количество потоков во вре
 
 #: ../src/plugin.py:1855
 msgid "Media Library Access Token"
-msgstr "Токен доступа к медиатеке"
+msgstr "Токен"
 
 #: ../src/plugin.py:1853
 msgid "Media Library Password"
-msgstr "Пароль к медиатеке"
+msgstr "Пароль"
 
 #: ../src/plugin.py:1850
 msgid "Media Library URL"
@@ -485,7 +485,7 @@ msgstr "URL-адрес медиатеки"
 
 #: ../src/plugin.py:1852
 msgid "Media Library Username"
-msgstr "Имя пользователя медиатеки"
+msgstr "Логин"
 
 #: ../src/plugin.py:1849
 msgid "Media Library type"
@@ -554,11 +554,11 @@ msgstr "Воспроизвести Архив"
 
 #: ../src/plugin.py:1841
 msgid "Playback system"
-msgstr "Система воспроизведения"
+msgstr "Тип воспроизведения"
 
 #: ../src/plugin.py:1842
 msgid "Playback system for Catchup/Archive"
-msgstr "Система воспроизведения для Catchup/Архива"
+msgstr "Тип воспроизведения Catchup/Archive"
 
 #: ../src/menu.xml
 msgid "Playlist manager"
@@ -728,7 +728,7 @@ msgstr "Выберите плеер, который будет использо�
 
 #: ../src/plugin.py:2092 ../src/plugin.py:2105
 msgid "Select days"
-msgstr ""
+msgstr "Выбрать дни"
 
 #: ../src/plugin.py:2051
 msgid "Select if timeshift should continue when set to record."
@@ -832,7 +832,7 @@ msgstr "Укажите URL-адрес медиатеки."
 
 #: ../src/plugin.py:1849
 msgid "Specify media library type."
-msgstr "Укажите тип медиатеки."
+msgstr "Выберите тип подключения к медиатеки - (Токен) или (Логин/Пароль)."
 
 #: ../src/plugin.py:2027
 msgid "Specify the character case used for bouquet names and titles."
@@ -844,7 +844,7 @@ msgstr "Укажите тип провайдера."
 
 #: ../src/plugin.py:1813
 msgid "Specify the provider user friendly name that will be used for the bouquet name and for displaying in the infobar."
-msgstr "Укажите удобное для пользователя имя провайдера, которое будет использоваться для букета и для отображения на инфопанели."
+msgstr "Укажите удобное пользовательское имя провайдера, которое будет использоваться для букета и для отображения на инфопанели."
 
 #: ../src/plugin.py:2028
 msgid "Specify the type of services that will be generated for VoD items."
@@ -855,8 +855,8 @@ msgid ""
 "Specifying the URL scheme that uniquely identify the provider.\n"
 "Can be anything you like without spaces and special characters."
 msgstr ""
-"Указание схемы URL, которая однозначно идентифицирует провайдера.\n"
-"Может быть любым, без пробелов и специальных символов."
+"Пользовательское название для определение и идентифиции плейлиста указанного в поле Название провайдера.\n"
+"Может быть любым, только не пробелы и специальные символы."
 
 #: ../src/plugin.py:1782
 msgid "Stalker"
@@ -932,11 +932,11 @@ msgstr ""
 
 #: ../src/plugin.py:1842
 msgid "The player used for playing Catchup/Archive. Can be GStreamer/HiSilicon, Extplayer3"
-msgstr "Плеер, используемый для воспроизведения Catchup/Archive. Может быть GStreamer, HiSilicon, Extplayer3"
+msgstr "Выберите тип воспроизведение системного плеера для Catchup/Archive. Может быть GStreamer, HiSilicon, Extplayer3"
 
 #: ../src/plugin.py:1841
 msgid "The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3"
-msgstr "Используемый плеер. Может быть DVB, GStreamer, HiSilicon, Extplayer3"
+msgstr "Выберите тип воспроизведение системного плеера. Может быть DVB, GStreamer, HiSilicon, Extplayer3"
 
 #: ../src/plugin.py:1814
 msgid "The playlist URL (*.m3u; *.m3u8) or streaming server URL. Including the port if differs from 80."
@@ -1048,15 +1048,15 @@ msgstr "Используйте собственный URL-адрес XMLTV дл�
 
 #: ../src/plugin.py:1852
 msgid "User name used for authenticating in the Media Library server."
-msgstr "Имя пользователя, используемое для авторизации на сервере медиатеки."
+msgstr "Логин для аутентификации на сервере медиатеки."
 
 #: ../src/plugin.py:1823
 msgid "User name used for authenticating in the streaming server."
-msgstr "Имя пользователя, используемое для авторизации на потоковом сервере."
+msgstr "Логин для аутентификации на сервере потоковой передачи."
 
 #: ../src/plugin.py:1823
 msgid "Username"
-msgstr "Имя пользователя"
+msgstr "Логин"
 
 #: ../src/plugin.py:1816
 msgid "VOD playlist format"
@@ -1151,7 +1151,7 @@ msgstr "Xtream Codes (Токен)"
 
 #: ../src/plugin.py:1796
 msgid "Xtream Codes (Username/Password)"
-msgstr "Xtream Codes (Имя пользователя/Пароль)"
+msgstr "Xtream Codes (Логин/Пароль)"
 
 #: ../src/plugin.py:1748 ../src/plugin.py:1782
 msgid "Xtreme Codes"
