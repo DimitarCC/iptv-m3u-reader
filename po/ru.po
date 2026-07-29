@@ -116,7 +116,7 @@ msgstr "Все поля должны быть заполнены."
 
 #: ../src/plugin.py:2026
 msgid "Allow showing of 'Video on Demand' entry in the extensions (BLUE button) menu."
-msgstr "Включает отображение пункта 'Видео по запросу' в меню дополнений (СИНЯЯ кнопка)."
+msgstr "Включает отображение пункта 'Видео по запросу' в Меню дополнений (СИНЯЯ кнопка)."
 
 #: ../src/plugin.py:2025
 msgid "Allow showing of 'Video on Demand' menu entry in Main Menu."
@@ -305,11 +305,11 @@ msgstr "Включить Медиатеку"
 
 #: ../src/plugin.py:2033
 msgid "Enable catchup/archive entries in EPG screens for period"
-msgstr "Включить отображение архивов на экране EPG за период"
+msgstr "Включить доступный для просмотра архив телепередачна экране одиночного EPG за период"
 
 #: ../src/plugin.py:2038
 msgid "Enable new GStreamer playback"
-msgstr "Включить новое воспроизведение GStreamer"
+msgstr "Включить воспроизведение GStreamer"
 
 #: ../src/plugin.py:2033 ../src/plugin.py:2034
 msgid "Enables possibility to return back in epg screens so to use old entries for invoke catchup/archive/timeshift."
@@ -334,7 +334,7 @@ msgstr "Резервное местоположение пиконов, испо
 
 #: ../src/plugin.py:1626 ../src/plugin.py:1665
 msgid "Fetching VoD items"
-msgstr "Извлечение элементов VoD "
+msgstr "Извлечение элементов для VoD "
 
 #: ../src/plugin.py:1821
 msgid "Filter"
@@ -554,7 +554,7 @@ msgstr "Воспроизвести Архив"
 
 #: ../src/plugin.py:1841
 msgid "Playback system"
-msgstr "Тип воспроизведения"
+msgstr "Тип воспроизведения плейлиста"
 
 #: ../src/plugin.py:1842
 msgid "Playback system for Catchup/Archive"
@@ -562,7 +562,7 @@ msgstr "Тип воспроизведения Архива"
 
 #: ../src/menu.xml
 msgid "Playlist manager"
-msgstr "Менеджер плей-листов"
+msgstr "Менеджер плейлистов"
 
 #: ../src/plugin.py:959
 msgid "Please wait! Loading data from server."
@@ -692,7 +692,7 @@ msgstr "Схема"
 #: ../src/plugin.py:1894
 #, python-format
 msgid "Scheme must be unique. \"%s\" is already in use. Please update this field."
-msgstr "Схема должна быть уникальной. \"%s\" уже используется. Пожалуйста, обновите это поле."
+msgstr "Схема должна быть уникальной. \"%s\" и уже используется. Пожалуйста, обновите это поле."
 
 #: ../src/plugin.py:993 ../src/plugin.py:1297
 msgid "Search"
@@ -708,11 +708,11 @@ msgstr ""
 
 #: ../src/IPTVCatchupPlayer.py:420
 msgid "Seek back"
-msgstr "Искать назад"
+msgstr "Сдвиг назад"
 
 #: ../src/IPTVCatchupPlayer.py:416
 msgid "Seek forwards"
-msgstr "Искать вперед"
+msgstr "Сдвиг вперед"
 
 #: ../src/plugin.py:2059
 msgid "Select 'Yes' to allow use of the seek bar to jump to a selected point within the event."
@@ -736,7 +736,7 @@ msgstr "Выберите, следует ли продолжать функци�
 
 #: ../src/plugin.py:1988
 msgid "Select the bouquets you want to blacklist and press ok. Blacklisted bouquets will be removed and not regenerated on rebuild. To reactive a bouquet, deselect it and regenerate bouquets."
-msgstr "Выберите букеты, которые вы хотите добавить в черный список, и нажмите ok. Букеты из черного списка будут удалены и не будут восстановлены при генерации. Чтобы реактивировать букет, снимите с него выбор и восстановите букеты."
+msgstr "Выберите букеты, которые вы хотите добавить в черный список, и нажмите ОК. Букеты из черного списка будут удалены и не будут восстановлены при генерации. Чтобы реактивировать букет, снимите с него выбор и восстановите букеты."
 
 #: ../src/plugin.py:2068
 msgid "Select the player which will be used for Enigma2 playback."
@@ -784,7 +784,7 @@ msgstr "Shift"
 
 #: ../src/plugin.py:2026
 msgid "Show 'Video on Demand' extensions entry"
-msgstr "Показать 'Видео по запросу' в меню дополнений"
+msgstr "Показать 'Видео по запросу' в Меню дополнений"
 
 #: ../src/plugin.py:2025
 msgid "Show 'Video on Demand' menu entry"
