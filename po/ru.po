@@ -201,7 +201,7 @@ msgstr "Отменить"
 
 #: ../src/plugin.py:1846
 msgid "Catchup Type"
-msgstr "Тип Catchup"
+msgstr "Тип архива"
 
 #: ../src/plugin.py:2066
 msgid "Change the playback system to one of the players available in ServiceApp plugin."
@@ -250,7 +250,7 @@ msgstr "Тип пиконов для скачивания — SNP-(по назв
 
 #: ../src/plugin.py:2022
 msgid "Do a check is network available before try to retrieve the iptv playlist. If no network try backup services."
-msgstr "Перед загрузки плейлиста IPTV проверьте наличие подключения к сети. Если подключение отсутствует, воспользуйтесь резервными сервисами."
+msgstr "Перед попыткой загрузки плейлиста проверьте наличие подключения к сети. Если подключение отсутствует, воспользуйтесь резервными сервисами."
 
 #: ../src/IPTVCatchupPlayer.py:304
 msgid "Do you want to resume playback?"
@@ -558,7 +558,7 @@ msgstr "Тип воспроизведения"
 
 #: ../src/plugin.py:1842
 msgid "Playback system for Catchup/Archive"
-msgstr "Тип воспроизведения Catchup/Archive"
+msgstr "Тип воспроизведения Архива"
 
 #: ../src/menu.xml
 msgid "Playlist manager"
@@ -566,7 +566,7 @@ msgstr "Менеджер плей-листов"
 
 #: ../src/plugin.py:959
 msgid "Please wait! Loading data from server."
-msgstr "Пожалуйста, подождите! Загрузка данных с сервера."
+msgstr "Пожалуйста, подождите! Идёт загрузка данных с сервера."
 
 #: ../src/plugin.py:1736
 msgid "Portal version"
@@ -916,7 +916,7 @@ msgstr "URL-адрес, по которому можно загрузить да
 
 #: ../src/plugin.py:1846
 msgid "The catchup API used."
-msgstr "Используемый catchup API."
+msgstr "Используемый тип API в IPTV-плейлистах (M3U/M3U8 каторый прописан в Вашем плейлисте в виде catchup-type=" "), для определения и способа запроса для воспроизведения архивных телепередач."
 
 #: ../src/plugin.py:1816
 msgid "The format of the VOD playlist (m3u; m3u8; txt)"
@@ -932,11 +932,11 @@ msgstr ""
 
 #: ../src/plugin.py:1842
 msgid "The player used for playing Catchup/Archive. Can be GStreamer/HiSilicon, Extplayer3"
-msgstr "Выберите тип воспроизведение системного плеера для Catchup/Archive. Может быть GStreamer, HiSilicon, Extplayer3"
+msgstr "Выберите тип системного плеера для воспроизведения Архивных телепередач. Может быть GStreamer, HiSilicon, Extplayer3"
 
 #: ../src/plugin.py:1841
 msgid "The player used. Can be DVB, GStreamer, HiSilicon, Extplayer3"
-msgstr "Выберите тип воспроизведение системного плеера. Может быть DVB, GStreamer, HiSilicon, Extplayer3"
+msgstr "Выберите тип системного плеера для воспроизведение плейлиста. Может быть DVB, GStreamer, HiSilicon, Extplayer3"
 
 #: ../src/plugin.py:1814
 msgid "The playlist URL (*.m3u; *.m3u8) or streaming server URL. Including the port if differs from 80."
