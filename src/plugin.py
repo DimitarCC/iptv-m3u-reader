@@ -1525,6 +1525,7 @@ class M3UIPTVVoDMovies(Screen, StatusIcon):
 		self.categories = []
 		self.stalkerCategoryIdByName = {}
 		self.pager = EagerPager([])
+		self.stack = []
 		self.searchTexts = []
 		self.searchTerms = []
 		if self.selectionChanged not in self["list"].onSelectionChanged:
@@ -1682,6 +1683,7 @@ class M3UIPTVVoDMovies(Screen, StatusIcon):
 			self.categories.insert(0, self.all)
 		self.mode = self.MODE_CATEGORY
 		if len(self.categories) <= 1:  # go straight into movie mode if no categories are available
+			self.pushStack()
 			self.mode = self.MODE_MOVIE
 			self.openCategory()
 		else:
@@ -1723,9 +1725,11 @@ class M3UIPTVVoDMovies(Screen, StatusIcon):
 	def keySelect(self):
 		if self.mode == self.MODE_PROVIDER:
 			if current := self["list"].getCurrent():
+				self.pushStack()
 				self.openProvider(current[0])
 		elif self.mode == self.MODE_CATEGORY:
 			if current := self["list"].getCurrent():
+				self.pushStack()
 				self.mode = self.MODE_MOVIE
 				self.category = current[0]
 				self.openCategory()
@@ -1817,17 +1821,26 @@ class M3UIPTVVoDMovies(Screen, StatusIcon):
 				self.session.openWithCallback(self.buildList, VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService, resumeKey=resumeKey)
 
 	def keyCancel(self):
+		lastmode, lastindex = self.popStack()
 		if len(self.categories) > 1 and self.mode in (self.MODE_MOVIE, self.MODE_SEARCH):
 			self.mode = self.MODE_CATEGORY
 			self.buildList()
+			self["list"].index = lastindex
 		elif len(self.vodProviders) > 1 and self.mode == self.MODE_CATEGORY:
 			self.mode = self.MODE_PROVIDER
 			self.buildList()
+			self["list"].index = lastindex
 		else:
 			self.close()
 
 	def closeRecursive(self):
 		self.close(True)
+
+	def pushStack(self):
+		self.stack.append((self.mode, self["list"].index))
+
+	def popStack(self):
+		return self.stack.pop() if self.stack else (self.MODE_PROVIDER, 0)  # if stack is empty return defaults
 
 	def createSummary(self):
 		return PluginSummary
