@@ -19,7 +19,7 @@ from twisted.internet import threads
 from .IPTVProcessor import IPTVProcessor
 from .VoDItem import VoDItem
 from .Variables import USER_IPTV_VOD_MOVIES_FILE, REQUEST_USER_AGENT, USER_AGENTS, CATCHUP_STALKER, CATCHUP_STALKER_TEXT, USER_IPTV_MOVIE_CATEGORIES_FILE, \
-	 				   USER_IPTV_VOD_SERIES_FILE, USER_IPTV_SERIES_CATEGORIES_FILE, USER_IPTV_PROVIDER_INFO_FILE
+	 				   USER_IPTV_SERIES_CATEGORIES_FILE, USER_IPTV_PROVIDER_INFO_FILE
 
 db = eDVBDB.getInstance()
 
@@ -56,7 +56,12 @@ class StalkerProvider(IPTVProcessor):
 		self.zone = ZoneInfo("UTC")
 		self.serial = ""
 		self.devid = ""
+		self.devid2 = ""
 		self.signature = ""
+		self.custom_serial = ""
+		self.custom_device_id1 = ""
+		self.custom_device_id2 = ""
+		self.custom_signature = ""
 
 	# -------------------------------------------------------------------------
 	# HELPER FUNCTIONS
@@ -144,14 +149,16 @@ class StalkerProvider(IPTVProcessor):
 		host = parsed_url.netloc
 		return host
 
-	def generate_signature(self, serial, dev_id) -> str:
+	def generate_signature(self, serial, dev_id, dev_id2=None) -> str:
 		"""
         Generate signature for profile request.
 
         Returns:
             str: Generated signature.
         """
-		data = f"{self.mac}{serial}{dev_id}{dev_id}"
+		if dev_id2 is None:
+			dev_id2 = dev_id
+		data = f"{self.mac}{serial}{dev_id}{dev_id2}"
 		signature = hashlib.sha256(data.encode()).hexdigest().upper()
 		return signature
 
@@ -258,13 +265,16 @@ class StalkerProvider(IPTVProcessor):
 				print("[M3UIPTV][Stalker] Portal version: " + version)
 
 			if not self.serial:
-				self.serial = self.generate_serial(self.mac)
+				self.serial = self.custom_serial if self.custom_serial else self.generate_serial(self.mac)
 
 			if not self.devid:
-				self.devid = self.generate_device_id()
+				self.devid = self.custom_device_id1 if self.custom_device_id1 else self.generate_device_id()
+
+			if not self.devid2:
+				self.devid2 = self.custom_device_id2 if self.custom_device_id2 else self.devid
 
 			if not self.signature:
-				self.signature = self.generate_signature(self.serial, self.devid)
+				self.signature = self.custom_signature if self.custom_signature else self.generate_signature(self.serial, self.devid, self.devid2)
 
 			url = self.getPortalUrl()
 			if version and version.strip().startswith("5.6"):
@@ -284,7 +294,7 @@ class StalkerProvider(IPTVProcessor):
 					"image_version": "218",
 					"video_out": "hdmi",
 					"device_id": self.devid,
-					"device_id2": self.devid,
+					"device_id2": self.devid2,
 					"signature": self.signature,
 					"auth_second_step": "1",
 					"hw_version": "1.7-BD-00",
@@ -493,29 +503,31 @@ class StalkerProvider(IPTVProcessor):
 	# -------------------------------------------------------------------------
 
 	def pull_json_with_reauth(self, url, include_token_in_cookies, params=None, skip_profile=False, skip_reauth=False):
-		try:
-			json = {}
+		def do_request():
 			cookies = self.generate_cookies(include_token_in_cookies)
 			headers = self.generate_headers()
 			if params:
-				response = self.session.get(url, cookies=cookies, headers=headers, params=params)
-			else:
-				response = self.session.get(url, cookies=cookies, headers=headers)
-			try:
-				json = response.json().get("js", {})
-			except:  # most likely it returned empty result since not authorized/token expired
-				if not skip_reauth:
-					self.get_token(skip_profile)
-					cookies = self.generate_cookies(True)
-					headers = self.generate_headers()
-					if params:
-						response = self.session.get(url, cookies=cookies, headers=headers, params=params)
-					else:
-						response = self.session.get(url, cookies=cookies, headers=headers)
-					json = response.json().get("js", {})
-				else:
-					pass
-			return json
+				return self.session.get(url, cookies=cookies, headers=headers, params=params)
+			return self.session.get(url, cookies=cookies, headers=headers)
+
+		def extract_js(response):
+			# a token/session error (e.g. MAG_TOKEN_INVALID) is still valid JSON, just without a "js" key,
+			# so an HTTP error status or a body with no "js" key must also be treated as an auth failure
+			if response.status_code != 200:
+				return None
+			body = response.json()
+			if not isinstance(body, dict) or "js" not in body:
+				return None
+			return body["js"]
+
+		try:
+			response = do_request()
+			js = extract_js(response)
+			if js is None and not skip_reauth:
+				self.get_token(skip_profile)
+				response = do_request()
+				js = extract_js(response)
+			return js if js is not None else {}
 		except:
 			return {}
 
@@ -753,16 +765,44 @@ class StalkerProvider(IPTVProcessor):
 
 	def get_stream_play_url(self, cmd):
 		url = f"{self.getPortalUrl()}?type=itv&action=create_link&cmd={cmd}&series=&forced_storage=undefined&disable_ad=0&download=0&JsHttpRequest=1-xml"
-		js = self.pull_json_with_reauth(url, False)
+		js = self.pull_json_with_reauth(url, True)
 		try:
-			return js["cmd"], True
+			return self.resolveLiveStreamUrl(js["cmd"]), True
 		except:  # probably token has expired
 			self.get_token()
-			js = self.pull_json_with_reauth(url, False)
+			js = self.pull_json_with_reauth(url, True)
 			try:
-				return js["cmd"], True
+				return self.resolveLiveStreamUrl(js["cmd"]), True
 			except:
 				return cmd, False
+
+	def resolveLiveStreamUrl(self, cmd):
+		"""Some portals return an intermediate redirector link from create_link rather than the
+		final playable URL: it must be followed (HEAD, to resolve any redirect) and its response body
+		(itself a short M3U playlist) parsed for the actual media segment, matching reference Stalker clients.
+		Other portals (and this is the common case) already return a final, single-use play_token URL from
+		create_link itself - probing that with an extra HEAD request would consume the single-use token before
+		the player ever connects, so only attempt resolution when the url doesn't already look like a direct,
+		already-tokenized play link."""
+		parts = cmd.split(" ")
+		url = parts[1] if len(parts) > 1 else parts[0]
+		if "?" in url:  # already carries query params (e.g. play_token=...) - treat as final, do not probe it
+			return url
+		start = time.time()
+		try:
+			response = self.session.head(url, headers=self.generate_headers(), allow_redirects=True, timeout=10)
+			if response.status_code == 200 and response.text:
+				lines = [line for line in response.text.splitlines() if line and not line.startswith("#")]
+				if lines:
+					resolved_base = response.url.split("?")[0]
+					resolved_base = resolved_base[:resolved_base.rfind("/")]
+					resolved = resolved_base + "/" + lines[-1]
+					print("[M3UIPTV][Stalker] Resolved live stream url in %.2fs: %s -> %s" % (time.time() - start, url, resolved))
+					return resolved
+		except Exception as ex:
+			print("[M3UIPTV][Stalker] Error resolving live stream url: " + str(ex))
+		print("[M3UIPTV][Stalker] Live stream url not resolved (used as-is) after %.2fs: %s" % (time.time() - start, url))
+		return url
 
 	def getVoDPlayUrl(self, url, movie=0, series=0):
 		if ("http://" in url or "https://" in url) and "localhost" not in url and self.portal_entry_point_type != 3:
@@ -787,259 +827,58 @@ class StalkerProvider(IPTVProcessor):
 		cmd = stream_data["cmd"].replace("ffmpeg ", "").replace("ffrt ", "") if stream_data else orig_url.replace("ffmpeg ", "").replace("ffrt ", "")
 		return cmd
 
-	def get_vod(self, vod_categories, series_categories):
+	def getVodMoviesPage(self, category_id, page, search_terms=None):
+		"""Fetch a single page of movies from the portal (category_id=None means the "All" pseudo-category)."""
 		if not self.token:
 			self.get_token()
-		page_number = 1
-		total_pages = 0
-		total_pages_censored = 0
-		total_pages_series = 0
-		self.progress_percentage = 0
-		movies = []
-		series = []
-		censored_groups = []
-		blacklist_movies = self.readBlacklist(1)
-		blacklist_series = self.readBlacklist(2)
+		url = f"{self.getPortalUrl()}?type=vod&action=get_ordered_list&p={page}&JsHttpRequest=1-xml"
+		if category_id:
+			url += f"&category={category_id}"
+		if search_terms:
+			url += f"&search={urllib.parse.quote(search_terms)}"
+		response_json = self.pull_json_with_reauth(url, True)
+		items = []
+		has_more = False
+		total_items = 0
+		if response_json:
+			for vod in response_json.get("data", []):
+				is_series_val = vod.get("is_series", 0)
+				if is_series_val == "1" or is_series_val == 1:
+					continue
+				name = vod.get("name")
+				stream_id = vod.get("id")
+				if not name or stream_id is None:
+					continue
+				items.append(VoDItem(vod.get("cmd"), name, int(stream_id), self, self.movie_categories.get(str(vod.get("category_id"))), vod.get("description"), vod.get("screenshot_uri")))
+			total_items = int(response_json.get("total_items", 0) or 0)
+			max_page_items = int(response_json.get("max_page_items", 0) or 0)
+			has_more = max_page_items > 0 and page * max_page_items < total_items
+		return items, has_more, total_items
 
-		try:
-			url_series = f"{self.getPortalUrl()}?type=series&action=get_ordered_list&p=1&JsHttpRequest=1-xml"
-			series_json = self.pull_json_with_reauth(url_series, True)
-			if series_json:
-				total_items_series = series_json["total_items"]
-				max_page_items_series = series_json["max_page_items"]
-				total_pages_series = math.ceil(total_items_series / max_page_items_series)
-		except:
-			pass
-
-		try:
-			url_vod = f"{self.getPortalUrl()}?type=vod&action=get_ordered_list&p=1&JsHttpRequest=1-xml"
-			vod_json = self.pull_json_with_reauth(url_vod, True)
-			if vod_json:
-				total_items_vod = vod_json["total_items"]
-				max_page_items_vod = vod_json["max_page_items"]
-				total_pages = math.ceil(total_items_vod / max_page_items_vod)
-		except:
-			pass
-
-		for group in vod_categories:
-			if group['category_id'] == "*":
-				continue
-			if group["censored"] == 1:
-				if group['category_id'] not in blacklist_movies:
-					censored_groups.append(group)
-				try:
-					url_vod_censored = f"{self.getPortalUrl()}?type=vod&action=get_ordered_list&category={group['category_id']}&p=1&JsHttpRequest=1-xml"
-					response_censored_json = self.pull_json_with_reauth(url_vod_censored, True)
-					if response_censored_json:
-						total_items_censored = response_censored_json["total_items"]
-						max_page_items_censored = response_censored_json["max_page_items"]
-						if group['category_id'] not in blacklist_movies:
-							total_pages_censored += math.ceil(total_items_censored / max_page_items_censored)
-				except:
-					pass
-			else:
-				try:
-					url_vod_t = f"{self.getPortalUrl()}?type=vod&action=get_ordered_list&category={group['category_id']}&p=1&JsHttpRequest=1-xml"
-					response_t_json = self.pull_json_with_reauth(url_vod_t, True)
-					if response_t_json:
-						total_items_t = response_t_json["total_items"]
-						max_page_items_t = response_t_json["max_page_items"]
-						if group['category_id'] in blacklist_movies:
-							total_pages -= math.ceil(total_items_t / max_page_items_t)
-				except:
-					pass
-
-		for group in series_categories:
-			if group['category_id'] == "*":
-				continue
-			try:
-				url_vod_t = f"{self.getPortalUrl()}?type=series&action=get_ordered_list&category={group['category_id']}&p=1&JsHttpRequest=1-xml"
-				response_t_json = self.pull_json_with_reauth(url_vod_t, True)
-				if response_t_json:
-					total_items_t = response_t_json["total_items"]
-					max_page_items_t = response_t_json["max_page_items"]
-					if group['category_id'] in blacklist_series:
-						total_pages_series -= math.ceil(total_items_t / max_page_items_t)
-			except:
-				pass
-
-		page_number = 1
-		for group_censored in censored_groups:
-			page_number_l = 1
-			total_pages_censored_l = 0
-			while True:
-				time.sleep(0.05)
-				url = f"{self.getPortalUrl()}?type=vod&action=get_ordered_list&p={page_number}&category={group_censored['category_id']}&JsHttpRequest=1-xml"
-				response_json = self.pull_json_with_reauth(url, True)
-				if response_json:
-					try:
-						if not response_json:
-							continue
-						vods_data = response_json["data"]
-						for vod in vods_data:
-							is_series_val = vod.get("is_series", 0)
-							is_series = is_series_val == "1" or is_series_val == 1
-							item = {}
-							item["num"] = vod.get("id")
-							item["name"] = vod.get("name")
-							item["stream_type"] = "movie" if not is_series else "series"
-							item["stream_id"] = vod.get("id")
-							item["stream_icon"] = vod.get("screenshot_uri")
-							item["cover"] = vod.get("screenshot_uri")
-							item["rating"] = vod.get("rating_imdb") if "rating_imdb" in vod else vod.get("rating_kinopoisk")
-							item["added"] = vod.get("added")
-							item["is_adult"] = vod.get("censored")
-							item["category_id"] = vod.get("category_id")
-							item["hd"] = vod.get("hd", "0")
-							item["tmdb_id"] = vod.get("tmdb_id", "")
-							item["plot"] = vod.get("description")
-							item["director"] = vod.get("director")
-							item["actors"] = vod.get("actors")
-							item["year"] = vod.get("year")
-							item["genres_str"] = vod.get("genres_str")
-							item["play_url"] = vod.get("cmd")
-							if is_series:
-								series.append(item)
-							else:
-								movies.append(item)
-						if total_pages_censored_l == 0:
-							total_items = int(response_json["total_items"])
-							max_page_items = int(response_json["max_page_items"])
-							total_pages_censored_l = math.ceil(total_items / max_page_items)
-						self.progress_percentage = int((page_number / (total_pages + total_pages_series + total_pages_censored)) * 100)
-						for x in self.onProgressChanged:
-							x()
-						# print("[M3UIPTV][Stalker][VOD CENSORED] progress %d / Page Number: %d / Total Pages: %d" % (self.progress_percentage, page_number, total_pages_censored))
-						page_number += 1
-						page_number_l += 1
-						if page_number_l >= total_pages_censored_l:
-							break
-					except ValueError:
-						print("[M3UIPTV][Stalker][VOD CENSORED] Invalid JSON format in response")
-				else:
-					print(f"[M3UIPTV][Stalker][VOD CENSORED] IPTV Request failed for page {page_number}")
-					page_number += 1
-					page_number_l += 1
-
-		for group in vod_categories:
-			if group['category_id'] in blacklist_movies or group['category_id'] == "*" or group["censored"] == "1":
-				continue
-			gr_total_pages = 0
-			gr_page_number = 1
-			while True:
-				time.sleep(0.05)
-				url = f"{self.getPortalUrl()}?type=vod&action=get_ordered_list&category={group['category_id']}&p={gr_page_number}&JsHttpRequest=1-xml"
-				response_json = self.pull_json_with_reauth(url, True)
-				if response_json:
-					try:
-						vods_data = response_json["data"]
-						for vod in vods_data:
-							is_series_val = vod.get("is_series", 0)
-							is_series = is_series_val == "1" or is_series_val == 1
-							item = {}
-							item["num"] = vod.get("id")
-							item["name"] = vod.get("name")
-							item["stream_type"] = "movie" if not is_series else "series"
-							item["stream_id"] = vod.get("id")
-							item["stream_icon"] = vod.get("screenshot_uri")
-							item["cover"] = vod.get("screenshot_uri")
-							item["rating"] = vod.get("rating_imdb") if "rating_imdb" in vod else vod.get("rating_kinopoisk")
-							item["added"] = vod.get("added")
-							item["is_adult"] = vod.get("censored")
-							item["category_id"] = vod.get("category_id")
-							item["hd"] = vod.get("hd", "0")
-							item["tmdb_id"] = vod.get("tmdb_id", "")
-							item["plot"] = vod.get("description")
-							item["director"] = vod.get("director")
-							item["actors"] = vod.get("actors")
-							item["year"] = vod.get("year")
-							item["genres_str"] = vod.get("genres_str")
-							item["play_url"] = vod.get("cmd")
-							if is_series:
-								series.append(item)
-							else:
-								movies.append(item)
-						if gr_total_pages == 0:
-							total_items = int(response_json["total_items"])
-							max_page_items = int(response_json["max_page_items"])
-							gr_total_pages = math.ceil(total_items / max_page_items)
-						self.progress_percentage = int(((page_number + total_pages_censored) / (total_pages + total_pages_series + total_pages_censored)) * 100)
-						for x in self.onProgressChanged:
-							x()
-						# print("[M3UIPTV][Stalker][VOD] progress %d / Page Number: %d / Total Pages: %d" % (self.progress_percentage, page_number, total_pages))
-						page_number += 1
-						gr_page_number += 1
-						if gr_page_number >= gr_total_pages:
-							break
-					except ValueError:
-						print("[M3UIPTV][Stalker][VOD] Invalid JSON format in response")
-				else:
-					print(f"[M3UIPTV][Stalker][VOD] IPTV Request failed for page {gr_page_number}")
-					page_number += 1
-					gr_page_number += 1
-					if gr_page_number >= gr_total_pages:
-						break
-
-		# Series retrival
-		for group in series_categories:
-			if group['category_id'] in blacklist_series or group['category_id'] == "*":
-				continue
-			gr_s_total_pages = 0
-			gr_s_page_number = 1
-			while True:
-				time.sleep(0.05)
-				url = f"{self.getPortalUrl()}?type=series&action=get_ordered_list&category={group['category_id']}&p={gr_s_page_number}&JsHttpRequest=1-xml"
-				response_json = self.pull_json_with_reauth(url, True)
-				if response_json:
-					try:
-						if isinstance(response_json, bool):
-							break
-						vods_data = response_json["data"]
-						for vod in vods_data:
-							item = {}
-							item["num"] = vod.get("id")
-							item["name"] = vod.get("name")
-							item["stream_type"] = "series"
-							item["series_id"] = vod.get("id")
-							item["stream_icon"] = vod.get("screenshot_uri")
-							item["rating"] = vod.get("rating_imdb") if "raating_imdb" in vod else vod.get("rating_kinopoisk")
-							item["added"] = vod.get("added")
-							item["is_adult"] = vod.get("censored")
-							item["category_id"] = vod.get("category_id")
-							item["hd"] = vod.get("hd")
-							item["tmdb_id"] = vod.get("tmdb_id")
-							item["plot"] = vod.get("description")
-							item["director"] = vod.get("director")
-							item["actors"] = vod.get("actors")
-							item["year"] = vod.get("year")
-							item["genres_str"] = vod.get("genres_str")
-							item["play_url"] = vod.get("cmd")
-							series.append(item)
-						if gr_s_total_pages == 0:
-							total_items = int(response_json["total_items"])
-							max_page_items = int(response_json["max_page_items"])
-							gr_s_total_pages = math.ceil(total_items / max_page_items)
-						self.progress_percentage = int(((page_number + total_pages + total_pages_censored) / (total_pages + total_pages_series + total_pages_censored)) * 100)
-						for x in self.onProgressChanged:
-							x()
-						# print("[M3UIPTV][Stalker][VOD] progress %d / Page Number: %d / Total Pages: %d" % (self.progress_percentage, page_number, total_pages))
-						page_number += 1
-						gr_s_page_number += 1
-						if page_number >= total_pages_series:
-							break
-					except ValueError:
-						print("[M3UIPTV][Stalker][SERIES] Invalid JSON format in response")
-				else:
-					print(f"[M3UIPTV][Stalker][SERIES] IPTV Request failed for page {gr_s_page_number}")
-					page_number += 1
-					gr_s_page_number += 1
-					if gr_s_page_number >= gr_s_total_pages:
-						break
-
-		self.progress_percentage = -1
-		for x in self.onProgressChanged:
-			x()
-		return movies, series
+	def getSeriesPage(self, category_id, page, search_terms=None):
+		"""Fetch a single page of series from the portal (category_id=None means the "All" pseudo-category)."""
+		if not self.token:
+			self.get_token()
+		url = f"{self.getPortalUrl()}?type=series&action=get_ordered_list&p={page}&JsHttpRequest=1-xml"
+		if category_id:
+			url += f"&category={category_id}"
+		if search_terms:
+			url += f"&search={urllib.parse.quote(search_terms)}"
+		response_json = self.pull_json_with_reauth(url, True)
+		items = []
+		has_more = False
+		total_items = 0
+		if response_json:
+			for vod in response_json.get("data", []):
+				name = vod.get("name")
+				series_id = vod.get("id")
+				if not name or series_id is None:
+					continue
+				items.append((str(series_id), name, vod.get("description"), vod.get("screenshot_uri")))
+			total_items = int(response_json.get("total_items", 0) or 0)
+			max_page_items = int(response_json.get("max_page_items", 0) or 0)
+			has_more = max_page_items > 0 and page * max_page_items < total_items
+		return items, has_more, total_items
 
 	def makeVodListFromJson(self, json_string):
 		if json_string:
@@ -1140,6 +979,8 @@ class StalkerProvider(IPTVProcessor):
 				self.generateMediaLibrary()
 
 	def generateMediaLibrary(self):
+		# VoD/series browsing is lazy-loaded page by page (see getVodMoviesPage/getSeriesPage), so only
+		# the (cheap) category lists need to be refreshed here - no need to eagerly download the full catalog.
 		if not self.ignore_vod:
 			vod_categories = self.getVODCategories()
 			if vod_categories:
@@ -1149,22 +990,9 @@ class StalkerProvider(IPTVProcessor):
 			if series_categories:
 				for category in series_categories:
 					self.series_categories[category["category_id"]] = category["category_name"]
-			if vod_categories:
-				threads.deferToThread(self.get_vod, vod_categories, series_categories).addCallback(self.store_vod)
-
-	def store_vod(self, data):
-		vod_movies, vod_series = data
-		if len(vod_movies) > 0:
-			dest_file_movies = USER_IPTV_VOD_MOVIES_FILE % self.scheme
-			self.v_movies = self.getDataToFile(vod_movies, dest_file_movies)
-		if len(vod_series) > 0:
-			dest_file_series = USER_IPTV_VOD_SERIES_FILE % self.scheme
-			self.v_series = self.getDataToFile(vod_series, dest_file_series)
-		self.loadVoDMoviesFromFile()
-		self.loadVoDSeriesFromFile()
-		self.last_vod_update_time = time.time()
-		from .plugin import writeProviders  # deferred import
-		writeProviders()  # save to config so it doesn't get lost on reboot
+			self.last_vod_update_time = time.time()
+			from .plugin import writeProviders  # deferred import
+			writeProviders()  # save to config so it doesn't get lost on reboot
 
 	# -------------------------------------------------------------------------
 	# PROCESS DYNAMIC SERVICE DATA
@@ -1195,9 +1023,21 @@ class StalkerProvider(IPTVProcessor):
 			if callback:
 				callback(nnref)
 			return nnref, nref, False
+		self.isPlayBackup = False
+		if callback:
+			# Resolving the live stream (handshake + create_link) is a blocking network round-trip; doing it
+			# on the GUI thread would freeze input handling for its duration, and any key event that arrives
+			# while frozen gets delivered the instant we return - right as the newly-started service appears,
+			# which can immediately stop it. Resolve off the GUI thread and invoke the callback only once
+			# the real URL is known, so the GUI/input loop keeps running normally throughout.
+			threads.deferToThread(self.resolveLiveChannel, origRef, orig_name, cmd, catchup_days, nref).addCallback(callback)
+		return nnref, nref, False
+
+	def resolveLiveChannel(self, origRef, orig_name, cmd, catchup_days, nref):
 		self.checkForNetwrok()
 		if not self.token:
 			self.get_token()
+		nnref = nref
 		if self.token:
 			iptv_url, token_valid = self.get_stream_play_url(cmd.replace("|amp|", "&"))
 			if not token_valid:
@@ -1210,14 +1050,17 @@ class StalkerProvider(IPTVProcessor):
 				iptv_url = iptv_url.replace("extension=m3u8", "extension=ts")
 			elif self.output_format == "m3u8":
 				iptv_url = iptv_url.replace("extension=ts", "extension=m3u8")
+			if "?" in iptv_url and "." not in iptv_url.split("?")[0].rsplit("/", 1)[-1]:
+				# no real file extension before the query string: GStreamer's own extension sniffing
+				# (used only as a hint, not sent to the server) otherwise grabs a bogus ".something"
+				# from the domain name, so give it an explicit one matching the configured output format
+				fake_ext = ".ts" if self.output_format != "m3u8" else ".m3u8"
+				base, query = iptv_url.split("?", 1)
+				iptv_url = base + fake_ext + "?" + query
 			nref_new = "%s:%s%s:%s•%s" % (origRef, iptv_url.replace(":", "%3a").replace("ffmpeg ", "").replace('ffrt ', ''), "" if self.custom_user_agent == "off" else ("#User-Agent=" + USER_AGENTS[self.custom_user_agent]), orig_name, self.iptv_service_provider)
-			nref_new = origRef + ":" + iptv_url.replace(":", "%3a").replace("ffmpeg ", "").replace('ffrt ', '') + ":" + orig_name + "•" + self.iptv_service_provider
 			nnref = eServiceReference(nref_new)
 			try:  # type2 distros support
 				nnref.setCompareSref(nref.toString())
 			except:
 				pass
-			self.isPlayBackup = False
-		if callback:
-			callback(nnref)
-		return nnref, nref, False
+		return nnref

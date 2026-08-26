@@ -20,6 +20,7 @@ from .StalkerProvider import StalkerProvider
 from .TVHeadendProvider import TVHeadendProvider
 from .VODProvider import VODProvider
 from .IPTVProviders import providers, processService as processIPTVService
+from .VodPager import VodPager, EagerPager
 from .IPTVCatchupPlayer import injectCatchupInEPG
 from .epgimport_helper import overwriteEPGImportEPGSourceInit
 from .Variables import SERVICEAPP_AVAILABLE, PROVIDER_FOLDER, USER_IPTV_PROVIDERS_FILE, USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_XTREME_60, CATCHUP_STALKER, CATCHUP_FLUSSONIC, CATCHUP_VOD, REQUEST_USER_AGENT
@@ -330,6 +331,10 @@ def readProviders():
 				providerObj.url = provider.find("url").text
 				providerObj.refresh_interval = int(provider.find("refresh_interval").text)
 				providerObj.mac = provider.find("mac").text
+				providerObj.custom_serial = provider.find("custom_serial").text if provider.find("custom_serial") is not None and provider.find("custom_serial").text is not None else ""
+				providerObj.custom_device_id1 = provider.find("custom_device_id1").text if provider.find("custom_device_id1") is not None and provider.find("custom_device_id1").text is not None else ""
+				providerObj.custom_device_id2 = provider.find("custom_device_id2").text if provider.find("custom_device_id2") is not None and provider.find("custom_device_id2").text is not None else ""
+				providerObj.custom_signature = provider.find("custom_signature").text if provider.find("custom_signature") is not None and provider.find("custom_signature").text is not None else ""
 				providerObj.play_system = provider.find("system").text
 				providerObj.play_system_catchup = provider.find("system_catchup").text if provider.find("system_catchup") is not None and provider.find("system_catchup").text is not None else providerObj.play_system
 				providerObj.create_epg = provider.find("epg") is not None and provider.find("epg").text == "on"
@@ -508,6 +513,10 @@ def writeProviders():
 			xml.append(f"\t\t<novod>{'on' if val.ignore_vod else 'off'}</novod>\n")
 			xml.append(f"\t\t<groups>{'on' if val.ignore_vod else 'off'}</groups>\n")
 			xml.append(f"\t\t<mac>{val.mac}</mac>\n")
+			xml.append(f"\t\t<custom_serial><![CDATA[{val.custom_serial}]]></custom_serial>\n")
+			xml.append(f"\t\t<custom_device_id1><![CDATA[{val.custom_device_id1}]]></custom_device_id1>\n")
+			xml.append(f"\t\t<custom_device_id2><![CDATA[{val.custom_device_id2}]]></custom_device_id2>\n")
+			xml.append(f"\t\t<custom_signature><![CDATA[{val.custom_signature}]]></custom_signature>\n")
 			xml.append(f"\t\t<scheme><![CDATA[{val.scheme}]]></scheme>\n")
 			xml.append(f"\t\t<system>{val.play_system}</system>\n")
 			xml.append(f"\t\t<system_catchup>{val.play_system_catchup}</system_catchup>\n")
@@ -789,10 +798,14 @@ def playRealService(self, nnref):
 
 
 class VoDMoviePlayer(MoviePlayer, SubsSupport, SubsSupportStatus):
-	def __init__(self, session, service, slist=None, lastservice=None):
+	def __init__(self, session, service, slist=None, lastservice=None, resumeKey=None):
 		MoviePlayer.__init__(self, session, service=service, slist=slist, lastservice=lastservice)
 		SubsSupport.__init__(self, searchSupport=True, embeddedSupport=True)
 		SubsSupportStatus.__init__(self)
+		# resumeKey is a network-free, unresolved-url ref string (see M3UIPTVVoDMovies/VoDSeries.getResumeKeyRef);
+		# resume points are stored under it instead of the actually-played (resolved-url) service ref so that
+		# rendering the VoD list can look up watch-progress icons without re-resolving each item's play URL
+		self.resumeKey = resumeKey or service.toString()
 		self.skinName = ["CatchupPlayer", "VoDMoviePlayer", "MoviePlayer"]
 		self.onPlayStateChanged.append(self.__playStateChanged)
 		self.skip_progress_update = False
@@ -944,20 +957,18 @@ class VoDMoviePlayer(MoviePlayer, SubsSupport, SubsSupportStatus):
 
 	def setResumePoint(self):
 		service = self.session.nav.getCurrentService()
-		ref = self.session.nav.getCurrentServiceReferenceOriginal()
-		if (service is not None) and (ref is not None):
+		if service is not None:
 			seek = service.seek()
 			if seek:
 				pos = seek.getPlayPosition()
 				if not pos[0]:
-					key = ref.toString()
 					lru = int(time())
 					sl = seek.getLength()
 					if sl:
 						sl = sl[1]
 					else:
 						sl = None
-					resumePointCache[key] = [lru, pos[1], sl]
+					resumePointCache[self.resumeKey] = [lru, pos[1], sl]
 					saveResumePoints()
 
 	def doEofInternal(self, playing):
@@ -965,12 +976,10 @@ class VoDMoviePlayer(MoviePlayer, SubsSupport, SubsSupportStatus):
 			return
 		if not playing:
 			return
-		ref = self.session.nav.getCurrentServiceReferenceOriginal()
-		if ref and (sref := ref.toString()) in resumePointCache:
-			rp = resumePointCache[sref]
-			if sref[2]:
+		if (rp := resumePointCache.get(self.resumeKey)) is not None:
+			if rp[2]:
 				# Retain resume point (needed for status icons). Set "last" value the same as "length" value so we know we are at the end.
-				resumePointCache[sref] = [int(time()), resumePointCache[sref][2], resumePointCache[sref][2]]
+				resumePointCache[self.resumeKey] = [int(time()), rp[2], rp[2]]
 		self.handleLeave("quit")
 
 	def up(self):
@@ -978,6 +987,34 @@ class VoDMoviePlayer(MoviePlayer, SubsSupport, SubsSupportStatus):
 
 	def down(self):
 		pass
+
+
+def providerHasMovies(providerObj):
+	if isinstance(providerObj, StalkerProvider):
+		return len(providerObj.movie_categories) > 0
+	return len(providerObj.vod_movies) > 0
+
+
+def providerHasSeries(providerObj):
+	if isinstance(providerObj, StalkerProvider):
+		return len(providerObj.series_categories) > 0
+	return len(providerObj.vod_series) > 0
+
+
+def providerHasVod(providerObj):
+	return providerHasMovies(providerObj) or providerHasSeries(providerObj)
+
+
+def vodCapableMovieProviders():
+	return sorted(
+		[(scheme, providers[scheme]) for scheme in providers if not providers[scheme].ignore_vod and (providers[scheme].type in ("Xtreeme", "Stalker", "VOD") or (providers[scheme].type == "M3U" and providers[scheme].has_media_library)) and providerHasMovies(providers[scheme])],
+		key=lambda x: x[1].iptv_service_provider.lower())
+
+
+def vodCapableSeriesProviders():
+	return sorted(
+		[(scheme, providers[scheme]) for scheme in providers if not providers[scheme].ignore_vod and (providers[scheme].type in ("Xtreeme", "Stalker") or (providers[scheme].type == "M3U" and providers[scheme].has_media_library)) and providerHasSeries(providers[scheme])],
+		key=lambda x: x[1].iptv_service_provider.lower())
 
 
 class StatusIcon:
@@ -992,7 +1029,7 @@ class StatusIcon:
 		x = list(x)
 		x.insert(2, self.iconFolder)
 		if isinstance(self, M3UIPTVVoDSeries) and self.mode == M3UIPTVVoDSeries.MODE_EPISODE or isinstance(self, M3UIPTVVoDMovies) and self.mode in (M3UIPTVVoDMovies.MODE_MOVIE, M3UIPTVVoDMovies.MODE_SEARCH):
-			ref = self.getPlayRef(x).toString()
+			ref = self.getResumeKeyRef(x).toString()
 			if (rp := resumePointCache.get(ref)) is not None:
 				last = rp[1]
 				length = rp[2]
@@ -1014,10 +1051,11 @@ class StatusIcon:
 
 
 class M3UIPTVVoDSeries(Screen, StatusIcon):
-	MODE_GENRE = 0
-	MODE_SERIES = 1
-	MODE_SEARCH = 2
-	MODE_EPISODE = 3
+	MODE_PROVIDER = 0
+	MODE_GENRE = 1
+	MODE_SERIES = 2
+	MODE_SEARCH = 3
+	MODE_EPISODE = 4
 
 	skin = ["""
 		<screen name="M3UIPTVVoDSeries" position="center,center" size="%d,%d">
@@ -1057,26 +1095,21 @@ class M3UIPTVVoDSeries(Screen, StatusIcon):
 		self.picload = ePicLoad()
 		self.picload.PictureData.get().append(self.showPic)
 		self["poster"] = Pixmap()
-		self.mode = self.MODE_GENRE
-		self.allseries = {}
-		allEpisodes = []
+		self.mode = self.MODE_PROVIDER
+		self.vodProviders = vodCapableSeriesProviders()
+		self.providerScheme = None
+		self.providerObj = None
+		self.isLazy = False
 		self.all = _("All")
-		for provider in providers:
-			series = providers[provider].vod_series
-			for genre in series:
-				if genre not in self.allseries:
-					self.allseries[genre] = []
-				for series_id, name, plot, poster in series[genre]:
-					if name:
-						self.allseries[genre].append((series_id, name, provider, plot, poster))
-						allEpisodes.append((series_id, name, provider, plot, poster))
-		self.categories = list(sorted(self.allseries.keys()))
-		self.allseries[self.all] = allEpisodes  # insert after the sort so it does not affect the sort
-		self.categories.insert(0, self.all)  # insert "All" category at the start of the list
-		self.category = self.categories[0] if self.categories else None
+		self.allseries = {}
+		self.stalkerCategoryIdByName = {}
+		self.categories = []
+		self.category = None
+		self.pager = EagerPager([])
 		self.stack = []
 		self.episodes = []
 		self.episodesHistory = [self.episodes]
+		self.pagerHistory = [self.pager]
 		self.searchTexts = []
 		self.searchTerms = []
 		self.processing_cover = False
@@ -1100,7 +1133,10 @@ class M3UIPTVVoDSeries(Screen, StatusIcon):
 				"play": self.key_play,
 				"menu": self.closeRecursive,
 			}, -1)  # noqa: E123
-		self.buildList()
+		if len(self.vodProviders) == 1:
+			self.openProvider(self.vodProviders[0][0])
+		else:
+			self.buildList()
 		# self.onClose.append(self.mdbCleanup)
 
 	def showPic(self, picInfo=""):
@@ -1156,7 +1192,7 @@ class M3UIPTVVoDSeries(Screen, StatusIcon):
 
 	def selectionChanged(self):
 		current_cover_url = None
-		if self.mode == self.MODE_GENRE:
+		if self.mode in (self.MODE_PROVIDER, self.MODE_GENRE):
 			current_cover_url = None
 			self["poster"].instance.setPixmap(None)
 			self.processing_cover = False
@@ -1169,24 +1205,30 @@ class M3UIPTVVoDSeries(Screen, StatusIcon):
 				current_cover_url = None
 				self["poster"].instance.setPixmap(None)
 		elif self.mode == self.MODE_SERIES or self.mode == self.MODE_SEARCH:
-			if (current := self["list"].getCurrent()) and (plot := current[4]):
+			if (current := self["list"].getCurrent()) and (plot := current[3]):
 				self["description"].text = plot
-				current_cover_url = current[5]
+				current_cover_url = current[4]
 			else:
 				self["description"].text = _("Press OK to select a series")
 				current_cover_url = None
 				self["poster"].instance.setPixmap(None)
-		if self.mode != self.MODE_GENRE and config.plugins.m3uiptv.display_poster.value:
+			if self.pager.should_prefetch(self["list"].index):
+				self.fetchMorePages()
+		if self.mode not in (self.MODE_PROVIDER, self.MODE_GENRE) and config.plugins.m3uiptv.display_poster.value:
 			threads.deferToThread(self.downloadCover, current_cover_url)
 
 	def keyCancel(self):
 		lastmode, lastindex = self.popStack()
-		if len(self.allseries) > 1 and (self.mode == self.MODE_SERIES or self.mode == self.MODE_SEARCH and lastmode == self.MODE_GENRE):
+		if len(self.categories) > 1 and (self.mode == self.MODE_SERIES or self.mode == self.MODE_SEARCH and lastmode == self.MODE_GENRE):
 			self.mode = self.MODE_GENRE
 			self.buildList()
 			self["list"].index = lastindex
 		elif self.mode in (self.MODE_EPISODE, self.MODE_SEARCH):
 			self.mode = lastmode
+			self.buildList()
+			self["list"].index = lastindex
+		elif len(self.vodProviders) > 1 and self.mode == self.MODE_GENRE:
+			self.mode = self.MODE_PROVIDER
 			self.buildList()
 			self["list"].index = lastindex
 		else:
@@ -1195,26 +1237,93 @@ class M3UIPTVVoDSeries(Screen, StatusIcon):
 	def closeRecursive(self):
 		self.close(True)
 
+	def openProvider(self, scheme):
+		self.providerScheme = scheme
+		self.providerObj = providers[scheme]
+		self.isLazy = isinstance(self.providerObj, StalkerProvider)
+		self.category = self.all
+		self.allseries = {}
+		self.stalkerCategoryIdByName = {}
+		self.searchTexts = []
+		self.searchTerms = []
+		if self.isLazy:
+			self.stalkerCategoryIdByName = {name: cid for cid, name in self.providerObj.series_categories.items()}
+			self.categories = [self.all] + sorted(self.stalkerCategoryIdByName.keys(), key=lambda x: x.lower())
+		else:
+			allEpisodes = []
+			for genre, series in self.providerObj.vod_series.items():
+				self.allseries[genre] = [s for s in series if s[1]]
+				allEpisodes += self.allseries[genre]
+			self.categories = sorted(self.allseries.keys(), key=lambda x: x.lower())
+			self.allseries[self.all] = allEpisodes  # insert after the sort so it does not affect the sort
+			self.categories.insert(0, self.all)  # insert "All" category at the start of the list
+		self.mode = self.MODE_GENRE
+		if len(self.categories) <= 1:  # go straight into series mode if no categories are available
+			self.pushStack()
+			self.mode = self.MODE_SERIES
+			self.openCategory()
+		else:
+			self.buildList()
+			self["list"].index = 0
+
+	def openCategory(self):
+		if self.isLazy:
+			category_id = None if self.category == self.all else self.stalkerCategoryIdByName.get(self.category)
+			self.pager = VodPager(lambda page, cid=category_id: self.providerObj.getSeriesPage(cid, page))
+		else:
+			self.pager = EagerPager(sorted(self.allseries.get(self.category, []), key=lambda x: x[1].lower()))
+		self.loadPagerFirstPage()
+
+	def loadPagerFirstPage(self):
+		if isinstance(self.pager, VodPager):
+			self["overlay"].show()
+			self["list"].master.master.hide()
+			threads.deferToThread(self.pager.load_next_page_sync).addCallback(self.onFirstPageLoaded)
+		else:
+			self.buildList()
+			self["list"].index = 0
+
+	def onFirstPageLoaded(self, new_items):
+		self["overlay"].hide()
+		self["list"].master.master.show()
+		self.buildList()
+		self["list"].index = 0
+
+	def fetchMorePages(self):
+		if self.pager.loading or not self.pager.has_more:
+			return
+		threads.deferToThread(self.pager.load_next_page_sync).addCallback(self.onMorePageLoaded)
+
+	def onMorePageLoaded(self, new_items):
+		currentIndex = self["list"].index
+		self["list"].setList(self.pagerRows())
+		self["list"].index = currentIndex
+
 	def keySelect(self):
 		if current := self["list"].getCurrent():
-			if self.mode == self.MODE_GENRE:
+			if self.mode == self.MODE_PROVIDER:
+				self.pushStack()
+				self.openProvider(current[0])
+			elif self.mode == self.MODE_GENRE:
 				self.pushStack()
 				self.mode = self.MODE_SERIES
 				self.category = current[0]
-				self.buildList()
-				self["list"].index = 0
+				self.openCategory()
 			elif self.mode in (self.MODE_SERIES, self.MODE_SEARCH):
 				id = current[0]
-				provider = current[3]
+				if id is None:  # placeholder row not yet loaded
+					if self.pager.should_prefetch(self["list"].index) or not self.pager.loading:
+						self.fetchMorePages()
+					return
 				self["overlay"].show()
 				self["list"].master.master.hide()
-				threads.deferToThread(self.getSeriesById, provider, id).addCallback(self.loadSeriesList)
+				threads.deferToThread(self.getSeriesById, id).addCallback(self.loadSeriesList)
 			elif self.mode == self.MODE_EPISODE:
 				self.playMovie()
 
-	def getSeriesById(self, provider, id):
+	def getSeriesById(self, id):
 		try:
-			self.episodes = providers[provider].getSeriesById(id)
+			self.episodes = self.providerObj.getSeriesById(id)
 			return True
 		except (TimeoutError, HTTPError, URLError) as err:
 			print("[M3UIPTVVoDSeries] keySelect, failure in getSeriesById, %s:" % type(err).__name__, err)
@@ -1240,17 +1349,27 @@ class M3UIPTVVoDSeries(Screen, StatusIcon):
 			self.playMovie()
 
 	def keySearch(self):
+		if self.mode == self.MODE_PROVIDER:
+			return
 		if (current := self["list"].getCurrent()) and self.mode == self.MODE_GENRE:
 			self.category = current[1]  # remember where we were (for when we use keyCancel)
 		self.session.openWithCallback(self.keySearchCallback, VirtualKeyBoard, title=_("VoD Series: enter search terms"), text=" ".join(self.searchTerms))
 
 	def keySearchCallback(self, retval=None):
-		if retval is not None:
+		if retval is None:
+			return
+		self.searchTerms = retval.lower().split()
+		self.pushStack()
+		self.mode = self.MODE_SEARCH
+		if self.isLazy:
+			self.pager = VodPager(lambda page, term=retval: self.providerObj.getSeriesPage(None, page, search_terms=term))
+			self.loadPagerFirstPage()
+		else:
 			if not self.searchTexts:
 				self.searchTexts = [re.split(r"\b", series[1].lower()) for series in self.allseries[self.all]]
-			self.searchTerms = retval.lower().split()
-			self.pushStack()
-			self.mode = self.MODE_SEARCH
+			weighted = [(series, c) for i, series in enumerate(self.allseries[self.all]) if (c := self.search(i))]
+			weighted.sort(key=lambda pair: (-pair[1], pair[0][1]))
+			self.pager = EagerPager([series for series, weight in weighted])
 			self.buildList()
 			self["list"].index = 0
 
@@ -1265,46 +1384,53 @@ class M3UIPTVVoDSeries(Screen, StatusIcon):
 		return count
 
 	def buildList(self):
-		if not self.categories:
-			return
 		if path.exists('/tmp/M3UIPTV/poster.png'):
 			os.remove('/tmp/M3UIPTV/poster.png')
 		self.processing_cover = False
-		if len(self.allseries) == 1 and self.mode == self.MODE_GENRE:  # go straight into series mode if no categories are available
-			self.mode = self.MODE_SERIES
-			self.pushStack()
-		if self.mode == self.MODE_GENRE:
-			self.title = _("VoD Series Categories")
+		if self.mode == self.MODE_PROVIDER:
+			self.title = _("VoD Series: Select Provider")
+			self["description"].text = _("Press OK to select a provider")
+			# (scheme, display_name)
+			self["list"].setList([self.insertIcon((scheme, providerObj.iptv_service_provider)) for scheme, providerObj in self.vodProviders])
+			self["poster"].instance and self["poster"].instance.setPixmap(None)
+		elif self.mode == self.MODE_GENRE:
+			self.title = _("VoD Series Categories: %s") % self.providerObj.iptv_service_provider
 			self["description"].text = _("Press OK to select a category")
 			# (category_name, category_name)
 			self["list"].setList([self.insertIcon((x, x)) for x in self.categories])
 			self["poster"].instance and self["poster"].instance.setPixmap(None)
-		elif self.mode == self.MODE_SERIES:
-			self.title = _("VoD Series Category: %s") % self.category
-			self["description"].text = _("Press OK to select a series")
-			# (series_id, name, provider_scheme, plot, poster)
-			self["list"].setList([self.insertIcon(x) for x in sorted(self.allseries[self.category], key=lambda x: x[1].lower())])
 		elif self.mode == self.MODE_EPISODE:
 			self.title = _("VoD Series: %s") % self.seriesName
 			self["description"].text = _("Press OK to play selected show")
 			# (stream_url, episode_name, episode_info_dict, provider_obj, episode_info_str, date_str, None)
 			self["list"].setList([self.insertIcon(x) for x in self.episodes])
-		elif self.mode == self.MODE_SEARCH:
-			self.title = _("VoD Series Search")
-			self["description"].text = _("Press OK to select the current item")
-			# (series_id, name, provider_scheme, plot, poster, search weight)
-			self["list"].setList(sorted([self.insertIcon((series[0], series[1], series[2], series[3], series[4], c)) for i, series in enumerate(self.allseries[self.all]) if (c := self.search(i))], key=lambda x: (-x[-1], x[1])))
+		else:  # MODE_SERIES or MODE_SEARCH, both rendered from self.pager.items: (series_id, name, plot, poster)
+			self.title = _("VoD Series Category: %s") % self.category if self.mode == self.MODE_SERIES else _("VoD Series Search")
+			self["description"].text = _("Press OK to select a series")
+			self["list"].setList(self.pagerRows())
 		self["key_yellow"].text = self.mdbText()
 
+	def pagerRows(self):
+		rows = [self.insertIcon(x) for x in self.pager.items]
+		rows += [(None, _("Loading..."), None, None)] * self.pager.placeholder_count()
+		return rows
+
+	def getEpisodeSeries(self, current):
+		stream_data_split = current[0].split("||")
+		has_series = len(stream_data_split) > 1
+		series = int(stream_data_split[1]) if has_series else 0
+		return stream_data_split[0], series, has_series
+
+	def getResumeKeyRef(self, current):
+		"""Cheap, network-free ref used only as a resume-point cache key: same shape as getPlayRef()
+		but keeps the raw/unresolved cmd instead of resolving the real play URL via getVoDPlayUrl()."""
+		url, series, _has_series = self.getEpisodeSeries(current)
+		return eServiceReference("%s:0:1:%x:1009:1:CCCC0000:0:0:0:%s:%s" % (config.plugins.m3uiptv.vod_play_system.value, int(current[6]) + (10000 * series), url.replace(":", "%3a"), current[1]))
+
 	def getPlayRef(self, current):
-		series = 0
-		stream_data = current[0]
-		stream_data_split = stream_data.split("||")
-		url = stream_data_split[0]
-		if len(stream_data_split) > 1:
-			providerObj = current[4]
-			series = int(stream_data_split[1])
-			url = providerObj.getVoDPlayUrl(url, series=series)
+		url, series, has_series = self.getEpisodeSeries(current)
+		if has_series:
+			url = current[4].getVoDPlayUrl(url, series=series)
 		return eServiceReference("%s:0:1:%x:1009:1:CCCC0000:0:0:0:%s:%s" % (config.plugins.m3uiptv.vod_play_system.value, int(current[6]) + (10000 * series), url.replace(":", "%3a"), current[1]))
 
 	def playMovie(self):
@@ -1312,18 +1438,19 @@ class M3UIPTVVoDSeries(Screen, StatusIcon):
 			infobar = InfoBar.instance
 			if infobar:
 				LastService = self.session.nav.getCurrentServiceReferenceOriginal()
+				resumeKey = self.getResumeKeyRef(current).toString()
 				ref = self.getPlayRef(current)
-				self.session.openWithCallback(self.buildList, VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
+				self.session.openWithCallback(self.buildList, VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService, resumeKey=resumeKey)
 
 	def mdb(self):
-		if self.mode != self.MODE_GENRE and (current := self["list"].getCurrent()):
+		if self.mode not in (self.MODE_PROVIDER, self.MODE_GENRE) and (current := self["list"].getCurrent()):
 			if tmdbScreen:
 				self.session.open(tmdbScreen, current[1].replace("4K", "").replace("4k", ""), 2)
 			elif IMDB:
 				self.session.open(IMDB, current[1].replace("4K", "").replace("4k", ""), False)
 
 	def mdbText(self):
-		if self.mode != self.MODE_GENRE and self["list"].getCurrent():
+		if self.mode not in (self.MODE_PROVIDER, self.MODE_GENRE) and self["list"].getCurrent():
 			if tmdbScreen:
 				return _("TMDb search")
 			elif IMDB:
@@ -1332,24 +1459,28 @@ class M3UIPTVVoDSeries(Screen, StatusIcon):
 
 	def pushStack(self):
 		self.episodesHistory.append(self.episodes)
+		self.pagerHistory.append(self.pager)
 		self.stack.append((self.mode, self["list"].index))
 
 	def popStack(self):
 		self.episodes = self.episodesHistory.pop()
-		return self.stack.pop() if self.stack else (self.MODE_GENRE, 0)  # if stack is empty return defaults
+		self.pager = self.pagerHistory.pop()
+		return self.stack.pop() if self.stack else (self.MODE_PROVIDER, 0)  # if stack is empty return defaults
 
 	def createSummary(self):
 		return PluginSummary
 
 
 class M3UIPTVVoDMovies(Screen, StatusIcon):
-	MODE_CATEGORY = 0
-	MODE_MOVIE = 1
-	MODE_SEARCH = 2
+	MODE_PROVIDER = 0
+	MODE_CATEGORY = 1
+	MODE_MOVIE = 2
+	MODE_SEARCH = 3
 
 	skin = ["""
 		<screen name="M3UIPTVVoDMovies" position="center,center" size="%d,%d">
 			<panel name="__DynamicColorButtonTemplate__"/>
+			 <widget name="overlay" position="%d,%d" zPosition="12" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1"/>
 			<widget source="list" render="Listbox" position="%d,%d" size="%d,%d" scrollbarMode="showOnDemand">
 				<convert type="TemplatedMultiContent">
 					{"template": [
@@ -1364,6 +1495,7 @@ class M3UIPTVVoDMovies(Screen, StatusIcon):
 			<widget source="description" render="Label" position="%d,%d" zPosition="10" size="%d,%d" halign="center" valign="center" font="Regular;%d" transparent="1" shadowColor="black" shadowOffset="-1,-1" />
 		</screen>""",
 			980, 600,  # screen
+			15, 60, 950, 430, 22,  # overlay
 			15, 60, 640, 430,  # Listbox
 			2, 0, 630, 26,  # template
 			22,  # fonts
@@ -1377,23 +1509,24 @@ class M3UIPTVVoDMovies(Screen, StatusIcon):
 		StatusIcon.__init__(self)
 		self["list"] = List([])
 		self["description"] = StaticText()
+		self["overlay"] = Label(_("Please wait! Loading data from server."))
+		self["overlay"].hide()
 		self.picload = ePicLoad()
 		self.picload.PictureData.get().append(self.showPic)
 		self["poster"] = Pixmap()
-		self.mode = self.MODE_CATEGORY
+		self.mode = self.MODE_PROVIDER
+		self.vodProviders = vodCapableMovieProviders()
+		self.providerScheme = None
+		self.providerObj = None
+		self.isLazy = False
 		self.allmovies = []
-		for provider in providers:
-			self.allmovies += [movie for movie in providers[provider].vod_movies if movie.name is not None]
 		self.all = _("All")
 		self.category = self.all
 		self.categories = []
+		self.stalkerCategoryIdByName = {}
+		self.pager = EagerPager([])
 		self.searchTexts = []
 		self.searchTerms = []
-		for movie in self.allmovies:
-			if movie.category is not None and movie.category not in self.categories:
-				self.categories.append(movie.category)
-		self.categories.sort(key=lambda x: x.lower())
-		self.categories.insert(0, self.category)  # insert "All" category at the start of the list
 		if self.selectionChanged not in self["list"].onSelectionChanged:
 			self["list"].onSelectionChanged.append(self.selectionChanged)
 
@@ -1412,7 +1545,10 @@ class M3UIPTVVoDMovies(Screen, StatusIcon):
 				"play": self.key_play,
 				"menu": self.closeRecursive,
 			}, -1)  # noqa: E123
-		self.buildList()
+		if len(self.vodProviders) == 1:
+			self.openProvider(self.vodProviders[0][0])
+		else:
+			self.buildList()
 		self.onClose.append(self.mdbCleanup)
 		self.processing_cover = False
 		self.deferred_cover_url = None
@@ -1477,14 +1613,16 @@ class M3UIPTVVoDMovies(Screen, StatusIcon):
 	def selectionChanged(self):
 		current_cover_url = None
 		current = self["list"].getCurrent()
-		if self.mode in (self.MODE_MOVIE, self.MODE_SEARCH) and current:
+		if self.mode in (self.MODE_MOVIE, self.MODE_SEARCH) and current and current[0] is not None:
 			if (plot := current[0].plot) is not None:
 				self["description"].text = plot
 			elif not current[0].plot:
 				threads.deferToThread(self.getExtraMovieInfo, current[0])
 			if current[0].poster_url:
 				current_cover_url = current[0].poster_url
-		if self.mode != self.MODE_CATEGORY and config.plugins.m3uiptv.display_poster.value:
+		if self.mode in (self.MODE_MOVIE, self.MODE_SEARCH) and self.pager.should_prefetch(self["list"].index):
+			self.fetchMorePages()
+		if self.mode not in (self.MODE_PROVIDER, self.MODE_CATEGORY) and config.plugins.m3uiptv.display_poster.value:
 			threads.deferToThread(self.downloadCover, current_cover_url)
 
 	def mdb(self):
@@ -1522,29 +1660,101 @@ class M3UIPTVVoDMovies(Screen, StatusIcon):
 			for jpg in glob(tmdbTempDir + '*.jpg'):
 				remove(jpg)
 
+	def openProvider(self, scheme):
+		self.providerScheme = scheme
+		self.providerObj = providers[scheme]
+		self.isLazy = isinstance(self.providerObj, StalkerProvider)
+		self.category = self.all
+		self.allmovies = []
+		self.stalkerCategoryIdByName = {}
+		self.searchTexts = []
+		self.searchTerms = []
+		if self.isLazy:
+			self.stalkerCategoryIdByName = {name: cid for cid, name in self.providerObj.movie_categories.items()}
+			self.categories = [self.all] + sorted(self.stalkerCategoryIdByName.keys(), key=lambda x: x.lower())
+		else:
+			self.allmovies = [movie for movie in self.providerObj.vod_movies if movie.name is not None]
+			self.categories = []
+			for movie in self.allmovies:
+				if movie.category is not None and movie.category not in self.categories:
+					self.categories.append(movie.category)
+			self.categories.sort(key=lambda x: x.lower())
+			self.categories.insert(0, self.all)
+		self.mode = self.MODE_CATEGORY
+		if len(self.categories) <= 1:  # go straight into movie mode if no categories are available
+			self.mode = self.MODE_MOVIE
+			self.openCategory()
+		else:
+			self.buildList()
+
+	def openCategory(self):
+		if self.isLazy:
+			category_id = None if self.category == self.all else self.stalkerCategoryIdByName.get(self.category)
+			self.pager = VodPager(lambda page, cid=category_id: self.providerObj.getVodMoviesPage(cid, page))
+		else:
+			self.pager = EagerPager(sorted([movie for movie in self.allmovies if self.category == self.all or self.category == movie.category], key=lambda movie: movie.name.lower()))
+		self.loadPagerFirstPage()
+
+	def loadPagerFirstPage(self):
+		if isinstance(self.pager, VodPager):
+			self["overlay"].show()
+			self["list"].master.master.hide()
+			threads.deferToThread(self.pager.load_next_page_sync).addCallback(self.onFirstPageLoaded)
+		else:
+			self.buildList()
+			self["list"].index = 0
+
+	def onFirstPageLoaded(self, new_items):
+		self["overlay"].hide()
+		self["list"].master.master.show()
+		self.buildList()
+		self["list"].index = 0
+
+	def fetchMorePages(self):
+		if self.pager.loading or not self.pager.has_more:
+			return
+		threads.deferToThread(self.pager.load_next_page_sync).addCallback(self.onMorePageLoaded)
+
+	def onMorePageLoaded(self, new_items):
+		currentIndex = self["list"].index
+		self["list"].setList(self.pagerRows())
+		self["list"].index = currentIndex
+
 	def keySelect(self):
-		if self.mode == self.MODE_CATEGORY:
+		if self.mode == self.MODE_PROVIDER:
+			if current := self["list"].getCurrent():
+				self.openProvider(current[0])
+		elif self.mode == self.MODE_CATEGORY:
 			if current := self["list"].getCurrent():
 				self.mode = self.MODE_MOVIE
 				self.category = current[0]
-				self.buildList()
-				self["list"].index = 0
+				self.openCategory()
 		else:
 			self.playMovie()
 
 	def key_play(self):
-		if self.mode != self.MODE_CATEGORY:
+		if self.mode not in (self.MODE_PROVIDER, self.MODE_CATEGORY):
 			self.playMovie()
 
 	def keySearch(self):
+		if self.mode == self.MODE_PROVIDER:
+			return
 		self.session.openWithCallback(self.keySearchCallback, VirtualKeyBoard, title=_("VoD Movie: enter search terms"), text=" ".join(self.searchTerms))
 
 	def keySearchCallback(self, retval=None):
-		if retval is not None:
+		if retval is None:
+			return
+		self.searchTerms = retval.lower().split()
+		self.mode = self.MODE_SEARCH
+		if self.isLazy:
+			self.pager = VodPager(lambda page, term=retval: self.providerObj.getVodMoviesPage(None, page, search_terms=term))
+			self.loadPagerFirstPage()
+		else:
 			if not self.searchTexts:
 				self.searchTexts = [re.split(r"\b", movie.name.lower()) for movie in self.allmovies]
-			self.searchTerms = retval.lower().split()
-			self.mode = self.MODE_SEARCH
+			weighted = [(movie, c) for i, movie in enumerate(self.allmovies) if (c := self.search(i))]
+			weighted.sort(key=lambda pair: (-pair[1], pair[0].name))
+			self.pager = EagerPager([movie for movie, weight in weighted])
 			self.buildList()
 			self["list"].index = 0
 
@@ -1562,23 +1772,32 @@ class M3UIPTVVoDMovies(Screen, StatusIcon):
 		if path.exists('/tmp/M3UIPTV/poster.png'):
 			os.remove('/tmp/M3UIPTV/poster.png')
 		self.processing_cover = False
-		if len(self.categories) == 1 and self.mode == self.MODE_CATEGORY:  # go straight into movie mode if no categories are available
-			self.mode = self.MODE_MOVIE
-		if self.mode == self.MODE_SEARCH:
-			self.title = _("VoD Movie Search")
-			self["description"].text = _("Press OK to play selected movie")
-			self["list"].setList(sorted([self.insertIcon((movie, movie.name, c)) for i, movie in enumerate(self.allmovies) if (c := self.search(i))], key=lambda x: (-x[-1], x[1])))
+		if self.mode == self.MODE_PROVIDER:
+			self.title = _("VoD Movies: Select Provider")
+			self["description"].text = _("Press OK to select a provider")
+			self["list"].setList([self.insertIcon((scheme, providerObj.iptv_service_provider)) for scheme, providerObj in self.vodProviders])
+			self["poster"].instance and self["poster"].instance.setPixmap(None)
 		elif self.mode == self.MODE_CATEGORY:
-			self.title = _("VoD Movie Categories")
+			self.title = _("VoD Movie Categories: %s") % self.providerObj.iptv_service_provider
 			self["description"].text = _("Press OK to select a category")
 			self["list"].setList([self.insertIcon((x, x)) for x in self.categories])
-			self["list"].index = self.categories.index(self.category)
+			self["list"].index = self.categories.index(self.category) if self.category in self.categories else 0
 			self["poster"].instance and self["poster"].instance.setPixmap(None)
-		else:
-			self.title = _("VoD Movie Category: %s") % self.category
+		else:  # MODE_MOVIE or MODE_SEARCH, both rendered from self.pager.items
+			self.title = _("VoD Movie Category: %s") % self.category if self.mode == self.MODE_MOVIE else _("VoD Movie Search")
 			self["description"].text = _("Press OK to play selected movie")
-			self["list"].setList(sorted([self.insertIcon((movie, movie.name)) for movie in self.allmovies if self.category == self.all or self.category == movie.category], key=lambda x: x[1].lower()))
+			self["list"].setList(self.pagerRows())
 		self["key_yellow"].text = self.mdbText()
+
+	def pagerRows(self):
+		rows = [self.insertIcon((movie, movie.name)) for movie in self.pager.items]
+		rows += [(None, _("Loading..."))] * self.pager.placeholder_count()
+		return rows
+
+	def getResumeKeyRef(self, current):
+		"""Cheap, network-free ref used only as a resume-point cache key: same shape as getPlayRef()
+		but keeps the raw/unresolved url instead of resolving the real play URL via getVoDPlayUrl()."""
+		return eServiceReference("%s:0:1:%x:1009:1:CCCC0000:0:0:0:%s:%s" % (config.plugins.m3uiptv.vod_play_system.value, current[0].id, current[0].url.replace(":", "%3a"), current[0].name))
 
 	def getPlayRef(self, current):
 		url = current[0].providerObj.getVoDPlayUrl(current[0].url, current[0].id)
@@ -1586,15 +1805,23 @@ class M3UIPTVVoDMovies(Screen, StatusIcon):
 
 	def playMovie(self):
 		if current := self["list"].getCurrent():
+			if current[0] is None:  # placeholder row not yet loaded
+				if self.pager.should_prefetch(self["list"].index) or not self.pager.loading:
+					self.fetchMorePages()
+				return
 			infobar = InfoBar.instance
 			if infobar:
 				LastService = self.session.nav.getCurrentServiceReferenceOriginal()
+				resumeKey = self.getResumeKeyRef(current).toString()
 				ref = self.getPlayRef(current)
-				self.session.openWithCallback(self.buildList, VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService)
+				self.session.openWithCallback(self.buildList, VoDMoviePlayer, ref, slist=infobar.servicelist, lastservice=LastService, resumeKey=resumeKey)
 
 	def keyCancel(self):
 		if len(self.categories) > 1 and self.mode in (self.MODE_MOVIE, self.MODE_SEARCH):
 			self.mode = self.MODE_CATEGORY
+			self.buildList()
+		elif len(self.vodProviders) > 1 and self.mode == self.MODE_CATEGORY:
+			self.mode = self.MODE_PROVIDER
 			self.buildList()
 		else:
 			self.close()
@@ -1731,7 +1958,7 @@ class M3UIPTVManagerConfig(Screen):
 				providerObj.update_status_callback.append(self.updateDescription)
 
 	def buildList(self):
-		self["list"].list = list(sorted([(provider, providers[provider].iptv_service_provider, self.logos[providers[provider].type], self.vod_ico if len(providers[provider].vod_movies) > 0 or len(providers[provider].vod_series) > 0 else None, "" if providers[provider].progress_percentage == -1 else (_("Fetching VoD items") + " " + str(providers[provider].progress_percentage) + "%"), self.activity_icons[providers[provider].getAccountActive()]) for provider in providers], key=lambda x: x[1]))
+		self["list"].list = list(sorted([(provider, providers[provider].iptv_service_provider, self.logos[providers[provider].type], self.vod_ico if providerHasVod(providers[provider]) else None, "" if providers[provider].progress_percentage == -1 else (_("Fetching VoD items") + " " + str(providers[provider].progress_percentage) + "%"), self.activity_icons[providers[provider].getAccountActive()]) for provider in providers], key=lambda x: x[1]))
 
 	def addProvider(self):
 		self.session.openWithCallback(self.providerCallback, M3UIPTVProviderEdit)
@@ -1770,7 +1997,7 @@ class M3UIPTVManagerConfig(Screen):
 
 	def onProgressChanged(self):
 		try:
-			self["list"].setList(list(sorted([(provider, providers[provider].iptv_service_provider, self.logos[providers[provider].type], self.vod_ico if len(providers[provider].vod_movies) > 0 or len(providers[provider].vod_series) > 0 else None, "" if providers[provider].progress_percentage == -1 else (_("Fetching VoD items") + " " + str(providers[provider].progress_percentage) + "%"), self.activity_icons[providers[provider].getAccountActive()]) for provider in providers], key=lambda x: x[1])))
+			self["list"].setList(list(sorted([(provider, providers[provider].iptv_service_provider, self.logos[providers[provider].type], self.vod_ico if providerHasVod(providers[provider]) else None, "" if providers[provider].progress_percentage == -1 else (_("Fetching VoD items") + " " + str(providers[provider].progress_percentage) + "%"), self.activity_icons[providers[provider].getAccountActive()]) for provider in providers], key=lambda x: x[1])))
 		except:
 			pass
 
@@ -1868,6 +2095,10 @@ class M3UIPTVProviderEdit(Setup):
 		self.username = ConfigText(default=providerObj.username, fixed_size=False)
 		self.password = ConfigPassword(default=providerObj.password, fixed_size=False)
 		self.mac = ConfigText(default=providerObj.mac, fixed_size=False)
+		self.custom_serial = ConfigText(default=getattr(providerObj, "custom_serial", ""), fixed_size=False)
+		self.custom_device_id1 = ConfigText(default=getattr(providerObj, "custom_device_id1", ""), fixed_size=False)
+		self.custom_device_id2 = ConfigText(default=getattr(providerObj, "custom_device_id2", ""), fixed_size=False)
+		self.custom_signature = ConfigText(default=getattr(providerObj, "custom_signature", ""), fixed_size=False)
 		self.is_custom_xmltv = ConfigYesNo(default=providerObj.is_custom_xmltv)
 		self.custom_xmltv_url = ConfigText(default=providerObj.custom_xmltv_url, fixed_size=False)
 		self.use_provider_tsid = ConfigYesNo(default=providerObj.use_provider_tsid)
@@ -1936,6 +2167,10 @@ class M3UIPTVProviderEdit(Setup):
 			configlist.append((_("Password"), self.password, _("Password used for authenticating in the streaming server.")))
 		elif self.type.value == "Stalker":
 			configlist.append((_("MAC address"), self.mac, _("MAC address used for authenticating in Stalker portal.")))
+			configlist.append((_("Serial"), self.custom_serial, _("Optional custom serial number used for authenticating in Stalker portal.\nLeave empty to auto-generate it from the MAC address.")))
+			configlist.append((_("Device ID 1"), self.custom_device_id1, _("Optional custom device ID used for authenticating in Stalker portal.\nLeave empty to auto-generate it from the MAC address.")))
+			configlist.append((_("Device ID 2"), self.custom_device_id2, _("Optional custom secondary device ID used for authenticating in Stalker portal.\nLeave empty to use Device ID 1.")))
+			configlist.append((_("Signature"), self.custom_signature, _("Optional custom signature used for authenticating in Stalker portal.\nUse this if you copied Serial/Device ID values from a real device and streaming still fails - paste the signature from the same device.\nLeave empty to auto-generate it from the values above.")))
 		if self.type.value == "Xtreeme" or self.type.value == "Stalker":
 			configlist.append((_("Skip VOD entries"), self.novod, _("Skip VOD entries in the playlist")))
 		if self.type.value != "VOD":
@@ -2064,9 +2299,27 @@ class M3UIPTVProviderEdit(Setup):
 				if self.type.value == "Xtreeme":
 					providerObj.output_format = self.output_format.value
 			else:
+				if self.type.value == "Stalker" and providerObj.mac != self.mac.value:
+					providerObj.serial = ""
+					providerObj.devid = ""
+					providerObj.devid2 = ""
+					providerObj.signature = ""
 				providerObj.mac = self.mac.value
 				providerObj.output_format = self.output_format.value
 				providerObj.epg_time_offset = self.epg_time_offset.value
+				if self.type.value == "Stalker":
+					if providerObj.custom_serial != self.custom_serial.value:
+						providerObj.serial = ""
+					if providerObj.custom_device_id1 != self.custom_device_id1.value:
+						providerObj.devid = ""
+					if providerObj.custom_device_id2 != self.custom_device_id2.value:
+						providerObj.devid2 = ""
+					if providerObj.custom_signature != self.custom_signature.value or providerObj.custom_serial != self.custom_serial.value or providerObj.custom_device_id1 != self.custom_device_id1.value or providerObj.custom_device_id2 != self.custom_device_id2.value:
+						providerObj.signature = ""
+					providerObj.custom_serial = self.custom_serial.value
+					providerObj.custom_device_id1 = self.custom_device_id1.value
+					providerObj.custom_device_id2 = self.custom_device_id2.value
+					providerObj.custom_signature = self.custom_signature.value
 		else:
 			providerObj.playlist_type = self.playlist_type.value
 
