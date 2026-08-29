@@ -114,6 +114,66 @@ def injectCatchupIconGMEPG(res, obj, service, service_name, events, picon, servi
 						flags=0))
 
 
+class ServiceRestorer:
+	# Navigation's own "tuner still releasing from a just-stopped stream" retry
+	# only arms when the previous service reference still has "://" in it at
+	# the moment playService() is called - which isn't reliably the case right
+	# after a catchup/VoD stream closes. Retry the restore ourselves a few
+	# times, since the tuner may not have fully released yet.
+	#
+	# getCurrentlyPlayingServiceReference() flips to non-None as soon as
+	# playService() is issued, regardless of whether the tune actually took -
+	# while the tuner is still releasing, Navigation can silently fail to
+	# start the service while still recording it as "current". So it can't be
+	# used to decide when to stop retrying; keep reissuing playService() on
+	# the same cadence (it's a cheap no-op once the service is genuinely
+	# already playing) until evUpdatedInfo/evVideoSizeChanged arrives or
+	# attempts run out.
+	MAX_ATTEMPTS = 14
+	RETRY_DELAY = 700  # ms
+	START_TIMEOUT = 3000  # ms
+
+	def __init__(self, session, ref, on_done=None):
+		if ref is None:
+			if on_done:
+				on_done()
+			return
+		self.session = session
+		self.ref = ref
+		self.on_done = on_done
+		self.attempts = 0
+		self.finished = False
+		self.timer = eTimer()
+		self.timer.callback.append(self.__attempt)
+		self.session.nav.event.append(self.__onServiceEvent)
+		self.timer.start(0, True)
+
+	def __attempt(self):
+		self.attempts += 1
+		self.session.nav.playService(self.ref)
+		if self.attempts < self.MAX_ATTEMPTS:
+			self.timer.start(self.RETRY_DELAY, True)
+		else:
+			self.timer.start(self.START_TIMEOUT, True)
+
+	def __onServiceEvent(self, ev):
+		# evVideoSizeChanged only fires when the decoded resolution actually
+		# changes, so it can't be relied on alone - a restored service with
+		# the same resolution as whatever was last on screen would never
+		# trigger it, leaving evUpdatedInfo as the only reliable signal.
+		if ev in (iPlayableService.evUpdatedInfo, iPlayableService.evVideoSizeChanged):
+			self.__finish()
+
+	def __finish(self):
+		if self.finished:
+			return
+		self.finished = True
+		self.timer.stop()
+		self.session.nav.event.remove(self.__onServiceEvent)
+		if self.on_done:
+			self.on_done()
+
+
 def playM3UIPTVArchiveEntry(self, event, service):
 	stime = event.getBeginTime()
 	duration = event.getDuration()
@@ -352,7 +412,7 @@ class CatchupPlayer(MoviePlayer):
 		self.lastservice = None
 		self.servicelist = None
 		MoviePlayer.handleLeave(self, what)
-		self.session.nav.playService(real_lastservice)
+		ServiceRestorer(self.session, real_lastservice)
 
 	def leavePlayer(self):
 		self.setResumePoint()

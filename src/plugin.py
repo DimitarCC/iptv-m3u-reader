@@ -21,7 +21,7 @@ from .TVHeadendProvider import TVHeadendProvider
 from .VODProvider import VODProvider
 from .IPTVProviders import providers, processService as processIPTVService
 from .VodPager import VodPager, EagerPager
-from .IPTVCatchupPlayer import injectCatchupInEPG
+from .IPTVCatchupPlayer import injectCatchupInEPG, ServiceRestorer
 from .epgimport_helper import overwriteEPGImportEPGSourceInit
 from .Variables import SERVICEAPP_AVAILABLE, PROVIDER_FOLDER, USER_IPTV_PROVIDERS_FILE, USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_XTREME_60, CATCHUP_STALKER, CATCHUP_FLUSSONIC, CATCHUP_VOD, REQUEST_USER_AGENT
 from Screens.Screen import Screen, ScreenSummary
@@ -944,6 +944,14 @@ class VoDMoviePlayer(MoviePlayer, SubsSupport, SubsSupportStatus):
 			self.progress_timer.stop()
 		elif playstateString == 'END':
 			self.progress_timer.stop()
+
+	def handleLeave(self, what):
+		self.selected_subtitle = None
+		real_lastservice = self.lastservice
+		self.lastservice = None
+		self.servicelist = None
+		MoviePlayer.handleLeave(self, what)
+		ServiceRestorer(self.session, real_lastservice)
 
 	def leavePlayer(self):
 		self.setResumePoint()
