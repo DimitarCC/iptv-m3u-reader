@@ -1190,3 +1190,7 @@ msgstr "Тайм-аут на получение данных из Catchup/Archiv
 
 msgid "Timeout in seconds for the catchup/archive playback eof timeout to be delayed."
 msgstr "Время ожидания в секундах, на которое откладывается таймаут при воспроизведении записей из Catchup/Archive EOF или при наверстывании пропущенного контента."
+
+#: ../src/plugin.py:2148
+msgid "No Threads"
+msgstr "Без потоков"
