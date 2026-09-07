@@ -2020,7 +2020,7 @@ class M3UIPTVManagerConfig(Screen):
 				self.updateDescription(_("%s: an error occured during bouquet creation\n\nError type: %s") % (providerObj.iptv_service_provider, type(ex).__name__))
 				self.session.open(MessageBox, _("%s: an error occured during bouquet creation\n\nError type: %s") % (providerObj.iptv_service_provider, type(ex).__name__), MessageBox.TYPE_ERROR)
 
-	def onProgressChanged(self):
+	def onProgressChanged(self, result=None):
 		try:
 			self["list"].setList(list(sorted([(provider, providers[provider].iptv_service_provider, self.logos[providers[provider].type], self.vod_ico if providerHasVod(providers[provider]) else None, "" if providers[provider].progress_percentage == -1 else (_("Fetching VoD items") + " " + str(providers[provider].progress_percentage) + "%"), self.activity_icons[providers[provider].getAccountActive()]) for provider in providers], key=lambda x: x[1])))
 		except:
