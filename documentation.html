@@ -114,6 +114,19 @@
     background:rgba(61,214,255,0.06);border:1px solid rgba(61,214,255,0.2);
   }
   .field-note strong{color:var(--accent-2);}
+
+  /* Sub-settings list (grouped OS-level fields inside one field card) */
+  .subfield-list{display:flex;flex-direction:column;gap:2px;margin-top:8px;}
+  .subfield{
+    display:grid;grid-template-columns:minmax(160px,260px) 1fr;gap:6px 20px;
+    padding:12px 4px;border-top:1px solid var(--panel-border);
+  }
+  .subfield:first-child{border-top:none;}
+  .subfield .sf-name{font-weight:600;font-size:0.9rem;color:var(--text);}
+  .subfield .sf-desc{color:var(--text-dim);font-size:0.87rem;}
+  @media (max-width:640px){
+    .subfield{grid-template-columns:1fr;gap:3px;}
+  }
   .applies{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
   .applies .p{
     font-size:0.72rem;font-weight:700;padding:3px 9px;border-radius:6px;
@@ -335,22 +348,22 @@
       <div class="field" id="timeshift-fields">
         <div class="field-head"><span class="fname">Timeshift options</span><span class="badge cond">Conditional, per-image</span></div>
         <p class="field-desc">A group of standard Enigma2 timeshift settings, shown only where the underlying config path exists on your image:</p>
-        <dl class="field-meta">
-          <dt>Auto-start timeshift after…</dt><dd>Starts timeshift automatically in the background after a set delay.</dd>
-          <dt>Show warning when timeshift is stopped</dt><dd>Prompts with an option to stop or continue when timeshift would otherwise end.</dd>
-          <dt>Timeshift-save action on zap</dt><dd>Whether timeshift continues when the channel is set to record.</dd>
-          <dt>Stop timeshift while recording?</dt><dd>Stops timeshift use during an active recording — advisable for USB-stick storage.</dd>
-          <dt>Use timeshift seekbar while timeshifting?</dt><dd>Allows using the seekbar to jump to a point within the event.</dd>
-          <dt>Skip jumping to live while timeshifting with plugins</dt><dd>Allows timeshift to be used together with alternative audio plugins.</dd>
-        </dl>
+        <div class="subfield-list">
+          <div class="subfield"><span class="sf-name">Auto-start timeshift after…</span><span class="sf-desc">Starts timeshift automatically in the background after a set delay.</span></div>
+          <div class="subfield"><span class="sf-name">Show warning when timeshift is stopped</span><span class="sf-desc">Prompts with an option to stop or continue when timeshift would otherwise end.</span></div>
+          <div class="subfield"><span class="sf-name">Timeshift-save action on zap</span><span class="sf-desc">Whether timeshift continues when the channel is set to record.</span></div>
+          <div class="subfield"><span class="sf-name">Stop timeshift while recording?</span><span class="sf-desc">Stops timeshift use during an active recording — advisable for USB-stick storage.</span></div>
+          <div class="subfield"><span class="sf-name">Use timeshift seekbar while timeshifting?</span><span class="sf-desc">Allows using the seekbar to jump to a point within the event.</span></div>
+          <div class="subfield"><span class="sf-name">Skip jumping to live while timeshifting with plugins</span><span class="sf-desc">Allows timeshift to be used together with alternative audio plugins.</span></div>
+        </div>
       </div>
 
       <div class="field" id="serviceapp-fields">
         <div class="field-head"><span class="fname">ServiceApp playback settings</span><span class="badge cond">Only if ServiceApp plugin installed</span></div>
-        <dl class="field-meta">
-          <dt>Enigma2 playback system</dt><dd>Switches the playback engine to one of the players available in the ServiceApp plugin.</dd>
-          <dt>Player selection</dt><dd>Selects which ServiceApp player to use. Only shown if the setting above is enabled.</dd>
-        </dl>
+        <div class="subfield-list">
+          <div class="subfield"><span class="sf-name">Enigma2 playback system</span><span class="sf-desc">Switches the playback engine to one of the players available in the ServiceApp plugin.</span></div>
+          <div class="subfield"><span class="sf-name">Player selection</span><span class="sf-desc">Selects which ServiceApp player to use. Only shown if the setting above is enabled.</span></div>
+        </div>
       </div>
     </div>
 
