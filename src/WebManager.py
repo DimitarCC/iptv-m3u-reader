@@ -183,10 +183,26 @@ def validateProviderData(ptype, data, scheme, is_edit):
 	return None
 
 
+def checkSystemCredentials(user, passwd):
+	try:
+		from crypt import crypt
+		from pwd import getpwnam
+		from spwd import getspnam
+	except ImportError:
+		return False
+	try:
+		cpass = getpwnam(user)[1]
+		if cpass in ("x", "*"):
+			cpass = getspnam(user)[1]
+	except Exception:
+		return False
+	if not cpass:
+		return False
+	return crypt(passwd, cpass) == cpass
+
+
 def checkAuth(request):
-	username = config.plugins.m3uiptv.webmanager_username.value
-	password = config.plugins.m3uiptv.webmanager_password.value
-	if not username:
+	if not config.plugins.m3uiptv.webmanager_auth.value:
 		return True
 	auth_header = request.requestHeaders.getRawHeaders(b"authorization")
 	if not auth_header:
@@ -196,10 +212,10 @@ def checkAuth(request):
 		if scheme.lower() != b"basic":
 			return False
 		decoded = a2b_base64(creds).decode("utf-8")
-		user, _sep2, pwd = decoded.partition(":")
+		user, _sep2, passwd = decoded.partition(":")
 	except Exception:
 		return False
-	return user == username and pwd == password
+	return checkSystemCredentials(user, passwd)
 
 
 def requireAuth(request):

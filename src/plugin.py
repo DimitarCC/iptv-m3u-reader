@@ -116,8 +116,7 @@ config.plugins.m3uiptv.req_timeout = ConfigSelection(default="2", choices=choice
 config.plugins.m3uiptv.epg_loc_port = ConfigNumber(default=9010)
 config.plugins.m3uiptv.webmanager_enabled = ConfigYesNo(default=False)
 config.plugins.m3uiptv.webmanager_port = ConfigNumber(default=8090)
-config.plugins.m3uiptv.webmanager_username = ConfigText(default="", fixed_size=False)
-config.plugins.m3uiptv.webmanager_password = ConfigPassword(default="", fixed_size=False)
+config.plugins.m3uiptv.webmanager_auth = ConfigYesNo(default=True)
 config.plugins.m3uiptv.inmenu = ConfigYesNo(default=True)
 config.plugins.m3uiptv.inextensions = ConfigYesNo(default=False)
 config.plugins.m3uiptv.display_poster = ConfigYesNo(default=True)
@@ -2440,8 +2439,7 @@ class IPTVPluginConfig(Setup):
 		configlist.append((_("Enable Playlist manager web interface") + " *", config.plugins.m3uiptv.webmanager_enabled, _("Enables a web interface for displaying, adding, editing and deleting IPTV playlists/providers, reachable from a browser on the local network.")))
 		if config.plugins.m3uiptv.webmanager_enabled.value:
 			configlist.append((_("Web interface listening port") + " *", config.plugins.m3uiptv.webmanager_port, _("The TCP port on which the Playlist manager web interface will listen.")))
-			configlist.append((_("Web interface username"), config.plugins.m3uiptv.webmanager_username, _("Optional username to protect the web interface with HTTP authentication. Leave empty to disable authentication.") + " *"))
-			configlist.append((_("Web interface password"), config.plugins.m3uiptv.webmanager_password, _("Password used together with the username above to protect the web interface.") + " *"))
+			configlist.append((_("Require authentication") + " *", config.plugins.m3uiptv.webmanager_auth, _("Protect the web interface with HTTP authentication using the box's own login (the same username/password used for the receiver's web interface/Telnet/FTP, usually 'root').")))
 		configlist.append(("---",))
 		if hasattr(config, "recording") and hasattr(config.recording, "setstreamto1"):
 			configlist.append((_("Recordings - convert IPTV servicetypes to  1"), config.recording.setstreamto1, _("Recording 4097, 5001 and 5002 streams not possible with external players, so convert recordings to servicetype 1.")))
