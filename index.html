@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M3UIPTV — IPTV Plugin for Enigma2</title>
+<meta name="description" content="M3UIPTV turns M3U, Xtream Codes, Stalker portal and TVHeadend sources into native Enigma2 bouquets with EPG, picons, catchup and Video on Demand.">
+<link rel="icon" href="assets/img/plugin.png" type="image/png">
+<style>
+  :root{
+    --bg:#0b0f14;
+    --bg-alt:#111823;
+    --panel:#141c28;
+    --panel-border:#232f3f;
+    --text:#e7edf5;
+    --text-dim:#a7b4c4;
+    --text-faint:#6b7889;
+    --accent:#ff8a3d;
+    --accent-2:#3dd6ff;
+    --accent-soft:rgba(255,138,61,0.12);
+    --green:#3ddc84;
+    --radius:12px;
+    --maxw:1080px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6;
+  }
+  a{color:var(--accent-2);}
+  img{max-width:100%;}
+
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+
+  /* NAV */
+  header.site{
+    position:sticky;top:0;z-index:50;
+    background:rgba(11,15,20,0.88);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--panel-border);
+  }
+  .navbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;max-width:var(--maxw);margin:0 auto;}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.05rem;letter-spacing:0.2px;}
+  .brand img{width:28px;height:28px;border-radius:6px;}
+  nav.links{display:flex;gap:22px;flex-wrap:wrap;}
+  nav.links a{color:var(--text-dim);text-decoration:none;font-size:0.92rem;font-weight:500;}
+  nav.links a:hover{color:var(--text);}
+  .navbar .cta{
+    background:var(--accent);color:#1a1005;padding:8px 16px;border-radius:8px;
+    font-weight:700;font-size:0.88rem;text-decoration:none;white-space:nowrap;
+  }
+
+  /* HERO */
+  .hero{padding:72px 24px 56px;text-align:center;background:
+    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(255,138,61,0.10), transparent),
+    radial-gradient(ellipse 50% 40% at 80% 10%, rgba(61,214,255,0.08), transparent);}
+  .hero .eyebrow{
+    display:inline-block;color:var(--accent);font-weight:700;font-size:0.78rem;
+    letter-spacing:1.5px;text-transform:uppercase;margin-bottom:18px;
+    border:1px solid rgba(255,138,61,0.35);padding:5px 12px;border-radius:999px;background:var(--accent-soft);
+  }
+  .hero h1{font-size:2.6rem;line-height:1.15;margin:0 0 18px;font-weight:800;letter-spacing:-0.5px;}
+  .hero h1 span{color:var(--accent);}
+  .hero p.lead{color:var(--text-dim);font-size:1.15rem;max-width:680px;margin:0 auto 30px;}
+  .hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:9px;
+    font-weight:700;font-size:0.95rem;text-decoration:none;border:1px solid transparent;
+  }
+  .btn-primary{background:var(--accent);color:#1a1005;}
+  .btn-primary:hover{background:#ff9c5c;}
+  .btn-secondary{background:transparent;color:var(--text);border-color:var(--panel-border);}
+  .btn-secondary:hover{border-color:var(--text-faint);}
+
+  .platform-strip{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:34px;}
+  .chip{
+    background:var(--panel);border:1px solid var(--panel-border);color:var(--text-dim);
+    padding:7px 14px;border-radius:999px;font-size:0.82rem;font-weight:600;
+  }
+
+  /* SECTIONS */
+  section{padding:64px 24px;border-top:1px solid var(--panel-border);}
+  section.tight{padding-top:48px;}
+  .section-head{max-width:680px;margin:0 auto 42px;text-align:center;}
+  .section-head .kicker{color:var(--accent-2);font-weight:700;font-size:0.78rem;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;display:block;}
+  .section-head h2{font-size:2rem;margin:0 0 14px;font-weight:800;letter-spacing:-0.4px;}
+  .section-head p{color:var(--text-dim);margin:0;}
+
+  /* FEATURE GRID */
+  .grid{max-width:var(--maxw);margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;}
+  .card{
+    background:var(--panel);border:1px solid var(--panel-border);border-radius:var(--radius);
+    padding:24px;
+  }
+  .card .icon{
+    width:42px;height:42px;border-radius:9px;background:var(--accent-soft);
+    display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:1.3rem;
+  }
+  .card h3{margin:0 0 8px;font-size:1.05rem;font-weight:700;}
+  .card p{margin:0;color:var(--text-dim);font-size:0.92rem;}
+
+  /* PROVIDERS */
+  .provider-grid{max-width:var(--maxw);margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;}
+  .provider-card{
+    background:var(--bg-alt);border:1px solid var(--panel-border);border-radius:var(--radius);
+    padding:22px;
+  }
+  .provider-card .ptitle{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .provider-card .ptitle img{width:26px;height:26px;object-fit:contain;}
+  .provider-card .ptitle h3{margin:0;font-size:1rem;font-weight:700;}
+  .provider-card ul{margin:10px 0 0;padding-left:18px;color:var(--text-dim);font-size:0.88rem;}
+  .provider-card li{margin-bottom:4px;}
+
+  /* TUTORIAL */
+  .toc{
+    max-width:var(--maxw);margin:0 auto 40px;background:var(--panel);border:1px solid var(--panel-border);
+    border-radius:var(--radius);padding:22px 26px;
+  }
+  .toc h3{margin:0 0 12px;font-size:0.95rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-faint);}
+  .toc ol{margin:0;padding-left:20px;columns:2;gap:24px;}
+  .toc li{margin-bottom:8px;font-size:0.92rem;}
+  .toc a{text-decoration:none;}
+  .toc a:hover{text-decoration:underline;}
+
+  .steps{max-width:var(--maxw);margin:0 auto;display:flex;flex-direction:column;gap:16px;}
+  .step{
+    display:grid;grid-template-columns:56px 1fr;gap:20px;
+    background:var(--panel);border:1px solid var(--panel-border);border-radius:var(--radius);
+    padding:26px 26px 26px 20px;scroll-margin-top:80px;
+  }
+  .step .num{
+    width:36px;height:36px;border-radius:50%;background:var(--accent);color:#1a1005;
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.95rem;
+  }
+  .step h3{margin:0 0 10px;font-size:1.15rem;font-weight:700;}
+  .step p{margin:0 0 10px;color:var(--text-dim);}
+  .step p:last-child{margin-bottom:0;}
+  .step .path{
+    display:inline-block;background:var(--bg-alt);border:1px solid var(--panel-border);
+    padding:2px 8px;border-radius:6px;font-family:ui-monospace,"SF Mono",Consolas,monospace;
+    font-size:0.85rem;color:var(--accent-2);margin:2px 0;
+  }
+  .step ul{color:var(--text-dim);margin:10px 0;padding-left:20px;}
+  .step li{margin-bottom:6px;}
+  .note{
+    background:rgba(61,214,255,0.07);border:1px solid rgba(61,214,255,0.25);
+    border-radius:8px;padding:12px 16px;font-size:0.88rem;color:var(--text-dim);margin-top:14px;
+  }
+  .note strong{color:var(--accent-2);}
+  .warn{
+    background:rgba(255,138,61,0.08);border:1px solid rgba(255,138,61,0.28);
+    border-radius:8px;padding:12px 16px;font-size:0.88rem;color:var(--text-dim);margin-top:14px;
+  }
+  .warn strong{color:var(--accent);}
+
+  table.settings{width:100%;border-collapse:collapse;font-size:0.88rem;margin-top:10px;}
+  table.settings th,table.settings td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--panel-border);vertical-align:top;}
+  table.settings th{color:var(--text-faint);font-weight:600;text-transform:uppercase;font-size:0.72rem;letter-spacing:0.5px;}
+  table.settings td:first-child{color:var(--text);font-weight:600;white-space:nowrap;}
+  table.settings td{color:var(--text-dim);}
+
+  .kbd{
+    display:inline-block;background:var(--bg-alt);border:1px solid var(--panel-border);border-bottom-width:2px;
+    padding:2px 8px;border-radius:6px;font-family:ui-monospace,"SF Mono",Consolas,monospace;font-size:0.8rem;
+  }
+  .btn-color{display:inline-flex;align-items:center;gap:6px;font-weight:700;}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+  .dot.red{background:#ff5959;} .dot.green{background:#3ddc84;} .dot.yellow{background:#ffd23d;} .dot.blue{background:#3dd6ff;}
+
+  /* FAQ */
+  .faq{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:10px;}
+  details{
+    background:var(--panel);border:1px solid var(--panel-border);border-radius:10px;padding:16px 20px;
+  }
+  details summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px;}
+  details summary::-webkit-details-marker{display:none;}
+  details summary::after{content:"+";color:var(--accent);font-size:1.3rem;font-weight:400;}
+  details[open] summary::after{content:"–";}
+  details p{color:var(--text-dim);margin:12px 0 0;font-size:0.92rem;}
+
+  footer{padding:40px 24px;text-align:center;color:var(--text-faint);font-size:0.85rem;border-top:1px solid var(--panel-border);}
+  footer a{color:var(--text-dim);}
+
+  @media (max-width:640px){
+    .hero h1{font-size:2rem;}
+    .toc ol{columns:1;}
+    .step{grid-template-columns:40px 1fr;padding:20px 16px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="navbar">
+    <div class="brand"><img src="assets/img/plugin.png" alt="M3UIPTV logo"> M3UIPTV</div>
+    <nav class="links">
+      <a href="#overview">Overview</a>
+      <a href="#features">Features</a>
+      <a href="#providers">Providers</a>
+      <a href="#tutorial">Tutorial</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a class="cta" href="https://github.com/DimitarCC/iptv-m3u-reader">GitHub ↗</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Enigma2 System Plugin</span>
+    <h1>IPTV that behaves like <span>real TV</span> on your Enigma2 box</h1>
+    <p class="lead">
+      M3UIPTV turns M3U playlists, Xtream Codes panels, Stalker (Ministra/MAG) portals and TVHeadend
+      servers into native Enigma2 bouquets — complete with picons, EPG, catchup/archive playback
+      and a full Video on Demand library.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#tutorial">Read the tutorial</a>
+      <a class="btn btn-secondary" href="https://github.com/DimitarCC/iptv-m3u-reader">View on GitHub</a>
+    </div>
+    <div class="platform-strip">
+      <span class="chip">OpenPLI</span>
+      <span class="chip">OpenATV</span>
+      <span class="chip">OpenViX</span>
+      <span class="chip">OpenBH</span>
+      <span class="chip">Egami</span>
+      <span class="chip">GPL-3.0</span>
+    </div>
+  </div>
+</section>
+
+<section id="overview">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Overview</span>
+      <h2>One plugin, every IPTV source</h2>
+      <p>
+        M3UIPTV is a system plugin for <strong>Enigma2</strong>, the Linux-based firmware running on
+        satellite, cable and IPTV set-top boxes from the OpenPLI / oe-alliance family of images
+        (OpenPLI, OpenATV, OpenViX, OpenBH, Egami and similar). It runs natively inside the box's own
+        menu system — no companion app, no phone, no separate server required.
+      </p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="icon">📺</div>
+        <h3>Real bouquets, not a hacky player</h3>
+        <p>Channels from your IPTV sources are converted into genuine Enigma2 bouquets, so they zap,
+        record, timeshift and appear in the channel list exactly like satellite or cable channels.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔌</div>
+        <h3>Multi-provider by design</h3>
+        <p>Add as many M3U, Xtream Codes, Stalker portal, TVHeadend or standalone VOD sources as you
+        like, each with its own settings, refresh schedule and blacklist.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🗂️</div>
+        <h3>EPG, picons &amp; catchup included</h3>
+        <p>Generates EPGImport-compatible guide data, downloads channel logos automatically, and adds
+        catchup/archive playback directly into the EPG screens you already use.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🎬</div>
+        <h3>Video on Demand built in</h3>
+        <p>A dedicated Movies and TV Shows browser aggregates VOD catalogs from every configured
+        provider, with resume points, poster art and optional TMDb/IMDb lookups.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features" style="background:var(--bg-alt);">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Features</span>
+      <h2>What M3UIPTV actually does</h2>
+      <p>Every feature below is configured from the box's own menus, or from the optional web manager.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="icon">🧩</div>
+        <h3>Bouquet auto-generation</h3>
+        <p>Choose per-group bouquets, one "All Channels" bouquet, both, or a master bouquet with
+        sub-bouquets — plus channel ordering and a blacklist to exclude unwanted groups.</p>
+      </div>
+      <div class="card">
+        <div class="icon">📡</div>
+        <h3>EPGImport integration</h3>
+        <p>Generates XMLTV source/channel files consumed by the community EPGImport plugin, including
+        "dynamic" URLs that re-resolve on every fetch for providers that rotate their EPG link.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🖼️</div>
+        <h3>Automatic picons</h3>
+        <p>Downloads channel logos in parallel (configurable thread pool) and links them into your
+        skin's picon path, without ever overwriting picons you've already installed yourself.</p>
+      </div>
+      <div class="card">
+        <div class="icon">⏪</div>
+        <h3>Catchup / archive TV</h3>
+        <p>Adds a "play archive" action right inside the Graph Multi EPG and single EPG screens, with
+        support for Standard, Xtream, Stalker and Flussonic-style catchup URL schemes.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🕹️</div>
+        <h3>Movies &amp; TV Shows</h3>
+        <p>Genre browsing, search, resume/progress icons and cover art, aggregated across every
+        Xtream, Stalker and VOD-enabled provider into one screen.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🌐</div>
+        <h3>Web-based manager</h3>
+        <p>An optional local web UI (default port <code>8090</code>) for adding and editing providers
+        from a PC or phone browser, secured with the box's own system login.</p>
+      </div>
+      <div class="card">
+        <div class="icon">⏰</div>
+        <h3>Scheduled updates</h3>
+        <p>Set a time of day and days of the week to automatically refresh bouquets and EPG for every
+        provider that opts in — no manual regeneration needed.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🛠️</div>
+        <h3>Per-provider tuning</h3>
+        <p>Custom User-Agent strings, playback engine selection (DVB / GStreamer / Exteplayer3), stream
+        format (TS/HLS) and account-info lookups (expiry, connections, server details).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="providers">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Supported Sources</span>
+      <h2>Bring your own IPTV provider</h2>
+      <p>Five provider types cover the vast majority of IPTV services in use today.</p>
+    </div>
+    <div class="provider-grid">
+      <div class="provider-card">
+        <div class="ptitle"><img src="assets/img/m3u.png" alt=""><h3>M3U / M3U8 Playlist</h3></div>
+        <p style="color:var(--text-dim);font-size:0.88rem;margin:0;">Any playlist URL or local file.</p>
+        <ul>
+          <li>Reads <code>#EXTINF</code>, <code>group-title</code>, <code>tvg-id</code>, <code>tvg-logo</code></li>
+          <li>Auto-detects embedded XMLTV EPG URL</li>
+          <li>Optional attached VOD "Media Library"</li>
+        </ul>
+      </div>
+      <div class="provider-card">
+        <div class="ptitle"><img src="assets/img/xc.png" alt=""><h3>Xtream Codes</h3></div>
+        <p style="color:var(--text-dim);font-size:0.88rem;margin:0;">Panel URL + username + password.</p>
+        <ul>
+          <li>Live TV, VOD and Series via the standard API</li>
+          <li>Auto-detects server timezone</li>
+          <li>Standard and 60-second catchup formats</li>
+        </ul>
+      </div>
+      <div class="provider-card">
+        <div class="ptitle"><img src="assets/img/stalker.png" alt=""><h3>Stalker Portal</h3></div>
+        <p style="color:var(--text-dim);font-size:0.88rem;margin:0;">Portal URL + device MAC address.</p>
+        <ul>
+          <li>Auto-detects the portal entry point</li>
+          <li>Mimics a MAG250 STB device</li>
+          <li>Paginated VOD categories for large catalogs</li>
+        </ul>
+      </div>
+      <div class="provider-card">
+        <div class="ptitle"><img src="assets/img/tvheadend.png" alt=""><h3>TVHeadend</h3></div>
+        <p style="color:var(--text-dim);font-size:0.88rem;margin:0;">Server URL + username + password.</p>
+        <ul>
+          <li>Pulls channels from TVHeadend's own playlist endpoint</li>
+          <li>EPG from TVHeadend's XMLTV export</li>
+        </ul>
+      </div>
+      <div class="provider-card">
+        <div class="ptitle"><img src="assets/img/vod.png" alt=""><h3>Standalone VOD</h3></div>
+        <p style="color:var(--text-dim);font-size:0.88rem;margin:0;">A playlist used purely as a movie library.</p>
+        <ul>
+          <li>M3U/M3U8 or simple <code>name,url</code> text format</li>
+          <li>No live bouquets, no catchup — VOD only</li>
+        </ul>
+      </div>
+      <div class="provider-card">
+        <div class="ptitle"><img src="assets/img/catchup.png" alt=""><h3>Catchup schemes</h3></div>
+        <p style="color:var(--text-dim);font-size:0.88rem;margin:0;">Selectable per provider.</p>
+        <ul>
+          <li>Standard, Append, Shift</li>
+          <li>Xtream Codes, Xtream 60s</li>
+          <li>Stalker, Flussonic, VoD-style</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tutorial" style="background:var(--bg-alt);">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Complete Tutorial</span>
+      <h2>From install to watching TV</h2>
+      <p>Follow these steps in order the first time you set up M3UIPTV.</p>
+    </div>
+
+    <div class="toc">
+      <h3>On this page</h3>
+      <ol>
+        <li><a href="#step-1">Prerequisites</a></li>
+        <li><a href="#step-2">Install the plugin</a></li>
+        <li><a href="#step-3">Install EPGImport (optional)</a></li>
+        <li><a href="#step-4">Review global settings</a></li>
+        <li><a href="#step-5">Add a provider</a></li>
+        <li><a href="#step-6">Generate bouquets</a></li>
+        <li><a href="#step-7">Import EPG data</a></li>
+        <li><a href="#step-8">Watch live channels</a></li>
+        <li><a href="#step-9">Use Video on Demand</a></li>
+        <li><a href="#step-10">Use catchup / archive TV</a></li>
+        <li><a href="#step-11">Use the web manager</a></li>
+        <li><a href="#step-12">Automate updates &amp; maintain providers</a></li>
+      </ol>
+    </div>
+
+    <div class="steps">
+
+      <div class="step" id="step-1">
+        <div class="num">1</div>
+        <div>
+          <h3>Prerequisites</h3>
+          <p>Before installing, make sure you have:</p>
+          <ul>
+            <li>An Enigma2 box running an OpenPLI / oe-alliance family image (OpenPLI, OpenATV, OpenViX, OpenBH, Egami, etc.)</li>
+            <li>A working network connection on the box — required for any online M3U, Xtream, Stalker or TVHeadend source</li>
+            <li>Login credentials or URLs from your IPTV provider (playlist URL, or panel URL + username/password, or portal URL + MAC address)</li>
+          </ul>
+          <div class="note"><strong>Note:</strong> the plugin depends on <code>python3-requests</code>, <code>python3-multiprocessing</code> and <code>python3-zoneinfo</code>, which are pulled in automatically as package dependencies — you don't need to install them yourself.</div>
+        </div>
+      </div>
+
+      <div class="step" id="step-2">
+        <div class="num">2</div>
+        <div>
+          <h3>Install the plugin</h3>
+          <p>M3UIPTV is distributed as a system plugin package (<code>enigma2-plugin-systemplugins-m3uiptv</code>) through the OpenPLI / oe-alliance feed — the same feed your image already uses for updates.</p>
+          <ul>
+            <li>Open your image's <strong>Plugin Manager / Green Panel</strong> → <strong>Download Plugins</strong>, search for <strong>M3UIPTV</strong> and install it, or</li>
+            <li>Install it manually via <span class="path">opkg install enigma2-plugin-systemplugins-m3uiptv</span> over SSH/Telnet if your feed doesn't list it yet</li>
+          </ul>
+          <div class="warn"><strong>Restart required:</strong> after installation, restart the GUI (or the whole box) so the new menu entries register.</div>
+        </div>
+      </div>
+
+      <div class="step" id="step-3">
+        <div class="num">3</div>
+        <div>
+          <h3>Install EPGImport (optional, recommended)</h3>
+          <p>M3UIPTV <em>generates</em> EPG source and channel files for programme guide data, but it doesn't import EPG itself — that's handled by the separate, widely-used <strong>EPGImport</strong> plugin. Install it the same way (Plugin Manager → Download Plugins → search "EPGImport") if you want a filled-in TV guide for your IPTV channels.</p>
+          <p>If you skip this step, everything else still works — you just won't get guide data for the imported channels.</p>
+        </div>
+      </div>
+
+      <div class="step" id="step-4">
+        <div class="num">4</div>
+        <div>
+          <h3>Review the global settings</h3>
+          <p>Go to <span class="path">Menu → M3UIPTV → IPTV → Settings</span>. The defaults work for most setups, but it's worth knowing what's here:</p>
+          <table class="settings">
+            <tr><th>Setting</th><th>What it does</th></tr>
+            <tr><td>Enable IPTV manager</td><td>Master on/off switch for the whole plugin (requires restart)</td></tr>
+            <tr><td>Check network before fetching</td><td>Waits for connectivity before trying to reach a provider</td></tr>
+            <tr><td>Picon max threads</td><td>How many channel logos download in parallel</td></tr>
+            <tr><td>Show VOD menu entry</td><td>Shows/hides "Video On Demand" in the main menu and/or Extensions</td></tr>
+            <tr><td>VoD playback system</td><td>GStreamer/HiSilicon, or Exteplayer3 if ServiceApp is installed</td></tr>
+            <tr><td>Catchup/Archive EOF timeout</td><td>How long to wait before treating an archive stream as finished</td></tr>
+            <tr><td>Web interface</td><td>Enables the browser-based playlist manager (see step 11)</td></tr>
+            <tr><td>Schedule update</td><td>Turns on automatic, unattended bouquet/EPG refresh (see step 12)</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="step" id="step-5">
+        <div class="num">5</div>
+        <div>
+          <h3>Add a provider</h3>
+          <p>Go to <span class="path">Menu → M3UIPTV → IPTV → Playlist manager</span> and press <span class="btn-color"><span class="dot green"></span> Green</span> to add a new provider. Pick the type that matches your service, then fill in its fields:</p>
+          <table class="settings">
+            <tr><th>Type</th><th>You need</th></tr>
+            <tr><td>M3U / M3U8</td><td>A playlist URL, or a local file path</td></tr>
+            <tr><td>Xtream Codes</td><td>Panel URL, username, password</td></tr>
+            <tr><td>Stalker portal</td><td>Portal URL, device MAC address</td></tr>
+            <tr><td>TVHeadend</td><td>Server URL, username, password</td></tr>
+            <tr><td>Video on Demand</td><td>A movie/series playlist URL (no login needed)</td></tr>
+          </table>
+          <p>Also give the provider a friendly <strong>name</strong> and a unique <strong>scheme</strong> (an internal ID with no spaces). Everything else — EPG matching, bouquet strategy, picon downloads, catchup type, User-Agent — has a sensible default and can be left as-is on a first pass.</p>
+          <div class="note"><strong>Tip:</strong> you can add multiple providers of different types at once — each one is managed and refreshed independently.</div>
+        </div>
+      </div>
+
+      <div class="step" id="step-6">
+        <div class="num">6</div>
+        <div>
+          <h3>Generate bouquets</h3>
+          <p>Back in the Playlist manager list, select your new provider and press <span class="btn-color"><span class="dot yellow"></span> Yellow</span> to generate its bouquets. This downloads and parses the source, creates the Enigma2 bouquet(s), downloads picons if enabled, and writes the EPGImport source files. A status message confirms success or reports a network/parsing error.</p>
+          <p>Exit to the channel list — your IPTV channels now appear as regular bouquets, ready to zap, add to favorites, or record.</p>
+        </div>
+      </div>
+
+      <div class="step" id="step-7">
+        <div class="num">7</div>
+        <div>
+          <h3>Import EPG data</h3>
+          <p>If you installed EPGImport in step 3, open it from its own menu entry and run an import. M3UIPTV's generated source file is picked up automatically — no extra configuration needed — and your new channels' programme guide fills in.</p>
+        </div>
+      </div>
+
+      <div class="step" id="step-8">
+        <div class="num">8</div>
+        <div>
+          <h3>Watch live channels</h3>
+          <p>Your IPTV bouquets behave exactly like satellite or cable bouquets: browse the channel list, zap between them, use timeshift, or start a recording — all through the box's normal remote and UI.</p>
+        </div>
+      </div>
+
+      <div class="step" id="step-9">
+        <div class="num">9</div>
+        <div>
+          <h3>Use Video on Demand</h3>
+          <p>Go to <span class="path">Menu → M3UIPTV → Video On Demand → Movies</span> or <span class="path">TV Shows</span> (or find them in the Extensions/blue-button menu, depending on your settings). Browse by provider or genre, or search directly.</p>
+          <ul>
+            <li>Partially-watched titles show a resume/progress icon</li>
+            <li>Poster art loads automatically if enabled in Settings</li>
+            <li>Press <span class="btn-color"><span class="dot yellow"></span> Yellow</span> for TMDb/IMDb info lookup, if either plugin is installed</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="step" id="step-10">
+        <div class="num">10</div>
+        <div>
+          <h3>Use catchup / archive TV</h3>
+          <p>For providers that support it, open the EPG for a channel — Graph Multi EPG, single EPG or grid EPG all work — and look for the catchup icon on past programmes. Select one and press play to watch it back from the archive instead of live.</p>
+          <div class="note"><strong>Note:</strong> availability depends entirely on whether your provider offers server-side catchup, and how far back (the "Catchup/Archive EPG history window" setting controls how far the EPG lets you scroll back).</div>
+        </div>
+      </div>
+
+      <div class="step" id="step-11">
+        <div class="num">11</div>
+        <div>
+          <h3>Use the web manager (optional)</h3>
+          <p>Prefer managing providers from a PC or phone instead of the remote? Enable it in <span class="path">Settings → Enable Playlist manager web interface</span>, note the port (default <code>8090</code>), and open <span class="path">http://&lt;box-ip&gt;:8090/</span> in a browser.</p>
+          <ul>
+            <li>Same provider types and fields as the on-box screens</li>
+            <li>Add, edit and delete providers from a simple web form</li>
+            <li>Optionally protected with your box's own system login (Basic Authentication) — the same credentials used for Telnet/FTP/the box's built-in web interface</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="step" id="step-12">
+        <div class="num">12</div>
+        <div>
+          <h3>Automate updates &amp; maintain providers</h3>
+          <p>To keep bouquets and EPG fresh without manual work:</p>
+          <ul>
+            <li>Turn on <strong>Schedule update</strong> in Settings, and set a time of day plus days of the week</li>
+            <li>Enable <strong>Auto updates</strong> on each provider you want included in that schedule</li>
+          </ul>
+          <p>To update a single provider on demand, revisit Playlist manager and press <span class="btn-color"><span class="dot yellow"></span> Yellow</span> again at any time. To remove a provider completely — its bouquets, VOD data, EPG sources and picons — edit it and press <span class="btn-color"><span class="dot yellow"></span> Yellow</span> → Delete.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">FAQ</span>
+      <h2>Good to know</h2>
+    </div>
+    <div class="faq">
+      <details>
+        <summary>Do I need EPGImport for M3UIPTV to work?</summary>
+        <p>No. M3UIPTV works fully without it — you just won't get a programme guide for the imported
+        channels. EPGImport is an independent, optional plugin that consumes the source files M3UIPTV
+        generates.</p>
+      </details>
+      <details>
+        <summary>Can I add more than one IPTV provider?</summary>
+        <p>Yes. You can add any number of M3U, Xtream Codes, Stalker portal, TVHeadend and standalone
+        VOD sources at the same time, each configured and refreshed independently.</p>
+      </details>
+      <details>
+        <summary>Will it overwrite my existing picons?</summary>
+        <p>No — picons you've already installed yourself are never overwritten. M3UIPTV only adds logos
+        for channels that don't already have one.</p>
+      </details>
+      <details>
+        <summary>Does catchup/archive playback work with every provider?</summary>
+        <p>Only if your provider actually offers server-side catchup/archive. M3UIPTV supports several
+        URL schemes (Standard, Xtream, Stalker, Flussonic and more) to match how different providers
+        implement it, but the underlying capability has to come from the provider itself.</p>
+      </details>
+      <details>
+        <summary>Is the web manager exposed to the internet?</summary>
+        <p>No — it listens on your box's local network address only. It's a convenience for managing
+        providers from a browser on your own network, and can be password-protected with your box's
+        existing system login.</p>
+      </details>
+      <details>
+        <summary>What images/receivers is this compatible with?</summary>
+        <p>Any Enigma2 image from the OpenPLI / oe-alliance family with Python 3 support — including
+        OpenPLI, OpenATV, OpenViX, OpenBH and Egami.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>M3UIPTV is open source under the <a href="https://github.com/DimitarCC/iptv-m3u-reader/blob/main/LICENSE">GPL-3.0 license</a>.</p>
+    <p><a href="https://github.com/DimitarCC/iptv-m3u-reader">Source code &amp; issue tracker on GitHub ↗</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
