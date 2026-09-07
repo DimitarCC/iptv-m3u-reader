@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M3UIPTV — Settings Documentation</title>
+<meta name="description" content="Complete field-by-field reference for every M3UIPTV setting: global options and per-provider configuration for M3U, Xtream Codes, Stalker, TVHeadend and VOD.">
+<link rel="icon" href="assets/img/plugin.png" type="image/png">
+<style>
+  :root{
+    --bg:#0b0f14;
+    --bg-alt:#111823;
+    --panel:#141c28;
+    --panel-border:#232f3f;
+    --text:#e7edf5;
+    --text-dim:#a7b4c4;
+    --text-faint:#6b7889;
+    --accent:#ff8a3d;
+    --accent-2:#3dd6ff;
+    --accent-soft:rgba(255,138,61,0.12);
+    --green:#3ddc84;
+    --radius:12px;
+    --maxw:1080px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6;
+  }
+  a{color:var(--accent-2);}
+  img{max-width:100%;}
+  code{
+    background:var(--bg-alt);border:1px solid var(--panel-border);border-radius:4px;
+    padding:1px 6px;font-family:ui-monospace,"SF Mono",Consolas,monospace;font-size:0.88em;color:var(--accent-2);
+  }
+
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+  .wrap-wide{max-width:1220px;margin:0 auto;padding:0 24px;}
+
+  header.site{
+    position:sticky;top:0;z-index:50;
+    background:rgba(11,15,20,0.88);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--panel-border);
+  }
+  .navbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;max-width:1220px;margin:0 auto;}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.05rem;letter-spacing:0.2px;text-decoration:none;color:var(--text);}
+  .brand img{width:28px;height:28px;border-radius:6px;}
+  nav.links{display:flex;gap:22px;flex-wrap:wrap;}
+  nav.links a{color:var(--text-dim);text-decoration:none;font-size:0.92rem;font-weight:500;}
+  nav.links a:hover,nav.links a.active{color:var(--text);}
+  .navbar .cta{
+    background:var(--accent);color:#1a1005;padding:8px 16px;border-radius:8px;
+    font-weight:700;font-size:0.88rem;text-decoration:none;white-space:nowrap;
+  }
+
+  .hero{padding:56px 24px 40px;text-align:center;background:
+    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(255,138,61,0.10), transparent),
+    radial-gradient(ellipse 50% 40% at 80% 10%, rgba(61,214,255,0.08), transparent);}
+  .hero .eyebrow{
+    display:inline-block;color:var(--accent);font-weight:700;font-size:0.78rem;
+    letter-spacing:1.5px;text-transform:uppercase;margin-bottom:18px;
+    border:1px solid rgba(255,138,61,0.35);padding:5px 12px;border-radius:999px;background:var(--accent-soft);
+  }
+  .hero h1{font-size:2.3rem;line-height:1.15;margin:0 0 16px;font-weight:800;letter-spacing:-0.5px;}
+  .hero p.lead{color:var(--text-dim);font-size:1.08rem;max-width:680px;margin:0 auto;}
+
+  section{padding:52px 24px;border-top:1px solid var(--panel-border);}
+  .section-head{max-width:760px;margin:0 auto 32px;}
+  .section-head .kicker{color:var(--accent-2);font-weight:700;font-size:0.78rem;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;display:block;}
+  .section-head h2{font-size:1.7rem;margin:0 0 12px;font-weight:800;letter-spacing:-0.3px;}
+  .section-head p{color:var(--text-dim);margin:0;}
+
+  /* Sticky in-page contents */
+  .doc-toc{
+    max-width:1220px;margin:0 auto 44px;background:var(--panel);border:1px solid var(--panel-border);
+    border-radius:var(--radius);padding:22px 26px;
+  }
+  .doc-toc h3{margin:0 0 12px;font-size:0.85rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-faint);}
+  .doc-toc .toc-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:6px 24px;}
+  .doc-toc a{text-decoration:none;font-size:0.9rem;display:block;padding:3px 0;}
+  .doc-toc a:hover{text-decoration:underline;}
+
+  /* Setting entries */
+  .field-group{max-width:1220px;margin:0 auto;}
+  .field-group h3.group-title{
+    font-size:1.05rem;color:var(--accent);margin:36px 0 16px;padding-top:10px;
+    border-top:1px dashed var(--panel-border);
+  }
+  .field-group h3.group-title:first-child{border-top:none;margin-top:0;}
+
+  .field{
+    background:var(--panel);border:1px solid var(--panel-border);border-radius:var(--radius);
+    padding:20px 24px;margin-bottom:14px;scroll-margin-top:80px;
+  }
+  .field-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:10px;}
+  .field-head .fname{font-weight:700;font-size:1.02rem;}
+  .badge{
+    font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;
+    padding:3px 9px;border-radius:999px;border:1px solid var(--panel-border);color:var(--text-dim);
+  }
+  .badge.cond{color:var(--accent);border-color:rgba(255,138,61,0.4);background:var(--accent-soft);}
+  .badge.type{color:var(--accent-2);border-color:rgba(61,214,255,0.35);background:rgba(61,214,255,0.08);}
+  .field-desc{color:var(--text-dim);font-size:0.93rem;margin:0 0 12px;}
+  .field-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 24px;font-size:0.85rem;}
+  .field-meta dt{color:var(--text-faint);text-transform:uppercase;font-size:0.7rem;letter-spacing:0.5px;margin-bottom:2px;}
+  .field-meta dd{margin:0;color:var(--text);}
+  .field-note{
+    margin-top:12px;padding:10px 14px;border-radius:8px;font-size:0.85rem;color:var(--text-dim);
+    background:rgba(61,214,255,0.06);border:1px solid rgba(61,214,255,0.2);
+  }
+  .field-note strong{color:var(--accent-2);}
+  .applies{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+  .applies .p{
+    font-size:0.72rem;font-weight:700;padding:3px 9px;border-radius:6px;
+    background:var(--bg-alt);border:1px solid var(--panel-border);color:var(--text-faint);
+  }
+  .applies .p.on{color:#0d1117;background:var(--green);border-color:var(--green);}
+
+  /* Applicability matrix */
+  .matrix-wrap{max-width:1220px;margin:0 auto;overflow-x:auto;}
+  table.matrix{width:100%;border-collapse:collapse;font-size:0.82rem;min-width:760px;}
+  table.matrix th,table.matrix td{padding:8px 10px;border-bottom:1px solid var(--panel-border);text-align:center;}
+  table.matrix th{color:var(--text-faint);text-transform:uppercase;font-size:0.68rem;letter-spacing:0.5px;}
+  table.matrix td:first-child,table.matrix th:first-child{text-align:left;color:var(--text);font-weight:600;}
+  table.matrix td.yes{color:var(--green);font-weight:700;}
+  table.matrix td.no{color:var(--text-faint);}
+
+  .warn{
+    background:rgba(255,138,61,0.08);border:1px solid rgba(255,138,61,0.28);
+    border-radius:8px;padding:14px 18px;font-size:0.88rem;color:var(--text-dim);max-width:1220px;margin:0 auto;
+  }
+  .warn strong{color:var(--accent);}
+
+  .backtotop{
+    position:fixed;bottom:22px;right:22px;background:var(--panel);border:1px solid var(--panel-border);
+    color:var(--text-dim);width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    text-decoration:none;font-size:1.1rem;box-shadow:0 4px 14px rgba(0,0,0,0.4);
+  }
+  .backtotop:hover{color:var(--text);border-color:var(--text-faint);}
+
+  footer{padding:40px 24px;text-align:center;color:var(--text-faint);font-size:0.85rem;border-top:1px solid var(--panel-border);}
+  footer a{color:var(--text-dim);}
+
+  @media (max-width:640px){
+    .hero h1{font-size:1.8rem;}
+    .field-head{flex-direction:column;align-items:flex-start;}
+  }
+</style>
+</head>
+<body id="top">
+
+<header class="site">
+  <div class="navbar">
+    <a class="brand" href="index.html"><img src="assets/img/plugin.png" alt="M3UIPTV logo"> M3UIPTV</a>
+    <nav class="links">
+      <a href="index.html#overview">Overview</a>
+      <a href="index.html#features">Features</a>
+      <a href="index.html#providers">Providers</a>
+      <a href="index.html#tutorial">Tutorial</a>
+      <a href="documentation.html" class="active">Documentation</a>
+    </nav>
+    <a class="cta" href="https://github.com/DimitarCC/iptv-m3u-reader">GitHub ↗</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Reference Documentation</span>
+    <h1>Every setting, explained</h1>
+    <p class="lead">
+      A complete field-by-field reference for M3UIPTV's global settings and per-provider configuration
+      screens — exact labels, choices, defaults, and what each option actually controls.
+    </p>
+  </div>
+</section>
+
+<section class="tight" style="padding-top:36px;">
+  <div class="doc-toc">
+    <h3>Contents</h3>
+    <div class="toc-cols">
+      <a href="#global">1. Global Settings</a>
+      <a href="#g-general">&nbsp;&nbsp;General</a>
+      <a href="#g-picons">&nbsp;&nbsp;Menus &amp; Playback</a>
+      <a href="#g-catchup">&nbsp;&nbsp;Catchup &amp; EPG Server</a>
+      <a href="#g-web">&nbsp;&nbsp;Web Manager</a>
+      <a href="#g-recording">&nbsp;&nbsp;Recording &amp; Timeshift</a>
+      <a href="#g-schedule">&nbsp;&nbsp;Scheduled Updates</a>
+      <a href="#provider">2. Per-Provider Settings</a>
+      <a href="#p-identity">&nbsp;&nbsp;Identity &amp; Source</a>
+      <a href="#p-auth">&nbsp;&nbsp;Authentication</a>
+      <a href="#p-epg">&nbsp;&nbsp;EPG</a>
+      <a href="#p-playback">&nbsp;&nbsp;Playback &amp; Catchup</a>
+      <a href="#p-medialib">&nbsp;&nbsp;Media Library</a>
+      <a href="#p-picons">&nbsp;&nbsp;Picons &amp; Bouquets</a>
+      <a href="#p-advanced">&nbsp;&nbsp;Advanced &amp; Blacklists</a>
+      <a href="#matrix">3. Field Applicability Matrix</a>
+      <a href="#validation">4. Validation Rules</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GLOBAL SETTINGS ============ -->
+<section id="global">
+  <div class="wrap-wide">
+    <div class="section-head">
+      <span class="kicker">Section 1</span>
+      <h2>Global Settings</h2>
+      <p>Menu → M3UIPTV → IPTV → <strong>Settings</strong>. These apply to the whole plugin, not to any
+      single provider. A <code>*</code> after a field name means the plugin (or GUI) needs a restart for
+      the change to take effect.</p>
+    </div>
+
+    <div class="field-group">
+      <h3 class="group-title" id="g-general">General</h3>
+
+      <div class="field" id="enabled">
+        <div class="field-head"><span class="fname">Enable IPTV manager *</span><span class="badge">Yes/No — default: Yes</span></div>
+        <p class="field-desc">Enable IPTV functionality and management. This is the master switch for the entire plugin — turning it off disables all providers, menus and the web manager until turned back on.</p>
+      </div>
+
+      <div class="field" id="check-network">
+        <div class="field-head"><span class="fname">Check for Network</span><span class="badge">off / 1,2,3,5,7,10 sec — default: 2 sec</span></div>
+        <p class="field-desc">Checks that the network is available before trying to retrieve a playlist. If the network isn't reachable, the plugin falls back to backup services instead of failing immediately.</p>
+      </div>
+
+      <div class="field" id="req-timeout">
+        <div class="field-head"><span class="fname">Request timeout</span><span class="badge">off / 1,2,3,5,7,10 sec — default: 2 sec</span></div>
+        <p class="field-desc">Timeout in seconds for the HTTP requests used to fetch a playlist. Increase this on slow or unreliable provider servers to avoid premature failures.</p>
+      </div>
+
+      <div class="field" id="picon-threads-global">
+        <div class="field-head"><span class="fname">Picon max threads</span><span class="badge">50–1000, step 50 — default: 100</span></div>
+        <p class="field-desc">Maximum number of parallel threads used when downloading channel picons. If the box returns errors or fails to download some picons, lower this number.</p>
+        <div class="field-note"><strong>Note:</strong> this is the global fallback. Each provider also has its own "Picon max threads" field (see <a href="#p-picon-threads">Per-Provider settings</a>) that overrides this value for that provider specifically.</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <h3 class="group-title" id="g-picons">Menus &amp; Playback</h3>
+
+      <div class="field" id="inmenu">
+        <div class="field-head"><span class="fname">Show 'Video on Demand' menu entry *</span><span class="badge">Yes/No — default: Yes</span></div>
+        <p class="field-desc">Allows the "Video on Demand" entry to appear in the main menu.</p>
+      </div>
+
+      <div class="field" id="inextensions">
+        <div class="field-head"><span class="fname">Show 'Video on Demand' extensions entry *</span><span class="badge">Yes/No — default: No</span></div>
+        <p class="field-desc">Allows the "Video on Demand" entry to appear in the Extensions (blue button) menu, as an alternative or addition to the main menu entry above.</p>
+      </div>
+
+      <div class="field" id="bouquet-case">
+        <div class="field-head"><span class="fname">Bouquet name character case</span><span class="badge">default: UPPER case</span></div>
+        <p class="field-desc">Specifies the character case used for generated bouquet names and titles.</p>
+        <dl class="field-meta"><dt>Choices</dt><dd>Original case · lower case · UPPER case</dd></dl>
+      </div>
+
+      <div class="field" id="vod-play-system">
+        <div class="field-head"><span class="fname">VoD playback system</span><span class="badge">default: HiSilicon/GStreamer</span></div>
+        <p class="field-desc">Specifies the type of service generated for Video on Demand items.</p>
+        <dl class="field-meta"><dt>Choices</dt><dd>HiSilicon or GStreamer (label depends on your box's media service) · Exteplayer3 (only shown if the ServiceApp plugin is installed)</dd></dl>
+      </div>
+
+      <div class="field" id="display-poster">
+        <div class="field-head"><span class="fname">Download and display posters for VoD items</span><span class="badge">Yes/No — default: Yes</span></div>
+        <p class="field-desc">Download and display poster/cover artwork for VoD items, where the provider supplies it.</p>
+      </div>
+
+      <div class="field" id="buffersize">
+        <div class="field-head"><span class="fname">Size of buffer for http streaming</span><span class="badge">1–20 MB — default: 2 MB</span></div>
+        <p class="field-desc">Configures the buffer size for HTTP streaming (this is a core Enigma2 setting the plugin also surfaces here for convenience). A larger buffer can help with stuttering on unstable connections, but increases the delay behind live TV.</p>
+        <dl class="field-meta"><dt>Choices</dt><dd>1 MB · 2 MB · 4 MB · 8 MB · 16 MB · 20 MB</dd></dl>
+      </div>
+
+      <div class="field" id="fallback-picon">
+        <div class="field-head"><span class="fname">Fallback location for picons</span><span class="badge cond">Conditional</span></div>
+        <p class="field-desc">Fallback location for picons, used when the currently active picon location can't be detected automatically.</p>
+        <div class="field-note"><strong>Only shown</strong> when more than one candidate storage mount is detected on the box.</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <h3 class="group-title" id="g-catchup">Catchup &amp; EPG Server</h3>
+
+      <div class="field" id="histminutes">
+        <div class="field-head"><span class="fname">Enable catchup/archive entries in EPG screens for period</span><span class="badge">core Enigma2 setting</span></div>
+        <p class="field-desc">Enables the ability to scroll back in EPG screens to use older entries for invoking catchup/archive/timeshift playback.</p>
+      </div>
+
+      <div class="field" id="catchup-eof">
+        <div class="field-head"><span class="fname">Catchup/Archive EOF timeout</span><span class="badge">1,2,3,5,7,10,15 sec — default: 3 sec</span></div>
+        <p class="field-desc">Timeout in seconds before the catchup/archive playback "end of file" event is acted on — delaying it avoids false end-of-stream detection on some providers.</p>
+      </div>
+
+      <div class="field" id="epg-port">
+        <div class="field-head"><span class="fname">Local EPG server listening port *</span><span class="badge">number — default: 9010</span></div>
+        <p class="field-desc">TCP port for the plugin's local EPG server. This is mainly used to serve synthesized EPG for Stalker portals, which otherwise have no persistent standalone EPG endpoint.</p>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <h3 class="group-title" id="g-web">Web Manager</h3>
+
+      <div class="field" id="webmanager-enabled">
+        <div class="field-head"><span class="fname">Enable Playlist manager web interface *</span><span class="badge">Yes/No — default: No</span></div>
+        <p class="field-desc">Enables a browser-based interface for viewing, adding, editing and deleting IPTV providers, reachable from any device on the local network.</p>
+      </div>
+
+      <div class="field" id="webmanager-port">
+        <div class="field-head"><span class="fname">Web interface listening port *</span><span class="badge cond">Conditional</span><span class="badge">number — default: 8090</span></div>
+        <p class="field-desc">The TCP port on which the Playlist manager web interface listens.</p>
+        <div class="field-note"><strong>Only shown</strong> when "Enable Playlist manager web interface" is set to Yes.</div>
+      </div>
+
+      <div class="field" id="webmanager-auth">
+        <div class="field-head"><span class="fname">Require authentication *</span><span class="badge cond">Conditional</span><span class="badge">Yes/No — default: Yes</span></div>
+        <p class="field-desc">Protects the web interface with HTTP Basic Authentication, reusing the box's own system login — the same username/password used for the receiver's own web interface, Telnet and FTP (typically <code>root</code>). There is no separate web-manager-only account.</p>
+        <div class="field-note"><strong>Only shown</strong> when "Enable Playlist manager web interface" is set to Yes.</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <h3 class="group-title" id="g-recording">Recording &amp; Timeshift</h3>
+      <p class="field-desc" style="margin-bottom:16px;max-width:760px;">These are core Enigma2 settings that M3UIPTV surfaces on its own settings page for convenience. Each is only shown if your specific image/build exposes the underlying attribute — so this section may look different across OpenPLI, OpenATV, OpenViX, etc.</p>
+
+      <div class="field" id="setstreamto1">
+        <div class="field-head"><span class="fname">Recordings - convert IPTV servicetypes to 1</span><span class="badge cond">Conditional</span></div>
+        <p class="field-desc">Recording servicetypes 4097, 5001 and 5002 aren't possible with external players, so this converts recordings of those types to servicetype 1 instead.</p>
+      </div>
+
+      <div class="field" id="timeshift-fields">
+        <div class="field-head"><span class="fname">Timeshift options</span><span class="badge cond">Conditional, per-image</span></div>
+        <p class="field-desc">A group of standard Enigma2 timeshift settings, shown only where the underlying config path exists on your image:</p>
+        <dl class="field-meta">
+          <dt>Auto-start timeshift after…</dt><dd>Starts timeshift automatically in the background after a set delay.</dd>
+          <dt>Show warning when timeshift is stopped</dt><dd>Prompts with an option to stop or continue when timeshift would otherwise end.</dd>
+          <dt>Timeshift-save action on zap</dt><dd>Whether timeshift continues when the channel is set to record.</dd>
+          <dt>Stop timeshift while recording?</dt><dd>Stops timeshift use during an active recording — advisable for USB-stick storage.</dd>
+          <dt>Use timeshift seekbar while timeshifting?</dt><dd>Allows using the seekbar to jump to a point within the event.</dd>
+          <dt>Skip jumping to live while timeshifting with plugins</dt><dd>Allows timeshift to be used together with alternative audio plugins.</dd>
+        </dl>
+      </div>
+
+      <div class="field" id="serviceapp-fields">
+        <div class="field-head"><span class="fname">ServiceApp playback settings</span><span class="badge cond">Only if ServiceApp plugin installed</span></div>
+        <dl class="field-meta">
+          <dt>Enigma2 playback system</dt><dd>Switches the playback engine to one of the players available in the ServiceApp plugin.</dd>
+          <dt>Player selection</dt><dd>Selects which ServiceApp player to use. Only shown if the setting above is enabled.</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <h3 class="group-title" id="g-schedule">Scheduled Updates</h3>
+
+      <div class="field" id="schedule">
+        <div class="field-head"><span class="fname">Schedule update</span><span class="badge">Yes/No — default: No</span></div>
+        <p class="field-desc">Turns on automated updates of providers. Also requires enabling "Auto updates" individually on each provider that should be refreshed by the schedule.</p>
+      </div>
+
+      <div class="field" id="scheduletime">
+        <div class="field-head"><span class="fname">Schedule time of day</span><span class="badge cond">Conditional</span><span class="badge">default: 01:00</span></div>
+        <p class="field-desc">The time of day at which the scheduled update runs.</p>
+        <div class="field-note"><strong>Only shown</strong> when "Schedule update" is Yes.</div>
+      </div>
+
+      <div class="field" id="scheduledays">
+        <div class="field-head"><span class="fname">Schedule days of the week</span><span class="badge cond">Conditional</span></div>
+        <p class="field-desc">Press OK to open a sub-screen listing Monday through Sunday, each toggled Enabled/Disabled (all enabled by default). At least one day must remain enabled.</p>
+        <div class="field-note"><strong>Only shown</strong> when "Schedule update" is Yes.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PER-PROVIDER SETTINGS ============ -->
+<section id="provider" style="background:var(--bg-alt);">
+  <div class="wrap-wide">
+    <div class="section-head">
+      <span class="kicker">Section 2</span>
+      <h2>Per-Provider Settings</h2>
+      <p>Menu → M3UIPTV → IPTV → Playlist manager → <strong>Add/Edit provider</strong>. The fields shown
+      change depending on the selected Provider Type — each field below is tagged with which type(s) it
+      applies to. The web manager's browser form mirrors these exact fields.</p>
+    </div>
+
+    <div class="field-group">
+      <h3 class="group-title" id="p-identity">Identity &amp; Source</h3>
+
+      <div class="field" id="p-type">
+        <div class="field-head"><span class="fname">Provider Type</span><span class="badge cond">Add screen only</span></div>
+        <p class="field-desc">Selects what kind of source this provider is. Locked once the provider is created — to change type, delete and re-add the provider.</p>
+        <dl class="field-meta"><dt>Choices</dt><dd>M3U/M3U8 · Xtreme Codes · Stalker portal · TVHeadend server · Video on Demand</dd></dl>
+      </div>
+
+      <div class="field" id="p-name">
+        <div class="field-head"><span class="fname">Provider name</span><span class="badge">Required</span></div>
+        <p class="field-desc">A friendly name for the provider, used as the bouquet name and shown in the infobar while watching.</p>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span><span class="p on">Stalker</span><span class="p on">TVHeadend</span><span class="p on">VOD</span></div>
+      </div>
+
+      <div class="field" id="p-url">
+        <div class="field-head"><span class="fname">URL</span><span class="badge">Required</span></div>
+        <p class="field-desc">The playlist URL (<code>.m3u</code>/<code>.m3u8</code>), panel/portal/server URL, including the port if it differs from 80. If a playlist is already stored locally, a local file path can be used instead, e.g. <code>/tmp/myplaylist.m3u</code>.</p>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span><span class="p on">Stalker</span><span class="p on">TVHeadend</span><span class="p on">VOD</span></div>
+      </div>
+
+      <div class="field" id="p-playlist-type">
+        <div class="field-head"><span class="fname">VOD playlist format</span></div>
+        <p class="field-desc">The format of the standalone VOD playlist.</p>
+        <dl class="field-meta"><dt>Choices</dt><dd>M3U/M3U8 · TXT</dd></dl>
+        <div class="applies"><span class="p on">VOD</span></div>
+      </div>
+
+      <div class="field" id="p-staticurl">
+        <div class="field-head"><span class="fname">Use static URLs</span><span class="badge">Yes/No</span></div>
+        <p class="field-desc">If enabled, stream URLs are treated as static rather than aliased. If the provider changes a service's underlying URL in the playlist, the bouquet entry will stop working since it isn't re-resolved.</p>
+        <div class="applies"><span class="p on">M3U</span></div>
+      </div>
+
+      <div class="field" id="p-refresh">
+        <div class="field-head"><span class="fname">Refresh interval</span><span class="badge cond">Conditional</span><span class="badge">default: 1 hour</span></div>
+        <p class="field-desc">How often the playlist is automatically re-fetched and updated.</p>
+        <dl class="field-meta"><dt>Choices</dt><dd>off · on · 1, 2, 3, 4, 5, 6, 12 or 24 hour(s)</dd></dl>
+        <div class="field-note"><strong>Only shown</strong> when "Use static URLs" is No.</div>
+        <div class="applies"><span class="p on">M3U</span></div>
+      </div>
+
+      <div class="field" id="p-filter">
+        <div class="field-head"><span class="fname">Filter</span><span class="badge cond">Conditional</span><span class="badge">default: <code>tvg-id="{SID}"</code></span></div>
+        <p class="field-desc">The search pattern used to locate a channel's stream/service ID inside its <code>#EXTINF</code> line. The literal placeholder <code>{SID}</code> acts as a wildcard capture — everything else in the field is matched literally. With the default value, whatever text appears inside <code>tvg-id="..."</code> is captured as the service ID.</p>
+        <div class="field-note"><strong>Only shown</strong> when "Use static URLs" is No.</div>
+        <div class="applies"><span class="p on">M3U</span></div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <h3 class="group-title" id="p-auth">Authentication</h3>
+
+      <div class="field" id="p-username">
+        <div class="field-head"><span class="fname">Username</span><span class="badge">Required for Xtream</span></div>
+        <p class="field-desc">Username used to authenticate with the streaming server.</p>
+        <div class="applies"><span class="p on">Xtream</span><span class="p on">TVHeadend</span></div>
+      </div>
+
+      <div class="field" id="p-password">
+        <div class="field-head"><span class="fname">Password</span><span class="badge">Required for Xtream, masked input</span></div>
+        <p class="field-desc">Password used to authenticate with the streaming server.</p>
+        <div class="applies"><span class="p on">Xtream</span><span class="p on">TVHeadend</span></div>
+      </div>
+
+      <div class="field" id="p-mac">
+        <div class="field-head"><span class="fname">MAC address</span></div>
+        <p class="field-desc">The MAC address of an authorized device used to authenticate with the Stalker portal, e.g. <code>00:1A:79:XX:XX:XX</code>. Changing this value clears any auto-generated Serial/Device ID/Signature below so they regenerate from the new MAC.</p>
+        <div class="applies"><span class="p on">Stalker</span></div>
+      </div>
+
+      <div class="field" id="p-serial">
+        <div class="field-head"><span class="fname">Serial</span><span class="badge">Optional, advanced</span></div>
+        <p class="field-desc">A custom device serial number. Leave empty to auto-generate it from the MAC address (the first 13 characters of its MD5 hash, uppercased).</p>
+        <div class="applies"><span class="p on">Stalker</span></div>
+      </div>
+
+      <div class="field" id="p-devid1">
+        <div class="field-head"><span class="fname">Device ID 1</span><span class="badge">Optional, advanced</span></div>
+        <p class="field-desc">A custom primary device ID. Leave empty to auto-generate it from the MAC address (its SHA-256 hash, uppercased).</p>
+        <div class="applies"><span class="p on">Stalker</span></div>
+      </div>
+
+      <div class="field" id="p-devid2">
+        <div class="field-head"><span class="fname">Device ID 2</span><span class="badge">Optional, advanced</span></div>
+        <p class="field-desc">A custom secondary device ID. Leave empty to reuse the same value as Device ID 1.</p>
+        <div class="applies"><span class="p on">Stalker</span></div>
+      </div>
+
+      <div class="field" id="p-signature">
+        <div class="field-head"><span class="fname">Signature</span><span class="badge">Optional, advanced</span></div>
+        <p class="field-desc">A custom device signature. Use this if you copied Serial/Device ID values from a real device and streaming still fails — paste the signature from that same device. Leave empty to auto-generate it (SHA-256 of MAC + Serial + Device ID 1 + Device ID 2, uppercased). Changing Serial, Device ID 1, Device ID 2 or Signature itself clears the cached signature so it regenerates on save.</p>
+        <div class="applies"><span class="p on">Stalker</span></div>
+      </div>
+
+      <div class="field" id="p-novod">
+        <div class="field-head"><span class="fname">Skip VOD entries</span><span class="badge">Yes/No — default: Yes</span></div>
+        <p class="field-desc">Skips VOD (movies/series) entries found in the source, keeping only live channels for this provider.</p>
+        <div class="applies"><span class="p on">Xtream</span><span class="p on">Stalker</span></div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <h3 class="group-title" id="p-epg">EPG</h3>
+
+      <div class="field" id="p-create-epg">
+        <div class="field-head"><span class="fname">Generate EPG files for EPGImport plugin</span><span class="badge">Yes/No — default: Yes</span></div>
+        <p class="field-desc">Creates the source/channel files needed for EPG guide data to be imported via the separate EPGImport plugin.</p>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span><span class="p on">Stalker</span><span class="p on">TVHeadend</span></div>
+      </div>
+
+      <div class="field" id="p-epg-match">
+        <div class="field-head"><span class="fname">EPG matching condition</span><span class="badge cond">Conditional</span></div>
+        <p class="field-desc">How XMLTV guide entries are matched to channels.</p>
+        <dl class="field-meta"><dt>Choices</dt><dd>By tvg-id · By channel name</dd></dl>
+        <div class="field-note"><strong>Only shown</strong> when "Generate EPG files" is Yes.</div>
+        <div class="applies"><span class="p on">M3U</span></div>
+      </div>
+
+      <div class="field" id="p-custom-xmltv-toggle">
+        <div class="field-head"><span class="fname">Use custom XMLTV URL</span><span class="badge cond">Conditional</span><span class="badge">Yes/No — default: No</span></div>
+        <p class="field-desc">Use your own XMLTV source instead of the one the plugin would otherwise generate or auto-detect.</p>
+        <div class="field-note"><strong>Only shown</strong> when "Generate EPG files" is Yes.</div>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span><span class="p on">Stalker</span><span class="p on">TVHeadend</span></div>
+      </div>
+
+      <div class="field" id="p-custom-xmltv-url">
+        <div class="field-head"><span class="fname">Custom XMLTV URL</span><span class="badge cond">Conditional</span></div>
+        <p class="field-desc">The URL from which EPG data for this provider will be downloaded.</p>
+        <div class="field-note"><strong>Only shown</strong> when both "Generate EPG files" and "Use custom XMLTV URL" are Yes.</div>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span><span class="p on">Stalker</span><span class="p on">TVHeadend</span></div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <h3 class="group-title" id="p-playback">Playback &amp; Catchup</h3>
+
+      <div class="field" id="p-play-system">
+        <div class="field-head"><span class="fname">Playback system</span></div>
+        <p class="field-desc">The player engine used for live playback.</p>
+        <dl class="field-meta"><dt>Choices</dt><dd>DVB · GStreamer/HiSilicon · Exteplayer3 (if ServiceApp installed)</dd></dl>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span><span class="p on">Stalker</span><span class="p on">TVHeadend</span></div>
+      </div>
+
+      <div class="field" id="p-play-system-catchup">
+        <div class="field-head"><span class="fname">Playback system for Catchup/Archive</span></div>
+        <p class="field-desc">The player engine used specifically for catchup/archive playback, which can differ from the live playback engine above.</p>
+        <dl class="field-meta"><dt>Choices</dt><dd>DVB · GStreamer/HiSilicon · Exteplayer3 (if ServiceApp installed)</dd></dl>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span><span class="p on">Stalker</span><span class="p on">TVHeadend</span></div>
+      </div>
+
+      <div class="field" id="p-output-format">
+        <div class="field-head"><span class="fname">Stream output format</span></div>
+        <p class="field-desc">The delivery format requested from the provider.</p>
+        <dl class="field-meta"><dt>Choices</dt><dd>Transport stream (TS) · HLS (M3U8)</dd></dl>
+        <div class="field-note"><strong>Note:</strong> setting Playback system to DVB makes it impossible to use HLS as the output format.</div>
+        <div class="applies"><span class="p on">Xtream</span><span class="p on">Stalker</span></div>
+      </div>
+
+      <div class="field" id="p-catchup-type">
+        <div class="field-head"><span class="fname">Catchup Type</span></div>
+        <p class="field-desc">The catchup/archive API scheme used to build archive playback URLs.</p>
+        <dl class="field-meta"><dt>Choices (M3U)</dt><dd>Standard · Append · Shift · Xtreme Codes · Xtreme Codes 60 · Stalker · Flussonic · VoD</dd>
+        <dt>Choices (Xtream)</dt><dd>Xtreme Codes · Xtreme Codes 60 (restricted list)</dd></dl>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span></div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <h3 class="group-title" id="p-medialib">Media Library <span style="font-weight:400;color:var(--text-faint);font-size:0.85rem;">(M3U only)</span></h3>
+      <p class="field-desc" style="max-width:760px;margin-bottom:16px;">Lets a plain M3U provider attach a separate Xtream-Codes-style backend purely for its Movies/TV Shows catalog, without affecting the live-channel source.</p>
+
+      <div class="field" id="p-has-medialib">
+        <div class="field-head"><span class="fname">Enable Media Library</span><span class="badge">Yes/No — default: No</span></div>
+        <p class="field-desc">Turns on a separate VOD source for this provider, available at its own URL.</p>
+        <div class="applies"><span class="p on">M3U</span></div>
+      </div>
+
+      <div class="field" id="p-medialib-type">
+        <div class="field-head"><span class="fname">Media Library type</span><span class="badge cond">Conditional</span></div>
+        <p class="field-desc">How the Media Library authenticates.</p>
+        <dl class="field-meta"><dt>Choices</dt><dd>Xtream Codes (Username/Password) · Xtream Codes (Token)</dd></dl>
+        <div class="applies"><span class="p on">M3U</span></div>
+      </div>
+
+      <div class="field" id="p-medialib-url">
+        <div class="field-head"><span class="fname">Media Library URL</span><span class="badge cond">Conditional</span></div>
+        <p class="field-desc">The URL of the Media Library server.</p>
+        <div class="applies"><span class="p on">M3U</span></div>
+      </div>
+
+      <div class="field" id="p-medialib-userpass">
+        <div class="field-head"><span class="fname">Media Library Username / Password</span><span class="badge cond">Conditional — type = Username/Password</span></div>
+        <p class="field-desc">Credentials used to authenticate with the Media Library server.</p>
+        <div class="applies"><span class="p on">M3U</span></div>
+      </div>
+
+      <div class="field" id="p-medialib-token">
+        <div class="field-head"><span class="fname">Media Library Access Token</span><span class="badge cond">Conditional — type = Token</span></div>
+        <p class="field-desc">Access token used to authenticate with the Media Library server, instead of username/password.</p>
+        <div class="applies"><span class="p on">M3U</span></div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <h3 class="group-title" id="p-picons">Picons &amp; Bouquets</h3>
+
+      <div class="field" id="p-picons-enabled">
+        <div class="field-head"><span class="fname">Download picons</span><span class="badge">Yes/No — default: No</span></div>
+        <p class="field-desc">Downloads and installs channel picons where the provider makes them available. Downloading happens in the background after bouquet generation.</p>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span><span class="p on">Stalker</span><span class="p on">TVHeadend</span></div>
+      </div>
+
+      <div class="field" id="p-picon-strategy">
+        <div class="field-head"><span class="fname">Picons type</span><span class="badge cond">Conditional</span></div>
+        <p class="field-desc">How downloaded picon files are named.</p>
+        <dl class="field-meta"><dt>Choices</dt><dd>Picons by name (SNP) · Picons by service reference (SRP)</dd></dl>
+        <div class="field-note"><strong>Only shown</strong> when "Download picons" is Yes.</div>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span><span class="p on">Stalker</span><span class="p on">TVHeadend</span></div>
+      </div>
+
+      <div class="field" id="p-picon-threads">
+        <div class="field-head"><span class="fname">Picon max threads</span><span class="badge cond">Conditional</span></div>
+        <p class="field-desc">A per-provider override of the global "Picon max threads" setting.</p>
+        <dl class="field-meta"><dt>Choices</dt><dd>off · No Threads · 50 through 950 in steps of 50</dd></dl>
+        <div class="field-note"><strong>Only shown</strong> when "Download picons" is Yes.</div>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span><span class="p on">Stalker</span><span class="p on">TVHeadend</span></div>
+      </div>
+
+      <div class="field" id="p-bouquet-strategy">
+        <div class="field-head"><span class="fname">Bouquet creation strategy</span></div>
+        <p class="field-desc">Controls how channels are organized into bouquets.</p>
+        <dl class="field-meta"><dt>Choices</dt><dd>Only bouquets for groups · Only bouquet for "All Channels" · Bouquets for "All Channels" and groups · Bouquet for provider with sub-bouquets for groups</dd></dl>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span><span class="p on">Stalker</span><span class="p on">TVHeadend</span></div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <h3 class="group-title" id="p-advanced">Advanced &amp; Blacklists</h3>
+
+      <div class="field" id="p-use-tsid">
+        <div class="field-head"><span class="fname">Use provider TSID</span><span class="badge">Yes/No — default: No</span></div>
+        <p class="field-desc">Uses the transport-stream ID provided by the IPTV provider, if available — useful for keeping stable service references across regenerations, which helps EPG matching stay consistent.</p>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span><span class="p on">Stalker</span><span class="p on">TVHeadend</span></div>
+      </div>
+
+      <div class="field" id="p-use-chnum">
+        <div class="field-head"><span class="fname">Use channel numbers from provider</span><span class="badge cond">Conditional</span></div>
+        <p class="field-desc">Uses the channel numbers and ordering supplied by the provider. Only works for "All Channels" bouquets; if global numbering is configured, numbers may be offset depending on how many bouquets precede this one.</p>
+        <div class="field-note"><strong>Only shown</strong> when "Use provider TSID" is Yes.</div>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span><span class="p on">Stalker</span><span class="p on">TVHeadend</span></div>
+      </div>
+
+      <div class="field" id="p-tsid-criteria">
+        <div class="field-head"><span class="fname">Provider TSID retrieval condition</span><span class="badge cond">Conditional</span><span class="badge">default: <code>tvg-chno="{TSID}"</code></span></div>
+        <p class="field-desc">Search pattern used to extract the numeric TSID/channel number from the playlist, using the same <code>{placeholder}</code> mechanism as the Filter field, but matching digits only.</p>
+        <div class="field-note"><strong>Only shown</strong> when both "Use provider TSID" and "Use channel numbers from provider" are Yes.</div>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">TVHeadend</span></div>
+      </div>
+
+      <div class="field" id="p-ch-order">
+        <div class="field-head"><span class="fname">Channel ordering criteria</span><span class="badge cond">Conditional</span></div>
+        <p class="field-desc">How channels are ordered within their bouquet.</p>
+        <dl class="field-meta"><dt>Choices</dt><dd>Use provider order · By channel number · Alphabetically</dd></dl>
+        <div class="field-note"><strong>Hidden</strong> only when both "Use provider TSID" and "Use channel numbers from provider" are enabled, since ordering is then driven entirely by the provider.</div>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span><span class="p on">Stalker</span><span class="p on">TVHeadend</span></div>
+      </div>
+
+      <div class="field" id="p-user-agent">
+        <div class="field-head"><span class="fname">Custom User-Agent</span></div>
+        <p class="field-desc">Sends a specific User-Agent string, for providers that restrict streaming to particular client types.</p>
+        <dl class="field-meta"><dt>Choices</dt><dd>off · Android 15 · iOS 17 · Windows 11 (Edge) · VLC 3.0.18</dd></dl>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span><span class="p on">Stalker</span><span class="p on">TVHeadend</span></div>
+      </div>
+
+      <div class="field" id="p-auto-updates">
+        <div class="field-head"><span class="fname">Auto updates</span><span class="badge cond">Conditional</span><span class="badge">Yes/No — default: No</span></div>
+        <p class="field-desc">Includes this provider when the global scheduled update runs.</p>
+        <div class="field-note"><strong>Only shown</strong> when the global "Schedule update" setting is enabled.</div>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span><span class="p on">Stalker</span><span class="p on">TVHeadend</span><span class="p on">VOD</span></div>
+      </div>
+
+      <div class="field" id="p-bouquet-blacklist">
+        <div class="field-head"><span class="fname">Bouquets blacklist</span><span class="badge cond">Conditional</span></div>
+        <p class="field-desc">Press OK to choose which bouquets/categories to exclude from generation.</p>
+        <div class="field-note"><strong>Only shown</strong> when editing a provider that has already generated bouquets at least once.</div>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span><span class="p on">Stalker</span><span class="p on">TVHeadend</span><span class="p on">VOD</span></div>
+      </div>
+
+      <div class="field" id="p-movie-blacklist">
+        <div class="field-head"><span class="fname">Blacklist VoD movie categories</span><span class="badge cond">Conditional</span></div>
+        <p class="field-desc">Press OK to choose which VOD movie categories to exclude.</p>
+        <div class="field-note"><strong>Only shown</strong> when "Skip VOD entries" is No.</div>
+        <div class="applies"><span class="p on">Stalker</span></div>
+      </div>
+
+      <div class="field" id="p-series-blacklist">
+        <div class="field-head"><span class="fname">Blacklist VoD series categories</span><span class="badge cond">Conditional</span></div>
+        <p class="field-desc">Press OK to choose which VOD series categories to exclude.</p>
+        <div class="field-note"><strong>Only shown</strong> when "Skip VOD entries" is No.</div>
+        <div class="applies"><span class="p on">Stalker</span></div>
+      </div>
+
+      <div class="field" id="p-scheme">
+        <div class="field-head"><span class="fname">Scheme</span><span class="badge">Required, locked after creation</span></div>
+        <p class="field-desc">A unique internal identifier for the provider — used inside bouquet filenames and service references. Use only letters/numbers with no spaces or special characters; other characters are stripped automatically on save. Must be unique across all configured providers, and cannot be changed once the provider is saved (it's used as the provider's key).</p>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span><span class="p on">Stalker</span><span class="p on">TVHeadend</span><span class="p on">VOD</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MATRIX ============ -->
+<section id="matrix">
+  <div class="wrap-wide">
+    <div class="section-head">
+      <span class="kicker">Section 3</span>
+      <h2>Field Applicability Matrix</h2>
+      <p>Quick cross-reference of which fields appear for which provider type.</p>
+    </div>
+    <div class="matrix-wrap">
+      <table class="matrix">
+        <tr><th>Field</th><th>M3U</th><th>Xtream</th><th>Stalker</th><th>TVHeadend</th><th>VOD</th></tr>
+        <tr><td>Provider name, URL, Scheme</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>VOD playlist format</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+        <tr><td>Use static URLs / Refresh interval / Filter</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Username / Password</td><td class="no">—</td><td class="yes">✓</td><td class="no">—</td><td class="yes">✓</td><td class="no">—</td></tr>
+        <tr><td>MAC / Serial / Device ID / Signature</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Skip VOD entries</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Generate EPG files + related fields</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td></tr>
+        <tr><td>Playback system / Catchup playback system</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td></tr>
+        <tr><td>Stream output format</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Catchup Type</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Media Library fields</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Download picons + type + threads</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td></tr>
+        <tr><td>Bouquet creation strategy</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td></tr>
+        <tr><td>Use provider TSID / channel numbers</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td></tr>
+        <tr><td>Provider TSID retrieval condition</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="no">—</td></tr>
+        <tr><td>Channel ordering criteria</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td></tr>
+        <tr><td>Custom User-Agent</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td></tr>
+        <tr><td>Auto updates (if scheduler on)</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Bouquets blacklist (if generated before)</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Blacklist VoD movie/series categories</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VALIDATION ============ -->
+<section id="validation" style="background:var(--bg-alt);">
+  <div class="wrap-wide">
+    <div class="section-head">
+      <span class="kicker">Section 4</span>
+      <h2>Validation Rules on Save</h2>
+      <p>These checks run when you save a provider from the Add/Edit screen.</p>
+    </div>
+    <div class="warn">
+      <ul style="margin:0;padding-left:20px;">
+        <li><strong>Provider name, URL and Scheme</strong> must all be filled in — saving is blocked with "All fields must be filled in." otherwise.</li>
+        <li><strong>Scheme</strong> must be unique among all configured providers when adding a new one; a duplicate is rejected with a message naming the conflicting value.</li>
+        <li>For Provider Type <strong>Xtream Codes</strong>, <strong>Username</strong> and <strong>Password</strong> are also required.</li>
+        <li>On the day-of-week schedule screen, at least one day must remain enabled.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<a class="backtotop" href="#top" title="Back to top">↑</a>
+
+<footer>
+  <div class="wrap">
+    <p>M3UIPTV is open source under the <a href="https://github.com/DimitarCC/iptv-m3u-reader/blob/main/LICENSE">GPL-3.0 license</a>.</p>
+    <p><a href="index.html">← Back to overview</a> · <a href="https://github.com/DimitarCC/iptv-m3u-reader">Source code &amp; issue tracker on GitHub ↗</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
