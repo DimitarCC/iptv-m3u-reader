@@ -88,7 +88,7 @@ python setup.py install
 
 After installing, restart Enigma2 (or reboot). Two new menu areas appear:
 
-- **Menu → Setup → System → IPTV**
+- **Menu → Setup → IPTV**
   - **Settings** — global plugin configuration (see below).
   - **Playlist manager** — add, edit, delete providers and (re)generate
     bouquets.
