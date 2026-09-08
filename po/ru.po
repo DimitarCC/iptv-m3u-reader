@@ -1230,7 +1230,7 @@ msgstr "Подпись"
 #: ../src/plugin.py:2198
 msgid ""
 "Optional custom signature used for authenticating in Stalker portal.\n"
-"Use this if you copied Serial/Device ID values from a real device and streaming still fails - paste the signature from the same device.\n""Leave empty to auto-generate it from the values above."
+"Use this if you copied Serial/Device ID values from a real device and streaming still fails - paste the signature from the same device.\n""Leave empty to auto-generate it from the values above.\n"
 "Leave empty to auto-generate it from the values above."
 msgstr ""
 "Дополнительная пользовательская подпись, используемая для аутентификации на портале Stalker.\n"
