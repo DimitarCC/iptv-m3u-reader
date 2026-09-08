@@ -20,6 +20,7 @@ from .StalkerProvider import StalkerProvider
 from .TVHeadendProvider import TVHeadendProvider
 from .VODProvider import VODProvider
 from .IPTVProviders import providers, processService as processIPTVService
+from .WebManager import startWebManager
 from .VodPager import VodPager, EagerPager
 from .IPTVCatchupPlayer import injectCatchupInEPG, ServiceRestorer
 from .epgimport_helper import overwriteEPGImportEPGSourceInit
@@ -113,6 +114,9 @@ choicelist = [("off", _("off"))] + [(str(i), ngettext("%d second", "%d seconds",
 config.plugins.m3uiptv.check_internet = ConfigSelection(default="2", choices=choicelist)
 config.plugins.m3uiptv.req_timeout = ConfigSelection(default="2", choices=choicelist)
 config.plugins.m3uiptv.epg_loc_port = ConfigNumber(default=9010)
+config.plugins.m3uiptv.webmanager_enabled = ConfigYesNo(default=False)
+config.plugins.m3uiptv.webmanager_port = ConfigNumber(default=8090)
+config.plugins.m3uiptv.webmanager_auth = ConfigYesNo(default=True)
 config.plugins.m3uiptv.inmenu = ConfigYesNo(default=True)
 config.plugins.m3uiptv.inextensions = ConfigYesNo(default=False)
 config.plugins.m3uiptv.display_poster = ConfigYesNo(default=True)
@@ -2016,7 +2020,7 @@ class M3UIPTVManagerConfig(Screen):
 				self.updateDescription(_("%s: an error occured during bouquet creation\n\nError type: %s") % (providerObj.iptv_service_provider, type(ex).__name__))
 				self.session.open(MessageBox, _("%s: an error occured during bouquet creation\n\nError type: %s") % (providerObj.iptv_service_provider, type(ex).__name__), MessageBox.TYPE_ERROR)
 
-	def onProgressChanged(self):
+	def onProgressChanged(self, result=None):
 		try:
 			self["list"].setList(list(sorted([(provider, providers[provider].iptv_service_provider, self.logos[providers[provider].type], self.vod_ico if providerHasVod(providers[provider]) else None, "" if providers[provider].progress_percentage == -1 else (_("Fetching VoD items") + " " + str(providers[provider].progress_percentage) + "%"), self.activity_icons[providers[provider].getAccountActive()]) for provider in providers], key=lambda x: x[1])))
 		except:
@@ -2102,7 +2106,7 @@ class M3UIPTVProviderEdit(Setup):
 		providerObj = providers.get(provider, IPTVProcessor())
 		self.blacklist = self.edit and bool(providerObj.readExampleBlacklist())
 		self.providerObj = providerObj
-		self.type = ConfigSelection(default=providerObj.type, choices=[("M3U", _("M3U/M3U8")), ("Xtreeme", _("Xtreme Codes")), ("Stalker", _("Stalker portal")), ("TVH", _("TVHeadend server")), ("VOD", _("Video on Demand"))])
+		self.type = ConfigSelection(default=providerObj.type, choices=[("M3U", _("M3U/M3U8")), ("Xtreeme", _("Xtream Codes")), ("Stalker", _("Stalker portal")), ("TVH", _("TVHeadend server")), ("VOD", _("Video on Demand"))])
 		self.playlist_type = ConfigSelection(default=providerObj.playlist_type, choices=[("m3u", _("M3U/M3U8")), ("txt", _("TXT"))])
 		self.iptv_service_provider = ConfigText(default=providerObj.iptv_service_provider, fixed_size=False)
 		self.url = ConfigText(default=providerObj.url, fixed_size=False)
@@ -2139,9 +2143,9 @@ class M3UIPTVProviderEdit(Setup):
 		if SERVICEAPP_AVAILABLE:
 			catchup_play_system_choices.append(("5002", "Exteplayer3"))
 		self.play_system_catchup = ConfigSelection(default=providerObj.play_system_catchup, choices=catchup_play_system_choices)
-		catchup_type_choices = [(CATCHUP_DEFAULT, _("Standard")), (CATCHUP_APPEND, _("Append")), (CATCHUP_SHIFT, _("Shift")), (CATCHUP_XTREME, _("Xtreme Codes")), (CATCHUP_XTREME_60, _("Xtreme Codes 60")), (CATCHUP_STALKER, _("Stalker")), (CATCHUP_FLUSSONIC, _("Flussonic")), (CATCHUP_VOD, _("VoD"))]
+		catchup_type_choices = [(CATCHUP_DEFAULT, _("Standard")), (CATCHUP_APPEND, _("Append")), (CATCHUP_SHIFT, _("Shift")), (CATCHUP_XTREME, _("Xtream Codes")), (CATCHUP_XTREME_60, _("Xtream Codes 60")), (CATCHUP_STALKER, _("Stalker")), (CATCHUP_FLUSSONIC, _("Flussonic")), (CATCHUP_VOD, _("VoD"))]
 		if self.type.value == "Xtreeme":
-			catchup_type_choices = [(CATCHUP_XTREME, _("Xtreme Codes")), (CATCHUP_XTREME_60, _("Xtreme Codes 60"))]
+			catchup_type_choices = [(CATCHUP_XTREME, _("Xtream Codes")), (CATCHUP_XTREME_60, _("Xtream Codes 60"))]
 		self.catchup_type = ConfigSelection(default=providerObj.catchup_type, choices=catchup_type_choices)
 		self.epg_url = ConfigText(default=providerObj.epg_url, fixed_size=False)
 		self.picons = ConfigYesNo(default=providerObj.picons)
@@ -2432,6 +2436,11 @@ class IPTVPluginConfig(Setup):
 		configlist.append((_("Catchup/Archive EOF timeout"), config.plugins.m3uiptv.catchup_eof_timeout, _("Timeout in seconds for the catchup/archive playback eof timeout to be delayed.")))
 		configlist.append((_("Local EPG server listening port") + " *", config.plugins.m3uiptv.epg_loc_port, _("A local port for the EPG server. Mainly used for Stalker portals due to lack of persistent EPG.")))
 		configlist.append(("---",))
+		configlist.append((_("Enable Playlist manager web interface") + " *", config.plugins.m3uiptv.webmanager_enabled, _("Enables a web interface for displaying, adding, editing and deleting IPTV playlists/providers, reachable from a browser on the local network.")))
+		if config.plugins.m3uiptv.webmanager_enabled.value:
+			configlist.append((_("Web interface listening port") + " *", config.plugins.m3uiptv.webmanager_port, _("The TCP port on which the Playlist manager web interface will listen.")))
+			configlist.append((_("Require authentication") + " *", config.plugins.m3uiptv.webmanager_auth, _("Protect the web interface with HTTP authentication using the box's own login (the same username/password used for the receiver's web interface/Telnet/FTP, usually 'root').")))
+		configlist.append(("---",))
 		if hasattr(config, "recording") and hasattr(config.recording, "setstreamto1"):
 			configlist.append((_("Recordings - convert IPTV servicetypes to  1"), config.recording.setstreamto1, _("Recording 4097, 5001 and 5002 streams not possible with external players, so convert recordings to servicetype 1.")))
 			configlist.append(("---",))
@@ -2602,6 +2611,8 @@ def sessionstart(reason, session, **kwargs):
 		injectIntoNavigation(session)
 		readProviders()
 		threads.deferToThread(startingCustomEPGExternal).addCallback(lambda ignore: finishedCustomEPGExternal())
+		if config.plugins.m3uiptv.webmanager_enabled.value:
+			reactor.callLater(1, startingWebManagerExternal)
 		if autoScheduleTimer is None:
 			autoScheduleTimer = AutoScheduleTimer()
 
@@ -2667,6 +2678,13 @@ def startingCustomEPGExternal():
 
 def finishedCustomEPGExternal():
 	pass
+
+
+def startingWebManagerExternal():
+	try:
+		startWebManager()
+	except Exception as err:
+		print("[M3UIPTV][WebManager] failed to start web interface:", err)
 
 
 def Plugins(path, **kwargs):
