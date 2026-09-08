@@ -1194,3 +1194,45 @@ msgstr "Время ожидания в секундах, на которое о�
 #: ../src/plugin.py:2148
 msgid "No Threads"
 msgstr "Без потоков"
+
+#: ../src/plugin.py:2195
+msgid "Serial"
+msgstr "Серийный"
+
+#: ../src/plugin.py:2195
+msgid ""
+"Optional custom serial number used for authenticating in Stalker portal.\n"
+"Leave empty to auto-generate it from the MAC address."
+msgstr ""
+"Дополнительный пользовательский серийный номер, используемый для аутентификации на портале Stalker.\n"
+"Оставьте поле пустым для автоматической генерации на основе MAC-адреса."
+
+#: ../src/plugin.py:2196
+msgid "Device ID 1"
+msgstr "Идентификатор устройства 1"
+
+#: ../src/plugin.py:2197
+msgid "Device ID 2"
+msgstr "Идентификатор устройства 2"
+
+#: ../src/plugin.py:2196
+msgid ""
+"Optional custom device ID used for authenticating in Stalker portal.\n"
+"Leave empty to auto-generate it from the MAC address."
+msgstr ""
+"Необязательный пользовательский идентификатор устройства, используемый для аутентификации на портале Stalker.\n"
+"Оставьте поле пустым для автоматической генерации на основе MAC-адреса."
+
+#: ../src/plugin.py:2198
+msgid "Signature"
+msgstr "Подпись"
+
+#: ../src/plugin.py:2198
+msgid ""
+"Optional custom signature used for authenticating in Stalker portal.\n"
+"Use this if you copied Serial/Device ID values from a real device and streaming still fails - paste the signature from the same device.\n""Leave empty to auto-generate it from the values above."
+"Leave empty to auto-generate it from the values above."
+msgstr ""
+"Дополнительная пользовательская подпись, используемая для аутентификации на портале Stalker.\n"
+"Используйте эту опцию, если вы скопировали значения Серийный/Идентификатор устройства с реального устройства, но потоковая передача всё равно не работает — вставьте (Подпись) с того же устройства.\n"
+"Оставьте поле пустым, чтобы оно было автоматически сформировано на основе указанных выше значений."
