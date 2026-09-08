@@ -149,6 +149,15 @@
   }
   .warn strong{color:var(--accent);}
 
+  pre.codeblock{
+    max-width:1220px;margin:16px auto 0;background:var(--bg-alt);border:1px solid var(--panel-border);
+    border-radius:8px;padding:16px 18px;overflow-x:auto;
+  }
+  pre.codeblock code{
+    background:none;border:none;padding:0;color:var(--text-dim);
+    font-family:ui-monospace,"SF Mono",Consolas,monospace;font-size:0.82rem;line-height:1.6;
+  }
+
   .backtotop{
     position:fixed;bottom:22px;right:22px;background:var(--panel);border:1px solid var(--panel-border);
     color:var(--text-dim);width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
@@ -211,8 +220,11 @@
       <a href="#p-medialib">&nbsp;&nbsp;Media Library</a>
       <a href="#p-picons">&nbsp;&nbsp;Picons &amp; Bouquets</a>
       <a href="#p-advanced">&nbsp;&nbsp;Advanced &amp; Blacklists</a>
-      <a href="#matrix">3. Field Applicability Matrix</a>
-      <a href="#validation">4. Validation Rules</a>
+      <a href="#extras">3. Per-Provider Extras</a>
+      <a href="#e-substitutions">&nbsp;&nbsp;Substitutions</a>
+      <a href="#e-blacklists">&nbsp;&nbsp;Blacklists</a>
+      <a href="#matrix">4. Field Applicability Matrix</a>
+      <a href="#validation">5. Validation Rules</a>
     </div>
   </div>
 </section>
@@ -333,6 +345,11 @@
         <div class="field-head"><span class="fname">Require authentication *</span><span class="badge cond">Conditional</span><span class="badge">Yes/No — default: Yes</span></div>
         <p class="field-desc">Protects the web interface with HTTP Basic Authentication, reusing the box's own system login — the same username/password used for the receiver's own web interface, Telnet and FTP (typically <code>root</code>). There is no separate web-manager-only account.</p>
         <div class="field-note"><strong>Only shown</strong> when "Enable Playlist manager web interface" is set to Yes.</div>
+      </div>
+
+      <div class="field" id="webmanager-substitutions">
+        <div class="field-head"><span class="fname">Substitutions button</span><span class="badge cond">M3U &amp; Xtream Codes providers</span></div>
+        <p class="field-desc">Shown per-provider in the provider list for M3U/M3U8 and Xtream Codes providers. Opens an editor for that provider's <a href="#e-substitutions">substitution rules</a> — channel name, EPG id, service type and catch-up type overrides — without hand-editing <code>substitutions.xml</code>. Saving takes effect the next time the provider's bouquets are regenerated.</p>
       </div>
     </div>
 
@@ -713,11 +730,90 @@
   </div>
 </section>
 
+<!-- ============ PER-PROVIDER EXTRAS ============ -->
+<section id="extras" style="background:var(--bg-alt);">
+  <div class="wrap-wide">
+    <div class="section-head">
+      <span class="kicker">Section 3</span>
+      <h2>Per-Provider Extras</h2>
+      <p>Two more per-provider customizations that live outside the Add/Edit provider screen — managed
+      from the Web Manager, or by hand-editing files under <code>&lt;config&gt;/M3UIPTV/&lt;scheme&gt;/</code>
+      (<code>&lt;scheme&gt;</code> is the provider's internal id, shown in the manager).</p>
+    </div>
+
+    <div class="field-group">
+      <h3 class="group-title" id="e-substitutions">Substitutions <span style="font-weight:400;color:var(--text-faint);font-size:0.85rem;">(M3U &amp; Xtream Codes only)</span></h3>
+      <p class="field-desc" style="max-width:820px;margin-bottom:16px;">Per-channel overrides used when a provider's own playlist/API data for a channel is missing or wrong. Edit them from the Web Manager's <strong>Substitutions</strong> button on a M3U or Xtream Codes provider (see <a href="#webmanager-substitutions">Web Manager</a> above), or hand-edit <code>substitutions.xml</code> directly.</p>
+
+      <div class="field" id="e-sub-servicename">
+        <div class="field-head"><span class="fname">servicename</span></div>
+        <p class="field-desc">Overrides the channel's displayed name.</p>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span></div>
+      </div>
+
+      <div class="field" id="e-sub-epgid">
+        <div class="field-head"><span class="fname">epgid</span></div>
+        <p class="field-desc">Overrides the id used to match this channel against EPG data.</p>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span></div>
+      </div>
+
+      <div class="field" id="e-sub-servicetype">
+        <div class="field-head"><span class="fname">servicetype</span></div>
+        <p class="field-desc">Overrides the Enigma2 playback system used for this channel.</p>
+        <dl class="field-meta"><dt>Values</dt><dd><code>1</code> = DVB · <code>4097</code> = GStreamer/HiSilicon · <code>5002</code> = Exteplayer3 (needs ServiceApp)</dd></dl>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span></div>
+      </div>
+
+      <div class="field" id="e-sub-catchuptype">
+        <div class="field-head"><span class="fname">catchuptype</span><span class="badge cond">M3U only</span></div>
+        <p class="field-desc">Overrides the playback system used for catch-up on this channel — same values as <code>servicetype</code>. Not applied for Xtream Codes providers.</p>
+        <div class="applies"><span class="p on">M3U</span></div>
+      </div>
+
+      <div class="field" id="e-sub-format">
+        <div class="field-head"><span class="fname">How matching works</span></div>
+        <p class="field-desc">Each override type holds one or more rules; a rule's body is a list of <code>key:value</code> lines (exactly one <code>:</code> per line; a trailing comma is optional).</p>
+        <div class="subfield-list">
+          <div class="subfield"><span class="sf-name">M3U/M3U8</span><span class="sf-desc">A rule's <code>search-line</code> (<code>#EXTINF</code> or <code>#URL</code>) picks whether its <code>search-regex</code> — which must contain exactly one capture group — is matched against the raw <code>#EXTINF:</code> line or the resolved stream URL. The captured text is looked up as <code>key</code>; the matching <code>value</code> becomes the override. Several rules can be combined under one type to cover different matching patterns.</span></div>
+          <div class="subfield"><span class="sf-name">Xtream Codes</span><span class="sf-desc"><code>search-line</code>/<code>search-regex</code> are not used — <code>key</code> is the provider's numeric <code>stream_id</code> (for <code>servicename</code>/<code>servicetype</code>) or <code>epg_channel_id</code> (for <code>epgid</code>) directly.</span></div>
+        </div>
+      </div>
+
+      <pre class="codeblock"><code>&lt;substitutions&gt;
+  &lt;servicename&gt;
+    &lt;substitution search-line="#EXTINF" search-regex='tvg-id="(.*?)"'&gt;
+    &lt;![CDATA[
+      805:AAAA 1,
+      806:BBBB 1
+    ]]&gt;
+    &lt;/substitution&gt;
+  &lt;/servicename&gt;
+&lt;/substitutions&gt;</code></pre>
+    </div>
+
+    <div class="field-group">
+      <h3 class="group-title" id="e-blacklists">Blacklists</h3>
+
+      <div class="field" id="e-bl-groups">
+        <div class="field-head"><span class="fname">Bouquets blacklist</span></div>
+        <p class="field-desc">Excludes groups/categories from bouquet generation. An example listing every discovered group is generated automatically the first time a provider is imported; select entries via the "Bouquets blacklist" field on the Edit provider screen (only shown once bouquets have been generated at least once).</p>
+        <div class="applies"><span class="p on">M3U</span><span class="p on">Xtream</span><span class="p on">Stalker</span><span class="p on">TVHeadend</span><span class="p on">VOD</span></div>
+      </div>
+
+      <div class="field" id="e-bl-vod">
+        <div class="field-head"><span class="fname">VoD movie/series category blacklist</span></div>
+        <p class="field-desc">Excludes specific VoD movie or series categories, selected via "Blacklist VoD movie categories" / "Blacklist VoD series categories" on the Edit provider screen.</p>
+        <div class="applies"><span class="p on">Stalker</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ============ MATRIX ============ -->
 <section id="matrix">
   <div class="wrap-wide">
     <div class="section-head">
-      <span class="kicker">Section 3</span>
+      <span class="kicker">Section 4</span>
       <h2>Field Applicability Matrix</h2>
       <p>Quick cross-reference of which fields appear for which provider type.</p>
     </div>
@@ -753,7 +849,7 @@
 <section id="validation" style="background:var(--bg-alt);">
   <div class="wrap-wide">
     <div class="section-head">
-      <span class="kicker">Section 4</span>
+      <span class="kicker">Section 5</span>
       <h2>Validation Rules on Save</h2>
       <p>These checks run when you save a provider from the Add/Edit screen.</p>
     </div>
