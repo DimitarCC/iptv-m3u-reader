@@ -1197,7 +1197,7 @@ msgstr "Без потоков"
 
 #: ../src/plugin.py:2195
 msgid "Serial"
-msgstr "Серийный"
+msgstr "Серийный номер"
 
 #: ../src/plugin.py:2195
 msgid ""
