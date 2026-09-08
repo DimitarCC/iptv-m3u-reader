@@ -1244,3 +1244,27 @@ msgstr ""
 "Дополнительная пользовательская подпись, используемая для аутентификации на портале Stalker.\n"
 "Используйте эту опцию, если вы скопировали значения Серийный номер/Идентификатор устройства с реального устройства, но потоковая передача всё равно не работает — вставьте (Подпись) с того же устройства.\n"
 "Оставьте поле пустым, чтобы оно было автоматически сформировано на основе указанных выше значений."
+
+#: ../src/plugin.py:2439
+msgid "Enable Playlist manager web interface"
+msgstr "Включить веб-интерфейс менеджера плейлистов"
+
+#: ../src/plugin.py:2439
+msgid "Enables a web interface for displaying, adding, editing and deleting IPTV playlists/providers, reachable from a browser on the local network."
+msgstr "Включает веб-интерфейс для просмотра, добавления, редактирования и удаления плейлистов или провайдеров IPTV, доступный через браузер в локальной сети."
+
+#: ../src/plugin.py:2441
+msgid "Web interface listening port"
+msgstr "Порт прослушивания веб-интерфейса"
+
+#: ../src/plugin.py:2441
+msgid "The TCP port on which the Playlist manager web interface will listen."
+msgstr "TCP-порт, на котором будет ожидать подключений веб-интерфейс менеджера плейлистов."
+
+#: ../src/plugin.py:2442
+msgid "Require authentication"
+msgstr "Требуется аутентификация"
+
+#: ../src/plugin.py:2442
+msgid "Protect the web interface with HTTP authentication using the box's own login (the same username/password used for the receiver's web interface/Telnet/FTP, usually 'root')."
+msgstr "Защитить веб-интерфейс с помощью HTTP-аутентификации, используя учетные данные самого устройства (то же имя пользователя и пароль что и для доступа к Веб-интерфейсу, Telnet или FTP; как правило это root)."
