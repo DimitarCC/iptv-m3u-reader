@@ -1194,3 +1194,77 @@ msgstr "Время ожидания в секундах, на которое о�
 #: ../src/plugin.py:2148
 msgid "No Threads"
 msgstr "Без потоков"
+
+#: ../src/plugin.py:2195
+msgid "Serial"
+msgstr "Серийный номер"
+
+#: ../src/plugin.py:2195
+msgid ""
+"Optional custom serial number used for authenticating in Stalker portal.\n"
+"Leave empty to auto-generate it from the MAC address."
+msgstr ""
+"Дополнительный пользовательский серийный номер, используемый для аутентификации на портале Stalker.\n"
+"Оставьте поле пустым для автоматической генерации на основе MAC-адреса."
+
+#: ../src/plugin.py:2196
+msgid "Device ID 1"
+msgstr "Идентификатор устройства 1"
+
+#: ../src/plugin.py:2197
+msgid "Device ID 2"
+msgstr "Идентификатор устройства 2"
+
+#: ../src/plugin.py:2197
+msgid ""
+"Optional custom secondary device ID used for authenticating in Stalker portal.\n"
+"Leave empty to use Device ID 1."
+msgstr ""
+"Дополнительный пользовательский идентификатор вторичного устройства, используемый для аутентификации на портале Stalker.\n"
+"Оставьте пустым, чтобы использовать Идентификатор устройства 1."
+
+#: ../src/plugin.py:2196
+msgid ""
+"Optional custom device ID used for authenticating in Stalker portal.\n"
+"Leave empty to auto-generate it from the MAC address."
+msgstr ""
+"Необязательный пользовательский идентификатор устройства, используемый для аутентификации на портале Stalker.\n"
+"Оставьте поле пустым для автоматической генерации на основе MAC-адреса."
+
+#: ../src/plugin.py:2198
+msgid "Signature"
+msgstr "Подпись"
+
+#: ../src/plugin.py:2198
+msgid ""
+"Optional custom signature used for authenticating in Stalker portal.\n"
+"Use this if you copied Serial/Device ID values from a real device and streaming still fails - paste the signature from the same device.\n"
+"Leave empty to auto-generate it from the values above."
+msgstr ""
+"Дополнительная пользовательская подпись, используемая для аутентификации на портале Stalker.\n"
+"Используйте эту опцию, если вы скопировали значения Серийный номер/Идентификатор устройства с реального устройства, но потоковая передача всё равно не работает — вставьте (Подпись) с того же устройства.\n"
+"Оставьте поле пустым, чтобы оно было автоматически сформировано на основе указанных выше значений."
+
+#: ../src/plugin.py:2439
+msgid "Enable Playlist manager web interface"
+msgstr "Включить веб-интерфейс менеджера плейлистов"
+
+#: ../src/plugin.py:2439
+msgid "Enables a web interface for displaying, adding, editing and deleting IPTV playlists/providers, reachable from a browser on the local network."
+msgstr "Включает веб-интерфейс для просмотра, добавления, редактирования и удаления плейлистов или провайдеров IPTV, доступный через браузер в локальной сети."
+
+#: ../src/plugin.py:2441
+msgid "Web interface listening port"
+msgstr "Порт прослушивания веб-интерфейса"
+
+#: ../src/plugin.py:2441
+msgid "The TCP port on which the Playlist manager web interface will listen."
+msgstr "TCP-порт, на котором будет ожидать подключений веб-интерфейс менеджера плейлистов."
+
+#: ../src/plugin.py:2442
+msgid "Require authentication"
+msgstr "Требуется аутентификация"
+
+#: ../src/plugin.py:2442
+msgid "Protect the web interface with HTTP authentication using the box's own login (the same username/password used for the receiver's web interface/Telnet/FTP, usually 'root')."
+msgstr "Защитить веб-интерфейс с помощью HTTP-аутентификации, используя учетные данные самого устройства (то же имя пользователя и пароль что и для доступа к Веб-интерфейсу, Telnet или FTP; как правило это root)."
