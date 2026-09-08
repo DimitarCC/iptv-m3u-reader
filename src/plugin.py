@@ -2106,7 +2106,7 @@ class M3UIPTVProviderEdit(Setup):
 		providerObj = providers.get(provider, IPTVProcessor())
 		self.blacklist = self.edit and bool(providerObj.readExampleBlacklist())
 		self.providerObj = providerObj
-		self.type = ConfigSelection(default=providerObj.type, choices=[("M3U", _("M3U/M3U8")), ("Xtreeme", _("Xtreme Codes")), ("Stalker", _("Stalker portal")), ("TVH", _("TVHeadend server")), ("VOD", _("Video on Demand"))])
+		self.type = ConfigSelection(default=providerObj.type, choices=[("M3U", _("M3U/M3U8")), ("Xtreeme", _("Xtream Codes")), ("Stalker", _("Stalker portal")), ("TVH", _("TVHeadend server")), ("VOD", _("Video on Demand"))])
 		self.playlist_type = ConfigSelection(default=providerObj.playlist_type, choices=[("m3u", _("M3U/M3U8")), ("txt", _("TXT"))])
 		self.iptv_service_provider = ConfigText(default=providerObj.iptv_service_provider, fixed_size=False)
 		self.url = ConfigText(default=providerObj.url, fixed_size=False)
@@ -2143,9 +2143,9 @@ class M3UIPTVProviderEdit(Setup):
 		if SERVICEAPP_AVAILABLE:
 			catchup_play_system_choices.append(("5002", "Exteplayer3"))
 		self.play_system_catchup = ConfigSelection(default=providerObj.play_system_catchup, choices=catchup_play_system_choices)
-		catchup_type_choices = [(CATCHUP_DEFAULT, _("Standard")), (CATCHUP_APPEND, _("Append")), (CATCHUP_SHIFT, _("Shift")), (CATCHUP_XTREME, _("Xtreme Codes")), (CATCHUP_XTREME_60, _("Xtreme Codes 60")), (CATCHUP_STALKER, _("Stalker")), (CATCHUP_FLUSSONIC, _("Flussonic")), (CATCHUP_VOD, _("VoD"))]
+		catchup_type_choices = [(CATCHUP_DEFAULT, _("Standard")), (CATCHUP_APPEND, _("Append")), (CATCHUP_SHIFT, _("Shift")), (CATCHUP_XTREME, _("Xtream Codes")), (CATCHUP_XTREME_60, _("Xtream Codes 60")), (CATCHUP_STALKER, _("Stalker")), (CATCHUP_FLUSSONIC, _("Flussonic")), (CATCHUP_VOD, _("VoD"))]
 		if self.type.value == "Xtreeme":
-			catchup_type_choices = [(CATCHUP_XTREME, _("Xtreme Codes")), (CATCHUP_XTREME_60, _("Xtreme Codes 60"))]
+			catchup_type_choices = [(CATCHUP_XTREME, _("Xtream Codes")), (CATCHUP_XTREME_60, _("Xtream Codes 60"))]
 		self.catchup_type = ConfigSelection(default=providerObj.catchup_type, choices=catchup_type_choices)
 		self.epg_url = ConfigText(default=providerObj.epg_url, fixed_size=False)
 		self.picons = ConfigYesNo(default=providerObj.picons)

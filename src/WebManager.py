@@ -177,7 +177,7 @@ def validateProviderData(ptype, data, scheme, is_edit):
 	if not is_edit and scheme in providers:
 		return _("Scheme must be unique. \"%s\" is already in use. Please update this field.") % scheme
 	if ptype == "Xtreeme" and (not data.get("username", "").strip() or not data.get("password", "")):
-		return _("Username and password must be filled in for Xtreme Codes providers.")
+		return _("Username and password must be filled in for Xtream Codes providers.")
 	if ptype == "Stalker" and not data.get("mac", "").strip():
 		return _("MAC address must be filled in for Stalker providers.")
 	return None
@@ -477,7 +477,7 @@ WEB_UI_HTML = """<!doctype html>
         <label>Provider Type</label>
         <select name="type" id="fType">
           <option value="M3U">M3U/M3U8</option>
-          <option value="Xtreeme">Xtreme Codes</option>
+          <option value="Xtreeme">Xtream Codes</option>
           <option value="Stalker">Stalker portal</option>
           <option value="TVH">TVHeadend server</option>
           <option value="VOD">Video on Demand</option>
@@ -568,8 +568,8 @@ WEB_UI_HTML = """<!doctype html>
               <option value="1">Standard</option>
               <option value="2">Append</option>
               <option value="3">Shift</option>
-              <option value="4">Xtreme Codes</option>
-              <option value="8">Xtreme Codes 60</option>
+              <option value="4">Xtream Codes</option>
+              <option value="8">Xtream Codes 60</option>
               <option value="5">Stalker</option>
               <option value="6">Flussonic</option>
               <option value="7">VoD</option>
@@ -628,6 +628,8 @@ function qsa(sel, root) { return Array.prototype.slice.call((root || document).q
 
 function fmtBool(v) { return v ? "yes" : "no"; }
 
+function typeLabel(t) { return t === "Xtreeme" ? "Xtream Codes" : t; }
+
 function loadProviders() {
   fetch(API).then(function(r) { return r.json(); }).then(function(list) {
     var tbody = qs("#tbody");
@@ -641,7 +643,7 @@ function loadProviders() {
       var tr = document.createElement("tr");
       tr.innerHTML =
         "<td>" + escapeHtml(p.iptv_service_provider) + "</td>" +
-        '<td><span class="type-badge">' + escapeHtml(p.type) + "</span></td>" +
+        '<td><span class="type-badge">' + escapeHtml(typeLabel(p.type)) + "</span></td>" +
         "<td style='max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>" + escapeHtml(p.url) + "</td>" +
         "<td>" + escapeHtml(p.scheme) + "</td>" +
         '<td class="actions"></td>';
