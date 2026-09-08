@@ -1,10 +1,60 @@
+<!--
+  Example substitutions.xml for a single provider.
+
+  Place this file at <config>/M3UIPTV/<scheme>/substitutions.xml (where <scheme>
+  is the provider's internal id) and it is picked up the next time the provider
+  is (re)loaded / bouquets are regenerated. It can also be created and edited
+  from the Web Manager: open a M3U or Xtream Codes provider and click
+  "Substitutions". See the README for the full explanation of how each
+  substitution type is matched.
+
+  <substitutions> may contain any of the four child elements below, each of
+  which may contain one or more <substitution> rules. Every <substitution>
+  needs a search-line ("#EXTINF" or "#URL") and, for M3U providers, a
+  search-regex with exactly one capture group. Its body is a list of
+  "key:value" lines (a trailing comma is optional): "key" is the text
+  captured by search-regex (M3U) or the provider's numeric stream/EPG id
+  (Xtream Codes, where search-line/search-regex are ignored); "value" is the
+  override to apply.
+-->
 <substitutions>
+	<!-- Overrides the channel's displayed name -->
 	<servicename>
-		<substitution search-line="#EXTINF" search-regex="tvg-id=\&quot;(.*?)\&quot;">
+		<substitution search-line="#EXTINF" search-regex="tvg-id=&quot;(.*?)&quot;">
 		<![CDATA[
 			805:AAAA 1,
-            806:BBBB 1
+			806:BBBB 1
 		]]>
 		</substitution>
 	</servicename>
+
+	<!-- Overrides the id used to look up this channel's EPG data -->
+	<epgid>
+		<substitution search-line="#EXTINF" search-regex="tvg-id=&quot;(.*?)&quot;">
+		<![CDATA[
+			805:aaaa.tv,
+			806:bbbb.tv
+		]]>
+		</substitution>
+	</epgid>
+
+	<!-- Overrides the Enigma2 playback system for this channel:
+	     1 = DVB, 4097 = GStreamer/HiSilicon, 5002 = Exteplayer3 (needs ServiceApp) -->
+	<servicetype>
+		<substitution search-line="#EXTINF" search-regex="tvg-id=&quot;(.*?)&quot;">
+		<![CDATA[
+			805:5002
+		]]>
+		</substitution>
+	</servicetype>
+
+	<!-- Overrides the playback system used for catch-up on this channel.
+	     M3U providers only; same values as servicetype above. -->
+	<catchuptype>
+		<substitution search-line="#EXTINF" search-regex="tvg-id=&quot;(.*?)&quot;">
+		<![CDATA[
+			805:5002
+		]]>
+		</substitution>
+	</catchuptype>
 </substitutions>
