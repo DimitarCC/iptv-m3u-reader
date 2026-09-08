@@ -1215,6 +1215,14 @@ msgstr "Идентификатор устройства 1"
 msgid "Device ID 2"
 msgstr "Идентификатор устройства 2"
 
+#: ../src/plugin.py:2197
+msgid ""
+"Optional custom secondary device ID used for authenticating in Stalker portal.\n"
+"Leave empty to use Device ID 1."
+msgstr ""
+"Дополнительный пользовательский идентификатор вторичного устройства, используемый для аутентификации на портале Stalker.\n"
+"Оставьте пустым, чтобы использовать Идентификатор устройства 1."
+
 #: ../src/plugin.py:2196
 msgid ""
 "Optional custom device ID used for authenticating in Stalker portal.\n"
@@ -1230,9 +1238,9 @@ msgstr "Подпись"
 #: ../src/plugin.py:2198
 msgid ""
 "Optional custom signature used for authenticating in Stalker portal.\n"
-"Use this if you copied Serial/Device ID values from a real device and streaming still fails - paste the signature from the same device.\n""Leave empty to auto-generate it from the values above.\n"
+"Use this if you copied Serial/Device ID values from a real device and streaming still fails - paste the signature from the same device.\n"
 "Leave empty to auto-generate it from the values above."
 msgstr ""
 "Дополнительная пользовательская подпись, используемая для аутентификации на портале Stalker.\n"
-"Используйте эту опцию, если вы скопировали значения Серийный/Идентификатор устройства с реального устройства, но потоковая передача всё равно не работает — вставьте (Подпись) с того же устройства.\n"
+"Используйте эту опцию, если вы скопировали значения Серийный номер/Идентификатор устройства с реального устройства, но потоковая передача всё равно не работает — вставьте (Подпись) с того же устройства.\n"
 "Оставьте поле пустым, чтобы оно было автоматически сформировано на основе указанных выше значений."
