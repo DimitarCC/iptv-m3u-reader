@@ -33,7 +33,8 @@ itself or from a browser.
   channel name/EPG id/service type/catchup type, and group/category
   exclusion lists, editable per provider.
 - **Web Manager**: an optional built-in web UI for adding, editing, and
-  deleting providers from any browser on your network.
+  deleting providers from any browser on your network, including an editor
+  for per-provider substitutions.
 - **Scheduled auto-updates** — refresh playlists/EPG automatically on
   selected days and times.
 - Translated into English, Bulgarian, German, Spanish, Finnish, French,
@@ -147,12 +148,69 @@ separate plugin password. Deleting a provider through the web UI fully
 tears it down: bouquets, VoD cache, EPG sources, and picons are all
 removed.
 
+For M3U/M3U8 and Xtream Codes providers, a **Substitutions** button opens
+an editor for that provider's per-channel name/EPG id/service
+type/catch-up type overrides (see [Substitutions](#per-provider-extras)
+below) — add or remove rules and their `key:value` overrides without
+touching `substitutions.xml` by hand. Saving takes effect the next time
+the provider's bouquets are regenerated.
+
 ## Per-provider extras
 
-- **Substitutions** (`substitutions.xml`, see
-  [`src/substitutions.example.xml`](src/substitutions.example.xml)):
-  regex rules to override a channel's name, EPG id, service type, or
-  catch-up type when a provider's playlist metadata is incomplete or wrong.
+- **Substitutions** — per-channel overrides for **M3U/M3U8** and
+  **Xtream Codes** providers, used when a provider's own playlist/API data
+  for a channel is missing or wrong. Four independent override types are
+  available:
+  - `servicename` — overrides the channel's displayed name.
+  - `epgid` — overrides the id used to match this channel against EPG data.
+  - `servicetype` — overrides the Enigma2 playback system used for this
+    channel (`1` = DVB, `4097` = GStreamer/HiSilicon, `5002` = Exteplayer3,
+    the latter requiring the ServiceApp plugin).
+  - `catchuptype` — overrides the playback system used for catch-up on this
+    channel (same values as `servicetype`); **M3U providers only**.
+
+  Overrides can be edited from **Playlist manager** in the Web Manager (see
+  below) or by hand-editing `substitutions.xml`, stored per provider at
+  `<config>/M3UIPTV/<scheme>/substitutions.xml` (`<scheme>` is the
+  provider's internal id, shown in the manager). The file is read the next
+  time the provider is loaded / bouquets are regenerated — regenerate after
+  editing it by hand. See
+  [`src/substitutions.example.xml`](src/substitutions.example.xml) for a
+  complete example covering all four types.
+
+  The file's root `<substitutions>` element holds any of the four child
+  elements above, each holding one or more `<substitution>` rules:
+
+  ```xml
+  <substitutions>
+    <servicename>
+      <substitution search-line="#EXTINF" search-regex="tvg-id=&quot;(.*?)&quot;">
+      <![CDATA[
+        805:AAAA 1,
+        806:BBBB 1
+      ]]>
+      </substitution>
+    </servicename>
+  </substitutions>
+  ```
+
+  Each `<substitution>` rule's body is a list of `key:value` lines (a
+  trailing comma is optional; a line must contain exactly one `:`). How
+  `key` is determined, and whether `search-line`/`search-regex` matter,
+  differs by provider type:
+  - **M3U/M3U8**: `search-line` selects whether `search-regex` is matched
+    against the raw `#EXTINF:` line (`#EXTINF`) or the resolved stream URL
+    (`#URL`); it must be exactly one of those two values. `search-regex`
+    must contain exactly one capture group — the captured text is looked up
+    as `key` in the rule's `key:value` list, and the matching `value`
+    becomes the override. Multiple `<substitution>` rules (even with
+    different `search-line`/`search-regex` values) can be listed under the
+    same type to combine several matching strategies.
+  - **Xtream Codes**: `search-line`/`search-regex` are not used — matching
+    is done directly against the provider's numeric id: the Xtream
+    `stream_id` for `servicename`/`servicetype`, and `epg_channel_id` for
+    `epgid`. `catchuptype` substitutions are not applied for Xtream Codes
+    providers.
 - **Blacklists**: per-provider text files listing groups/categories (or
   VoD movies/series) to exclude from bouquet generation; an example
   blacklist listing every discovered group is generated automatically on

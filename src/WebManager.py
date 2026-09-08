@@ -2,9 +2,12 @@
 from . import _
 
 import json
+import os
 import shutil
 from os import makedirs
 from binascii import a2b_base64
+from xml.etree import ElementTree as ET
+from xml.sax.saxutils import escape
 
 from twisted.web import resource, server
 from twisted.internet import reactor
@@ -17,17 +20,116 @@ from .XtreemProvider import XtreemProvider
 from .StalkerProvider import StalkerProvider
 from .TVHeadendProvider import TVHeadendProvider
 from .VODProvider import VODProvider
-from .Variables import PROVIDER_FOLDER, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_XTREME_60, CATCHUP_STALKER, CATCHUP_FLUSSONIC, CATCHUP_VOD
+from .Variables import PROVIDER_FOLDER, USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_XTREME_60, CATCHUP_STALKER, CATCHUP_FLUSSONIC, CATCHUP_VOD
 
 PROVIDER_TYPES = ("M3U", "Xtreeme", "Stalker", "TVH", "VOD")
 
 CATCHUP_TYPE_CHOICES = [CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_XTREME_60, CATCHUP_STALKER, CATCHUP_FLUSSONIC, CATCHUP_VOD]
+
+# provider types that read substitutions.xml at load time (see plugin.readSubstitions())
+SUBSTITUTION_CAPABLE_TYPES = ("M3U", "Xtreeme")
+# XML element name -> child tags allowed under <substitutions>; catchuptype is only honored for M3U providers
+SUBSTITUTION_TYPES = ("servicename", "epgid", "servicetype", "catchuptype")
+# valid values for the search-line attribute: the parser does a hard dict lookup by this key
+SUBSTITUTION_SEARCH_LINES = ("#EXTINF", "#URL")
 
 
 def _getWriteProviders():
 	# imported lazily to avoid a circular import between plugin.py and this module
 	from .plugin import writeProviders
 	return writeProviders
+
+
+def _getReadSubstitions():
+	# imported lazily to avoid a circular import between plugin.py and this module
+	from .plugin import readSubstitions
+	return readSubstitions
+
+
+def readSubstitutionsRaw(scheme):
+	path = USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE % scheme
+	result = {t: [] for t in SUBSTITUTION_TYPES}
+	if not os.path.exists(path):
+		return result
+	try:
+		root = ET.parse(path).getroot()
+	except Exception:
+		return result
+	for t in SUBSTITUTION_TYPES:
+		for type_elem in root.findall(t):
+			for subst_elem in type_elem.findall("substitution"):
+				content_lines = [line.strip().rstrip(",").strip() for line in (subst_elem.text or "").splitlines()]
+				result[t].append({
+					"search_line": subst_elem.get("search-line") or "#EXTINF",
+					"search_regex": subst_elem.get("search-regex") or "",
+					"content": [line for line in content_lines if line],
+				})
+	return result
+
+
+def normalizeSubstitutionsPayload(data, ptype):
+	cleaned = {t: [] for t in SUBSTITUTION_TYPES}
+	for t in SUBSTITUTION_TYPES:
+		rules = data.get(t) or []
+		if not isinstance(rules, list):
+			return None, _("Invalid substitutions data for \"%s\".") % t
+		if t == "catchuptype" and ptype != "M3U":
+			continue  # catch-up type overrides are only applied for M3U providers
+		for rule in rules:
+			if not isinstance(rule, dict):
+				continue
+			search_line = rule.get("search_line") or "#EXTINF"
+			if search_line not in SUBSTITUTION_SEARCH_LINES:
+				return None, _("Search line must be #EXTINF or #URL.")
+			search_regex = str(rule.get("search_regex") or "").strip()
+			lines = []
+			for raw_line in str(rule.get("content") or "").splitlines():
+				line = raw_line.strip().rstrip(",").strip()
+				if not line:
+					continue
+				if line.count(":") != 1:
+					return None, _("Each substitution line must be in the form key:value (offending line: \"%s\").") % line
+				lines.append(line)
+			if not lines:
+				continue  # drop empty rules
+			if ptype == "M3U" and not search_regex:
+				return None, _("Search regex is required for M3U provider substitutions.")
+			cleaned[t].append({
+				"search_line": search_line,
+				"search_regex": search_regex if ptype == "M3U" else "",
+				"content": lines,
+			})
+	return cleaned, None
+
+
+def writeSubstitutionsRaw(scheme, cleaned):
+	path = USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE % scheme
+	if not any(cleaned[t] for t in SUBSTITUTION_TYPES):
+		try:
+			os.remove(path)
+		except OSError:
+			pass
+		return
+	makedirs(PROVIDER_FOLDER % scheme, exist_ok=True)
+	parts = ["<substitutions>"]
+	for t in SUBSTITUTION_TYPES:
+		rules = cleaned[t]
+		if not rules:
+			continue
+		parts.append("\t<%s>" % t)
+		for rule in rules:
+			search_line = escape(rule["search_line"], {'"': "&quot;"})
+			search_regex = escape(rule["search_regex"], {'"': "&quot;"})
+			body = "\n".join("\t\t\t%s," % line for line in rule["content"]).replace("]]>", "]]]]><![CDATA[>")
+			parts.append('\t\t<substitution search-line="%s" search-regex="%s">' % (search_line, search_regex))
+			parts.append("<![CDATA[")
+			parts.append(body)
+			parts.append("]]>")
+			parts.append("\t\t</substitution>")
+		parts.append("\t</%s>" % t)
+	parts.append("</substitutions>")
+	with open(path, "w", encoding="utf-8") as fd:
+		fd.write("\n".join(parts))
 
 
 def providerToDict(providerObj):
@@ -319,6 +421,46 @@ class ProvidersResource(JsonResource):
 		return self.jsonResponse(request, providerToDict(providerObj), 201)
 
 
+class SubstitutionItemResource(JsonResource):
+	isLeaf = True
+
+	def __init__(self, scheme):
+		JsonResource.__init__(self)
+		self.scheme = scheme
+
+	def render_GET(self, request):
+		if self.scheme not in providers:
+			return self.jsonResponse(request, {"error": _("Provider not found.")}, 404)
+		return self.jsonResponse(request, readSubstitutionsRaw(self.scheme))
+
+	def render_PUT(self, request):
+		providerObj = providers.get(self.scheme)
+		if providerObj is None:
+			return self.jsonResponse(request, {"error": _("Provider not found.")}, 404)
+		if providerObj.type not in SUBSTITUTION_CAPABLE_TYPES:
+			return self.jsonResponse(request, {"error": _("Substitutions are only supported for M3U and Xtream Codes providers.")}, 400)
+		data = self.readJsonBody(request)
+		if not isinstance(data, dict):
+			return self.jsonResponse(request, {"error": _("Invalid JSON body.")}, 400)
+		cleaned, error = normalizeSubstitutionsPayload(data, providerObj.type)
+		if error:
+			return self.jsonResponse(request, {"error": error}, 400)
+		writeSubstitutionsRaw(self.scheme, cleaned)
+		providerObj.servicename_substitutions, providerObj.epg_substitions, providerObj.servicetype_substitions, providerObj.catchuptype_substitions = _getReadSubstitions()(self.scheme)
+		return self.jsonResponse(request, cleaned)
+
+
+class SubstitutionsResource(JsonResource):
+	def getChild(self, name, request):
+		scheme = name.decode("utf-8") if isinstance(name, bytes) else name
+		if not scheme:
+			return self
+		return SubstitutionItemResource(scheme)
+
+	def render_GET(self, request):
+		return self.jsonResponse(request, {"error": _("Scheme not specified.")}, 400)
+
+
 class MetaResource(JsonResource):
 	isLeaf = True
 
@@ -345,6 +487,7 @@ class WebManagerRoot(resource.Resource):
 		self.putChild(b"", IndexResource())
 		api = resource.Resource()
 		api.putChild(b"providers", ProvidersResource())
+		api.putChild(b"substitutions", SubstitutionsResource())
 		api.putChild(b"meta", MetaResource())
 		self.putChild(b"api", api)
 
@@ -437,10 +580,11 @@ WEB_UI_HTML = """<!doctype html>
   .modal h2 { margin-top: 0; }
   .field { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
   .field label { font-size: 13px; font-weight: 600; }
-  .field input[type=text], .field input[type=password], .field input[type=number], .field select {
+  .field input[type=text], .field input[type=password], .field input[type=number], .field select, .field textarea {
     padding: 6px 8px; font-size: 14px; border: 1px solid var(--input-border); border-radius: 4px;
     background: var(--input-bg); color: var(--text);
   }
+  .field textarea { font-family: monospace; font-size: 13px; resize: vertical; }
   .field.checkbox { flex-direction: row; align-items: center; }
   .field.checkbox label { font-weight: normal; }
   .row { display: flex; gap: 12px; }
@@ -451,6 +595,9 @@ WEB_UI_HTML = """<!doctype html>
   .empty { padding: 24px; text-align: center; color: var(--text-muted); }
   fieldset { border: 1px solid var(--border); border-radius: 4px; margin: 0 0 12px 0; }
   legend { font-size: 13px; font-weight: 600; padding: 0 6px; }
+  .subst-hint { font-size: 12px; color: var(--text-muted); margin: -4px 0 10px 0; }
+  .rule-block { border: 1px solid var(--border); border-radius: 4px; padding: 10px; margin-bottom: 10px; }
+  .rule-block .modal-actions { margin-top: 8px; }
 </style>
 </head>
 <body>
@@ -619,6 +766,19 @@ WEB_UI_HTML = """<!doctype html>
   </div>
 </div>
 
+<div class="modal-backdrop" id="backdropSubst">
+  <div class="modal" style="max-width:760px">
+    <h2 id="substTitle">Substitutions</h2>
+    <p class="subst-hint">Override a channel's name, EPG id, service type, or catch-up type when the provider's own data is missing or wrong. Each override is one "key:value" line; the key is matched from the playlist by a regex (M3U) or is the provider's numeric stream/EPG id (Xtream Codes). See the README for details.</p>
+    <div class="error" id="substError" style="display:none"></div>
+    <div id="substSections"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="btnSubstCancel">Cancel</button>
+      <button type="button" class="btn-primary" id="btnSubstSave">Save</button>
+    </div>
+  </div>
+</div>
+
 <script>
 var API = "api/providers";
 var editingScheme = null;
@@ -652,11 +812,18 @@ function loadProviders() {
       editBtn.className = "btn-secondary";
       editBtn.textContent = "Edit";
       editBtn.onclick = function() { openEdit(p); };
+      actionsTd.appendChild(editBtn);
+      if (p.type === "M3U" || p.type === "Xtreeme") {
+        var substBtn = document.createElement("button");
+        substBtn.className = "btn-secondary";
+        substBtn.textContent = "Substitutions";
+        substBtn.onclick = function() { openSubstitutions(p); };
+        actionsTd.appendChild(substBtn);
+      }
       var delBtn = document.createElement("button");
       delBtn.className = "btn-danger";
       delBtn.textContent = "Delete";
       delBtn.onclick = function() { deleteProvider(p); };
-      actionsTd.appendChild(editBtn);
       actionsTd.appendChild(delBtn);
       tbody.appendChild(tr);
     });
@@ -779,6 +946,113 @@ qs("#providerForm").onsubmit = function(ev) {
       loadProviders();
     })
     .catch(function(err) { showError(String(err)); });
+};
+
+var SUBST_API = "api/substitutions";
+var SUBST_TYPES = [
+  { key: "servicename", label: "Channel name overrides", hint: "Value replaces the channel's display name." },
+  { key: "epgid", label: "EPG id overrides", hint: "Value replaces the id used to match this channel's EPG data." },
+  { key: "servicetype", label: "Service type overrides", hint: "Value is the Enigma2 playback system for this channel: 1 = DVB, 4097 = GStreamer/HiSilicon, 5002 = Exteplayer3." },
+  { key: "catchuptype", label: "Catch-up type overrides", hint: "Value is the playback system used for catch-up on this channel (M3U providers only), same values as above." }
+];
+var substProvider = null;
+
+function openSubstitutions(p) {
+  substProvider = p;
+  qs("#substTitle").textContent = "Substitutions: " + p.iptv_service_provider;
+  hideSubstError();
+  fetch(SUBST_API + "/" + encodeURIComponent(p.scheme)).then(function(r) { return r.json(); }).then(function(data) {
+    buildSubstSections(data);
+    qs("#backdropSubst").classList.add("open");
+  }).catch(function(err) { alert(String(err)); });
+}
+
+function buildSubstSections(data) {
+  var wrap = qs("#substSections");
+  wrap.innerHTML = "";
+  SUBST_TYPES.forEach(function(meta) {
+    if (meta.key === "catchuptype" && substProvider.type !== "M3U") return;
+    var fs = document.createElement("fieldset");
+    fs.dataset.type = meta.key;
+    var legend = document.createElement("legend");
+    legend.textContent = meta.label;
+    fs.appendChild(legend);
+    var hint = document.createElement("div");
+    hint.className = "subst-hint";
+    hint.textContent = meta.hint;
+    fs.appendChild(hint);
+    var rulesDiv = document.createElement("div");
+    rulesDiv.className = "rules";
+    fs.appendChild(rulesDiv);
+    (data[meta.key] || []).forEach(function(rule) { addRuleBlock(rulesDiv, rule); });
+    var addBtn = document.createElement("button");
+    addBtn.type = "button";
+    addBtn.className = "btn-secondary";
+    addBtn.textContent = "+ Add rule";
+    addBtn.onclick = function() { addRuleBlock(rulesDiv, {}); };
+    fs.appendChild(addBtn);
+    wrap.appendChild(fs);
+  });
+}
+
+function addRuleBlock(rulesDiv, rule) {
+  var showRegex = substProvider.type === "M3U";
+  var block = document.createElement("div");
+  block.className = "rule-block";
+  block.innerHTML =
+    (showRegex ?
+      '<div class="row">' +
+        '<div class="field"><label>Match against</label><select class="r-line">' +
+          '<option value="#EXTINF">#EXTINF line</option>' +
+          '<option value="#URL">Resolved stream URL</option>' +
+        '</select></div>' +
+        '<div class="field"><label>Search regex (one capture group)</label><input type="text" class="r-regex" placeholder="tvg-id=&quot;(.*?)&quot;"></div>' +
+      '</div>' : '') +
+    '<div class="field"><label>Overrides (one per line: key:value)</label><textarea class="r-content" rows="4" placeholder="' +
+      (showRegex ? "805:AAAA 1&#10;806:BBBB 1" : "12345:Custom Channel Name") + '"></textarea></div>' +
+    '<div class="modal-actions"><button type="button" class="btn-danger r-remove">Remove rule</button></div>';
+  if (showRegex) {
+    block.querySelector(".r-line").value = rule.search_line || "#EXTINF";
+    block.querySelector(".r-regex").value = rule.search_regex || "";
+  }
+  block.querySelector(".r-content").value = (rule.content || []).join("\\n");
+  block.querySelector(".r-remove").onclick = function() { block.remove(); };
+  rulesDiv.appendChild(block);
+}
+
+function collectSubstData() {
+  var result = {};
+  qsa("#substSections fieldset").forEach(function(fs) {
+    var rules = [];
+    qsa(".rule-block", fs).forEach(function(block) {
+      var lineSel = block.querySelector(".r-line");
+      var regexInp = block.querySelector(".r-regex");
+      rules.push({
+        search_line: lineSel ? lineSel.value : "#EXTINF",
+        search_regex: regexInp ? regexInp.value : "",
+        content: block.querySelector(".r-content").value
+      });
+    });
+    result[fs.dataset.type] = rules;
+  });
+  return result;
+}
+
+function closeSubstModal() { qs("#backdropSubst").classList.remove("open"); }
+function showSubstError(msg) { var el = qs("#substError"); el.textContent = msg; el.style.display = ""; }
+function hideSubstError() { qs("#substError").style.display = "none"; }
+
+qs("#btnSubstCancel").onclick = closeSubstModal;
+qs("#btnSubstSave").onclick = function() {
+  hideSubstError();
+  var data = collectSubstData();
+  fetch(SUBST_API + "/" + encodeURIComponent(substProvider.scheme), { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+    .then(function(r) { return r.json().then(function(j) { return { ok: r.ok, body: j }; }); })
+    .then(function(res) {
+      if (!res.ok) { showSubstError(res.body.error || "Save failed"); return; }
+      closeSubstModal();
+    })
+    .catch(function(err) { showSubstError(String(err)); });
 };
 
 loadProviders();
