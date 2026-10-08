@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 13:01+0300\n"
+"POT-Creation-Date: 2026-10-08 16:48+0200\n"
 "PO-Revision-Date: 2026-09-07 17:27+0300\n"
 "Last-Translator: Orlandox <huoltovalikko.com>\n"
 "Language-Team: Orlandox\n"
@@ -130,8 +130,8 @@ msgstr "Lisää palveluntarjoaja"
 msgid "All"
 msgstr "Kaikki"
 
-#: ../src/M3UProvider.py:269 ../src/M3UProvider.py:293
 #: ../src/StalkerProvider.py:608 ../src/XtreemProvider.py:44
+#: ../src/M3UProvider.py:269 ../src/M3UProvider.py:293
 msgid "All channels"
 msgstr "Kaikki kanavat"
 
@@ -332,6 +332,11 @@ msgstr "EPG-tuonti: %s tapahtumien tuonti valmis"
 msgid "EPG matching condition"
 msgstr "EPG:n yhteensopivuus"
 
+#: ../src/WebManager.py:91
+#, python-format
+msgid "Each substitution line must be in the form key:value (offending line: \"%s\")."
+msgstr ""
+
 #: ../src/plugin.py:2418
 msgid "Enable IPTV functionality and managment."
 msgstr "Ota IPTV-toiminnallisuus ja -hallinta käyttöön."
@@ -453,13 +458,18 @@ msgstr "Väärän tyyppinen palvelu PiP:lle!"
 msgid "Interval in which the playlist will be automatically updated"
 msgstr "Aika, jonka välein soittolista päivitetään automaattisesti"
 
-#: ../src/WebManager.py:266 ../src/WebManager.py:307
+#: ../src/WebManager.py:368 ../src/WebManager.py:409 ../src/WebManager.py:444
 msgid "Invalid JSON body."
 msgstr "Virheellinen JSON-runko."
 
-#: ../src/WebManager.py:170
+#: ../src/WebManager.py:272
 msgid "Invalid provider type."
 msgstr "Virheellinen palveluntarjoajan tyyppi."
+
+#: ../src/WebManager.py:75
+#, python-format
+msgid "Invalid substitutions data for \"%s\"."
+msgstr ""
 
 #: ../src/plugin.py:2079
 msgid "Is trial"
@@ -501,7 +511,7 @@ msgstr "M3UIPTV-hallinta"
 msgid "MAC address"
 msgstr "MAC-osoite"
 
-#: ../src/WebManager.py:182
+#: ../src/WebManager.py:284
 msgid "MAC address must be filled in for Stalker providers."
 msgstr "MAC-osoite on täytettävä Stalker-palveluntarjoajia varten."
 
@@ -721,11 +731,12 @@ msgstr "Palveluntarjoajan tyyppi"
 msgid "Provider name"
 msgstr "Palveluntarjoajan nimi"
 
-#: ../src/WebManager.py:172
+#: ../src/WebManager.py:274
 msgid "Provider name must be filled in."
 msgstr "Palveluntarjoajan nimi on täytettävä."
 
-#: ../src/WebManager.py:257 ../src/WebManager.py:263 ../src/WebManager.py:279
+#: ../src/WebManager.py:359 ../src/WebManager.py:365 ../src/WebManager.py:381
+#: ../src/WebManager.py:433 ../src/WebManager.py:439
 msgid "Provider not found."
 msgstr "Palveluntarjoajaa ei löytynyt."
 
@@ -792,14 +803,19 @@ msgstr "Aikatauluta päivitys"
 msgid "Scheme"
 msgstr "Skeema"
 
-#: ../src/WebManager.py:176
+#: ../src/WebManager.py:278
 msgid "Scheme must be filled in."
 msgstr "Skeema on täytettävä."
 
-#: ../src/plugin.py:2269 ../src/WebManager.py:178
+#: ../src/WebManager.py:280 ../src/plugin.py:2269
 #, python-format
 msgid "Scheme must be unique. \"%s\" is already in use. Please update this field."
 msgstr "Skeeman on oltava uniikki. \"%s\" on jo käytössä. Päivitä tämä kenttä."
+
+#: ../src/WebManager.py:461
+#, fuzzy
+msgid "Scheme not specified."
+msgstr "Skeema on täytettävä."
 
 #: ../src/plugin.py:1134 ../src/plugin.py:1547
 msgid "Search"
@@ -812,6 +828,14 @@ msgid ""
 msgstr ""
 "Hakuehto TSID:n saatavuuteen IPTV-palveluntarjoajalta.\n"
 "Hyödyllinen, kun haluat aina käyttää samoja palveluviitteitä EPG:lle."
+
+#: ../src/WebManager.py:83
+msgid "Search line must be #EXTINF or #URL."
+msgstr ""
+
+#: ../src/WebManager.py:96
+msgid "Search regex is required for M3U provider substitutions."
+msgstr ""
 
 #: ../src/IPTVCatchupPlayer.py:512
 msgid "Seek back"
@@ -1009,6 +1033,11 @@ msgstr "Lopettaa ajansiirron käytön, jos tallennus on käynnissä. (Suositelta
 msgid "Stream output format"
 msgstr "Striimin ulostuloformaatti"
 
+#: ../src/WebManager.py:441
+#, fuzzy
+msgid "Substitutions are only supported for M3U and Xtream Codes providers."
+msgstr "Xtream Codes -palveluntarjoajien kohdalla käyttäjätunnus ja salasana on täytettävä."
+
 #: ../src/plugin.py:2505
 msgid "Sunday"
 msgstr "Sunnuntai"
@@ -1110,7 +1139,7 @@ msgstr "ISOT kirjaimet"
 msgid "URL"
 msgstr "URL"
 
-#: ../src/WebManager.py:174
+#: ../src/WebManager.py:276
 msgid "URL must be filled in."
 msgstr "URL on täytettävä."
 
@@ -1189,7 +1218,7 @@ msgstr "Käyttäjätunnus, jota käytetään todentamiseen striimaus-palvelimess
 msgid "Username"
 msgstr "Käyttäjätunnus"
 
-#: ../src/WebManager.py:180
+#: ../src/WebManager.py:282
 msgid "Username and password must be filled in for Xtream Codes providers."
 msgstr "Xtream Codes -palveluntarjoajien kohdalla käyttäjätunnus ja salasana on täytettävä."
 
@@ -1294,6 +1323,10 @@ msgstr "Kun tämä on käytössä, ajansiirto alkaa automaattisesti taustalla, m
 msgid "When enabled, timeshift starts automatically in background after the specified time."
 msgstr "Kun tämä on käytössä, ajansiirto alkaa automaattisesti taustalla, määritetyn ajan kuluttua."
 
+#: ../src/plugin.py:2109 ../src/plugin.py:2146 ../src/plugin.py:2148
+msgid "Xtream Codes"
+msgstr "Xtream Codes"
+
 #: ../src/plugin.py:2164
 msgid "Xtream Codes (Token)"
 msgstr "Xtream Codes (Käyttöoikeustunniste)"
@@ -1301,10 +1334,6 @@ msgstr "Xtream Codes (Käyttöoikeustunniste)"
 #: ../src/plugin.py:2164
 msgid "Xtream Codes (Username/Password)"
 msgstr "Xtream Codes (Käyttäjätunnus/Salasana)"
-
-#: ../src/plugin.py:2109 ../src/plugin.py:2146 ../src/plugin.py:2148
-msgid "Xtream Codes"
-msgstr "Xtream Codes"
 
 #: ../src/plugin.py:2146 ../src/plugin.py:2148
 msgid "Xtream Codes 60"
