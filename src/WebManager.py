@@ -285,22 +285,63 @@ def validateProviderData(ptype, data, scheme, is_edit):
 	return None
 
 
-def checkSystemCredentials(user, passwd):
+def _readPasswdField(path, user):
+	try:
+		with open(path, "r", encoding="utf-8", errors="replace") as f:
+			for line in f:
+				parts = line.rstrip("\n").split(":")
+				if len(parts) > 1 and parts[0] == user:
+					return parts[1]
+	except Exception:
+		pass
+	return None
+
+
+def _cryptHash(passwd, salt):
 	try:
 		from crypt import crypt
-		from pwd import getpwnam
-		from spwd import getspnam
-	except ImportError:
-		return False
-	try:
-		cpass = getpwnam(user)[1]
-		if cpass in ("x", "*"):
-			cpass = getspnam(user)[1]
+		return crypt(passwd, salt)
 	except Exception:
+		pass
+	# Python 3.13+ has no crypt module, fall back to libcrypt
+	try:
+		import ctypes
+		import ctypes.util
+		libname = ctypes.util.find_library("crypt") or "libcrypt.so.1"
+		lib = ctypes.CDLL(libname)
+		lib.crypt.restype = ctypes.c_char_p
+		lib.crypt.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
+		res = lib.crypt(passwd.encode("utf-8"), salt.encode("utf-8"))
+		return res.decode("utf-8") if res else None
+	except Exception:
+		return None
+
+
+def checkSystemCredentials(user, passwd):
+	if not user:
 		return False
-	if not cpass:
+	cpass = None
+	try:
+		from pwd import getpwnam
+		cpass = getpwnam(user)[1]
+	except Exception:
+		cpass = _readPasswdField("/etc/passwd", user)
+	if cpass is None:
 		return False
-	return crypt(passwd, cpass) == cpass
+	if cpass in ("x", "*", "!"):
+		try:
+			from spwd import getspnam
+			cpass = getspnam(user)[1]
+		except Exception:
+			cpass = _readPasswdField("/etc/shadow", user)
+	if cpass is None:
+		return False
+	if cpass == "":
+		# account without a password (default on many Enigma2 images)
+		return passwd == ""
+	if cpass[0] in ("!", "*"):
+		return False
+	return _cryptHash(passwd, cpass) == cpass
 
 
 def checkAuth(request):
