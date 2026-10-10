@@ -341,6 +341,12 @@
         <div class="field-note"><strong>Only shown</strong> when "Enable Playlist manager web interface" is set to Yes.</div>
       </div>
 
+      <div class="field" id="webmanager-webif">
+        <div class="field-head"><span class="fname">Also add to OpenWebif (port 80) *</span><span class="badge cond">Conditional</span><span class="badge">Yes/No — default: No</span></div>
+        <p class="field-desc">Additionally makes the Playlist manager reachable through the receiver's OpenWebif on port 80, at <code>http://&lt;box-ip&gt;/m3uiptv/</code>. The standalone port keeps working. OpenWebif's own login applies first, followed by the Playlist manager login if enabled. Restart the GUI after changing this option.</p>
+        <div class="field-note"><strong>Only shown</strong> when "Enable Playlist manager web interface" is set to Yes.</div>
+      </div>
+
       <div class="field" id="webmanager-auth">
         <div class="field-head"><span class="fname">Require authentication *</span><span class="badge cond">Conditional</span><span class="badge">Yes/No — default: Yes</span></div>
         <p class="field-desc">Protects the web interface with HTTP Basic Authentication, reusing the box's own system login — the same username/password used for the receiver's own web interface, Telnet and FTP (typically <code>root</code>). There is no separate web-manager-only account.</p>
