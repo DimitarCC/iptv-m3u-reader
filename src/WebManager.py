@@ -533,11 +533,67 @@ class WebManagerRoot(resource.Resource):
 		self.putChild(b"api", api)
 
 
+class WebifMount(WebManagerRoot):
+	# mounted under /m3uiptv in OpenWebif; the UI uses relative API paths so it needs the trailing slash
+	def render(self, request):
+		if request.path.rstrip(b"/") == request.path:
+			request.redirect(request.path + b"/")
+			return b""
+		return WebManagerRoot.render(self, request)
+
+
 _site_port = None
+_webif_mounted = False
+WEBIF_MOUNT_NAME = b"m3uiptv"
+
+
+def _findWebifRoot():
+	# e2reactor can't list its listeners, so look for OpenWebif's twisted Site among the live objects
+	import gc
+	for obj in gc.get_objects():
+		try:
+			if not isinstance(obj, server.Site):
+				continue
+			res = obj.resource
+		except Exception:
+			continue
+		if res is None or "OpenWebif" not in type(res).__module__ and "OpenWebif" not in type(getattr(res, "resource", None)).__module__:
+			continue
+		# OpenWebif wraps its RootController in an AuthResource that forwards all lookups to .resource
+		while hasattr(res, "resource") and hasattr(res.resource, "putChild"):
+			res = res.resource
+		if hasattr(res, "putChild"):
+			return res
+	return None
+
+
+def attachToWebif(retries=10):
+	global _webif_mounted
+	if _webif_mounted:
+		return
+	try:
+		root = _findWebifRoot()
+	except Exception as err:
+		print("[M3UIPTV][WebManager] OpenWebif lookup failed:", err)
+		root = None
+	if root is None:
+		if retries > 0:
+			reactor.callLater(5, attachToWebif, retries - 1)
+		else:
+			print("[M3UIPTV][WebManager] OpenWebif not found, not mounted")
+		return
+	try:
+		root.putChild(WEBIF_MOUNT_NAME, WebifMount())
+		_webif_mounted = True
+		print("[M3UIPTV][WebManager] mounted in OpenWebif at /m3uiptv/")
+	except Exception as err:
+		print("[M3UIPTV][WebManager] failed to mount in OpenWebif:", err)
 
 
 def startWebManager():
 	global _site_port
+	if config.plugins.m3uiptv.webmanager_webif.value:
+		attachToWebif()
 	if _site_port is not None:
 		return
 	port = config.plugins.m3uiptv.webmanager_port.value

@@ -774,6 +774,14 @@ msgstr "Запрос времени ожидания"
 msgid "Require authentication"
 msgstr "Требуется аутентификация"
 
+#: ../src/plugin.py:2442
+msgid "Also add to OpenWebif (port 80)"
+msgstr "Также добавить в OpenWebif (порт 80)"
+
+#: ../src/plugin.py:2442
+msgid "Additionally makes the Playlist manager reachable through the receiver's OpenWebif on port 80, at the address /m3uiptv/."
+msgstr "Дополнительно делает менеджер плейлистов доступным через OpenWebif ресивера на порту 80 по адресу /m3uiptv/."
+
 #: ../src/plugin.py:2245
 msgid "Requires the scheduler to be set up in the settings screen."
 msgstr "Требуется настроить запланированое автообновление в карточке Настройки IPTV."

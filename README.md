@@ -148,6 +148,11 @@ separate plugin password. Deleting a provider through the web UI fully
 tears it down: bouquets, VoD cache, EPG sources, and picons are all
 removed.
 
+Enable **Also add to OpenWebif (port 80)** to additionally serve the manager
+through the receiver's OpenWebif at `http://<receiver-ip>/m3uiptv/`. Restart
+the GUI after changing it. OpenWebif's own login applies first, followed by
+the Web Manager login if enabled.
+
 For M3U/M3U8 and Xtream Codes providers, a **Substitutions** button opens
 an editor for that provider's per-channel name/EPG id/service
 type/catch-up type overrides (see [Substitutions](#per-provider-extras)

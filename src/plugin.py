@@ -117,6 +117,7 @@ config.plugins.m3uiptv.epg_loc_port = ConfigNumber(default=9010)
 config.plugins.m3uiptv.webmanager_enabled = ConfigYesNo(default=False)
 config.plugins.m3uiptv.webmanager_port = ConfigNumber(default=8090)
 config.plugins.m3uiptv.webmanager_auth = ConfigYesNo(default=True)
+config.plugins.m3uiptv.webmanager_webif = ConfigYesNo(default=False)
 config.plugins.m3uiptv.inmenu = ConfigYesNo(default=True)
 config.plugins.m3uiptv.inextensions = ConfigYesNo(default=False)
 config.plugins.m3uiptv.display_poster = ConfigYesNo(default=True)
@@ -2439,6 +2440,7 @@ class IPTVPluginConfig(Setup):
 		configlist.append((_("Enable Playlist manager web interface") + " *", config.plugins.m3uiptv.webmanager_enabled, _("Enables a web interface for displaying, adding, editing and deleting IPTV playlists/providers, reachable from a browser on the local network.")))
 		if config.plugins.m3uiptv.webmanager_enabled.value:
 			configlist.append((_("Web interface listening port") + " *", config.plugins.m3uiptv.webmanager_port, _("The TCP port on which the Playlist manager web interface will listen.")))
+			configlist.append((_("Also add to OpenWebif (port 80)") + " *", config.plugins.m3uiptv.webmanager_webif, _("Additionally makes the Playlist manager reachable through the receiver's OpenWebif on port 80, at the address /m3uiptv/.")))
 			configlist.append((_("Require authentication") + " *", config.plugins.m3uiptv.webmanager_auth, _("Protect the web interface with HTTP authentication using the box's own login (the same username/password used for the receiver's web interface/Telnet/FTP, usually 'root').")))
 		configlist.append(("---",))
 		if hasattr(config, "recording") and hasattr(config.recording, "setstreamto1"):
