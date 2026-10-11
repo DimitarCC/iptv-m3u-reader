@@ -24,7 +24,8 @@ from .Variables import PROVIDER_FOLDER, USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE, C
 
 PROVIDER_TYPES = ("M3U", "Xtreeme", "Stalker", "TVH", "VOD")
 
-CATCHUP_TYPE_CHOICES = [CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_XTREME_60, CATCHUP_STALKER, CATCHUP_FLUSSONIC, CATCHUP_VOD]
+REFRESH_INTERVAL_CHOICES = [-1, 0, 1, 2, 3, 4, 5, 6, 12, 24]
+CATCHUP_TYPE_CHOICES =[CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_XTREME_60, CATCHUP_STALKER, CATCHUP_FLUSSONIC, CATCHUP_VOD]
 
 # provider types that read substitutions.xml at load time (see plugin.readSubstitions())
 SUBSTITUTION_CAPABLE_TYPES = ("M3U", "Xtreeme")
@@ -209,9 +210,13 @@ def applyProviderData(providerObj, data, is_edit):
 
 		if ptype in ("Xtreeme", "M3U"):
 			providerObj.catchup_type = int(data.get("catchup_type", providerObj.catchup_type))
+			if ptype == "Xtreeme" and providerObj.catchup_type not in (CATCHUP_XTREME, CATCHUP_XTREME_60):  # the on-box editor only offers these for Xtream Codes
+				providerObj.catchup_type = CATCHUP_XTREME
 
 		if ptype == "M3U":
 			providerObj.refresh_interval = int(data.get("refresh_interval", providerObj.refresh_interval))
+			if providerObj.refresh_interval not in REFRESH_INTERVAL_CHOICES:  # must match the on-box editor choices
+				providerObj.refresh_interval = min((x for x in REFRESH_INTERVAL_CHOICES if x > 0), key=lambda x: abs(x - providerObj.refresh_interval))
 			providerObj.static_urls = bool(data.get("static_urls", providerObj.static_urls))
 			providerObj.search_criteria = data.get("search_criteria", providerObj.search_criteria)
 			providerObj.epg_url = data.get("epg_url", providerObj.epg_url)
@@ -959,6 +964,11 @@ function updateVisibility() {
   qs("#fOutputFormatWrap").style.display = (type === "Xtreeme" || type === "Stalker") ? "" : "none";
   qs("#fCatchupTypeWrap").style.display = (type === "Xtreeme" || type === "M3U") ? "" : "none";
   qs("#fsVod").style.display = type === "VOD" ? "" : "none";
+  var catchupSel = qs("#fCatchupTypeWrap select");
+  qsa("option", catchupSel).forEach(function(o) {
+    o.hidden = o.disabled = type === "Xtreeme" && o.value !== "4" && o.value !== "8";
+  });
+  if (type === "Xtreeme" && catchupSel.value !== "4" && catchupSel.value !== "8") catchupSel.value = "4";
   qs("#fSchemeWrap input").disabled = !!editingScheme;
   qs("#fType").disabled = !!editingScheme;
 }
