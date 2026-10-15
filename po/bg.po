@@ -51,7 +51,7 @@ msgstr "%s: Блеклист на букети"
 #: ../src/plugin.py:2021 ../src/plugin.py:2022
 #, python-format
 msgid ""
-"%s: an error occured during bouquet creation\n"
+"%s: an error occurred during bouquet creation\n"
 "\n"
 "Error type: %s"
 msgstr ""
@@ -347,7 +347,7 @@ msgid "Each substitution line must be in the form key:value (offending line: \"%
 msgstr ""
 
 #: ../src/plugin.py:2419
-msgid "Enable IPTV functionality and managment."
+msgid "Enable IPTV functionality and management."
 msgstr "Включване на IPTV функционалност и управление."
 
 #: ../src/plugin.py:2419
@@ -389,7 +389,7 @@ msgid "Fallback location for picons"
 msgstr "Бекъп папка за picon-ите"
 
 #: ../src/plugin.py:2434
-msgid "Fallback loction for picons used when current active picon location can not be detected."
+msgid "Fallback location for picons used when current active picon location can not be detected."
 msgstr "Папка която ще се използва в случай, че не може да бъде локализирана активната папка за picon-и"
 
 #: ../src/plugin.py:1987 ../src/plugin.py:2026
@@ -724,7 +724,7 @@ msgid "Protect the web interface with HTTP authentication using the box's own lo
 msgstr ""
 
 #: ../src/plugin.py:2241
-msgid "Provider TSID retrival condition"
+msgid "Provider TSID retrieval condition"
 msgstr "Критерий за търсене на TSID  от провайдъра"
 
 #: ../src/plugin.py:2181
@@ -872,7 +872,7 @@ msgid "Select if timeshift should continue when set to record."
 msgstr "Избор дали таймшифт ще продължи, когато е избрано да записва."
 
 #: ../src/plugin.py:2385
-msgid "Select the bouquets you want to blacklist and press ok. Blacklisted bouquets will be removed and not regenerated on rebuild. To reactive a bouquet, deselect it and regenerate bouquets."
+msgid "Select the bouquets you want to blacklist and press ok. Blacklisted bouquets will be removed and not regenerated on rebuild. To reactivate a bouquet, deselect it and regenerate bouquets."
 msgstr "Изберете букетите, които искате да изключите и натиснете ОК. Маркираните букети ще бъдат премахнати и няма да бъдат генерирани отново. За да ги активирате отново, отмаркирайте ги и регенерирайте букетите."
 
 #: ../src/plugin.py:2477
@@ -972,7 +972,7 @@ msgid "Specify how xmltv entries will be matched to channels."
 msgstr "Задава как xmltv елементите ще се съпоставят с каналите."
 
 #: ../src/plugin.py:2221
-msgid "Specify is there media library available on separate url."
+msgid "Specify whether a media library is available on a separate URL."
 msgstr "Задаване дали е налична външна медийна библиотека."
 
 #: ../src/plugin.py:2224

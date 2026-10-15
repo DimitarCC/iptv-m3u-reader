@@ -2017,9 +2017,9 @@ class M3UIPTVManagerConfig(Screen):
 			except Exception as ex:
 				import traceback
 				err = traceback.format_exc()
-				print("[M3UIPTV] Error has occured during bouquet creation:", err)
-				self.updateDescription(_("%s: an error occured during bouquet creation\n\nError type: %s") % (providerObj.iptv_service_provider, type(ex).__name__))
-				self.session.open(MessageBox, _("%s: an error occured during bouquet creation\n\nError type: %s") % (providerObj.iptv_service_provider, type(ex).__name__), MessageBox.TYPE_ERROR)
+				print("[M3UIPTV] Error has occurred during bouquet creation:", err)
+				self.updateDescription(_("%s: an error occurred during bouquet creation\n\nError type: %s") % (providerObj.iptv_service_provider, type(ex).__name__))
+				self.session.open(MessageBox, _("%s: an error occurred during bouquet creation\n\nError type: %s") % (providerObj.iptv_service_provider, type(ex).__name__), MessageBox.TYPE_ERROR)
 
 	def onProgressChanged(self, result=None):
 		try:
@@ -2218,7 +2218,7 @@ class M3UIPTVProviderEdit(Setup):
 			if self.type.value in ("Xtreeme", "M3U"):
 				configlist.append((_("Catchup Type"), self.catchup_type, _("The catchup API used.")))
 			if self.type.value == "M3U":
-				configlist.append((_("Enable Media Library"), self.has_media_library, _("Specify is there media library available on separate url.")))
+				configlist.append((_("Enable Media Library"), self.has_media_library, _("Specify whether a media library is available on a separate URL.")))
 				if self.has_media_library.value:
 					configlist.append((_("Media Library type"), self.media_library_type, _("Specify media library type.")))
 					configlist.append((_("Media Library URL"), self.media_library_url, _("Specify media library URL.")))
@@ -2238,7 +2238,7 @@ class M3UIPTVProviderEdit(Setup):
 			if self.use_provider_tsid.value:
 				configlist.append((_("Use channel numbers from provider"), self.user_provider_ch_num, _("Use channel numbers and ordering provided by the IPTV provider.\nIt will work only for 'ALL' bouquets.\nIf is configured global numbering the channel numbers may be offset depending on how many bouquets are before that one.")))
 				if self.type.value in ("M3U", "TVH"):
-					configlist.append((_("Provider TSID retrival condition"), self.provider_tsid_search_criteria, _("Search condition to get TSID provided from IPTV provider.\nUseful when want to always have same service references for EPG.")))
+					configlist.append((_("Provider TSID retrieval condition"), self.provider_tsid_search_criteria, _("Search condition to get TSID provided from IPTV provider.\nUseful when want to always have same service references for EPG.")))
 			if not self.user_provider_ch_num.value or not self.use_provider_tsid.value:
 				configlist.append((_("Channel ordering criteria"), self.ch_order_strategy, _("Specify how channels will be ordered in bouquets.")))
 			configlist.append((_("Custom User-Agent"), self.custom_user_agent, _("Sets custom User-Agent for use with services that requires specific one.")))
@@ -2382,7 +2382,7 @@ class BouquetBlacklist(Screen):
 		self["key_red"] = StaticText(_("Cancel"))
 		self["key_green"] = StaticText(_("Save"))
 		self["key_yellow"] = StaticText(_("Toggle all"))
-		self["description"] = StaticText(_("Select the bouquets you want to blacklist and press ok. Blacklisted bouquets will be removed and not regenerated on rebuild. To reactive a bouquet, deselect it and regenerate bouquets."))
+		self["description"] = StaticText(_("Select the bouquets you want to blacklist and press ok. Blacklisted bouquets will be removed and not regenerated on rebuild. To reactivate a bouquet, deselect it and regenerate bouquets."))
 		self["actions"] = ActionMap(["M3UIPTVConfigActions"],
 		{
 			"ok": self["config"].toggleSelection,
@@ -2416,7 +2416,7 @@ class IPTVPluginConfig(Setup):
 
 	def createSetup(self):
 		configlist = []
-		configlist.append((_("Enable IPTV manager") + " *", config.plugins.m3uiptv.enabled, _("Enable IPTV functionality and managment.")))
+		configlist.append((_("Enable IPTV manager") + " *", config.plugins.m3uiptv.enabled, _("Enable IPTV functionality and management.")))
 		configlist.append((_("Check for Network"), config.plugins.m3uiptv.check_internet, _("Do a check is network available before try to retrieve the iptv playlist. If no network try backup services.")))
 		configlist.append((_("Request timeout"), config.plugins.m3uiptv.req_timeout, _("Timeout in seconds for the requests of getting playlist.")))
 		configlist.append((_("Picon max threads"), config.plugins.m3uiptv.picon_threads, _("Maximum number of threads during picon downloads. If the box returns errors or fails to download some picons, set a lower number.")))
@@ -2431,7 +2431,7 @@ class IPTVPluginConfig(Setup):
 			config.usage.http_buffersize = ConfigSelection(default=2048, choices=[(1024, _("1 MB")), (2048, _("2 MB")), (4096, _("4 MB")), (8192, _("8 MB")), (16384, _("16 MB")), (20480, _("20 MB"))])
 			configlist.append((_("Size of buffer for http streaming"), config.usage.http_buffersize, _("Configure the buffer size for http streaming. A larger buffer can help with stuttering when the network connection is not stable, but also increases the delay between the stream and live TV.")))
 		if possible_picon_locations and len(possible_picon_locations) > 1:
-			configlist.append((_("Fallback location for picons"), config.plugins.m3uiptv.fallback_picon_loc, _("Fallback loction for picons used when current active picon location can not be detected.")))
+			configlist.append((_("Fallback location for picons"), config.plugins.m3uiptv.fallback_picon_loc, _("Fallback location for picons used when current active picon location can not be detected.")))
 		configlist.append(("---",))
 		configlist.append((_("Enable catchup/archive entries in EPG screens for period"), config.epg.histminutes, _("Enables possibility to return back in epg screens so to use old entries for invoke catchup/archive/timeshift.")))
 		configlist.append((_("Catchup/Archive EOF timeout"), config.plugins.m3uiptv.catchup_eof_timeout, _("Timeout in seconds for the catchup/archive playback eof timeout to be delayed.")))

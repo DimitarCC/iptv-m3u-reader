@@ -53,7 +53,7 @@ msgstr "%s: Бан-лист "
 #: ../src/plugin.py:2021 ../src/plugin.py:2022
 #, python-format
 msgid ""
-"%s: an error occured during bouquet creation\n"
+"%s: an error occurred during bouquet creation\n"
 "\n"
 "Error type: %s"
 msgstr ""
@@ -349,7 +349,7 @@ msgid "Each substitution line must be in the form key:value (offending line: \"%
 msgstr ""
 
 #: ../src/plugin.py:2419
-msgid "Enable IPTV functionality and managment."
+msgid "Enable IPTV functionality and management."
 msgstr "Включает функционал и управление IPTV."
 
 #: ../src/plugin.py:2419
@@ -390,7 +390,7 @@ msgid "Fallback location for picons"
 msgstr "Местоположение пиконов"
 
 #: ../src/plugin.py:2434
-msgid "Fallback loction for picons used when current active picon location can not be detected."
+msgid "Fallback location for picons used when current active picon location can not be detected."
 msgstr "Резервное местоположение пиконов, используемое в случаии, если текущее активное местоположение не определено."
 
 #: ../src/plugin.py:1987 ../src/plugin.py:2026
@@ -735,7 +735,7 @@ msgid "Protect the web interface with HTTP authentication using the box's own lo
 msgstr "Защитить веб-интерфейс с помощью HTTP-аутентификации, используя учетные данные самого устройства (то же имя пользователя и пароль что и для доступа к Веб-интерфейсу, Telnet или FTP; как правило это root)."
 
 #: ../src/plugin.py:2241
-msgid "Provider TSID retrival condition"
+msgid "Provider TSID retrieval condition"
 msgstr "Условие поиска TSID поставщика"
 
 #: ../src/plugin.py:2181
@@ -883,7 +883,7 @@ msgid "Select if timeshift should continue when set to record."
 msgstr "Выберите, следует ли продолжать функцию таймшифта при настройке на запись."
 
 #: ../src/plugin.py:2385
-msgid "Select the bouquets you want to blacklist and press ok. Blacklisted bouquets will be removed and not regenerated on rebuild. To reactive a bouquet, deselect it and regenerate bouquets."
+msgid "Select the bouquets you want to blacklist and press ok. Blacklisted bouquets will be removed and not regenerated on rebuild. To reactivate a bouquet, deselect it and regenerate bouquets."
 msgstr "Выберите букеты, которые вы хотите добавить в черный список, и нажмите ОК. Букеты из черного списка будут удалены и не будут восстановлены при генерации. Чтобы реактивировать букет, снимите с него выбор и восстановите букеты."
 
 #: ../src/plugin.py:2477
@@ -983,7 +983,7 @@ msgid "Specify how xmltv entries will be matched to channels."
 msgstr "Укажите, как записи xmltv будут сопоставляться с каналами"
 
 #: ../src/plugin.py:2221
-msgid "Specify is there media library available on separate url."
+msgid "Specify whether a media library is available on a separate URL."
 msgstr "Укажите, доступна ли медиатека по отдельному URL-адресу."
 
 #: ../src/plugin.py:2224

@@ -269,7 +269,7 @@ class XtreemProvider(IPTVProcessor):
 					from .plugin import writeProviders  # deferred import
 					writeProviders()  # save to config so it doesn't get lost on reboot
 				except Exception as err:
-					print("[XtreemProvider] getProviderInfo, an error occured", err)
+					print("[XtreemProvider] getProviderInfo, an error occurred", err)
 
 	def loadInfoFromFile(self):
 		info_file = USER_IPTV_PROVIDER_INFO_FILE % self.scheme

@@ -45,7 +45,7 @@ msgstr "%s : Liste noire de bouquets"
 #: ../src/plugin.py:2021 ../src/plugin.py:2022
 #, python-format
 msgid ""
-"%s: an error occured during bouquet creation\n"
+"%s: an error occurred during bouquet creation\n"
 "\n"
 "Error type: %s"
 msgstr ""
@@ -341,7 +341,7 @@ msgid "Each substitution line must be in the form key:value (offending line: \"%
 msgstr "Chaque ligne de remplacement doit respecter le format clé:valeur (ligne concernée : « %s »)."
 
 #: ../src/plugin.py:2419
-msgid "Enable IPTV functionality and managment."
+msgid "Enable IPTV functionality and management."
 msgstr "Permettre la fonctionnalité et la gestion de l'IPTV."
 
 #: ../src/plugin.py:2419
@@ -382,7 +382,7 @@ msgid "Fallback location for picons"
 msgstr "Emplacement de secours pour les picons"
 
 #: ../src/plugin.py:2434
-msgid "Fallback loction for picons used when current active picon location can not be detected."
+msgid "Fallback location for picons used when current active picon location can not be detected."
 msgstr "Emplacement de secours pour les picons utilisé lorsque l'emplacement actuel des picons ne peut pas être détecté."
 
 #: ../src/plugin.py:1987 ../src/plugin.py:2026
@@ -723,7 +723,7 @@ msgid "Protect the web interface with HTTP authentication using the box's own lo
 msgstr "Protégez l'interface Web à l'aide de l'authentification HTTP en utilisant les identifiants de connexion propres au boîtier (le même nom d'utilisateur et mot de passe que ceux utilisés pour l'interface Web, Telnet et FTP du récepteur, généralement « root »)."
 
 #: ../src/plugin.py:2241
-msgid "Provider TSID retrival condition"
+msgid "Provider TSID retrieval condition"
 msgstr "Condition de récupération du TSID du fournisseur"
 
 #: ../src/plugin.py:2181
@@ -868,7 +868,7 @@ msgid "Select if timeshift should continue when set to record."
 msgstr "Sélectionnez si la pause du direct doit se poursuivre lorsqu'il est réglé sur enregistrement."
 
 #: ../src/plugin.py:2385
-msgid "Select the bouquets you want to blacklist and press ok. Blacklisted bouquets will be removed and not regenerated on rebuild. To reactive a bouquet, deselect it and regenerate bouquets."
+msgid "Select the bouquets you want to blacklist and press ok. Blacklisted bouquets will be removed and not regenerated on rebuild. To reactivate a bouquet, deselect it and regenerate bouquets."
 msgstr "Sélectionnez les bouquets que vous souhaitez mettre sur liste noire et appuyez sur ok. Les bouquets sur liste noire seront supprimés et ne seront pas régénérés lors de la reconstruction. Pour réactiver un bouquet, désélectionnez-le et régénérez les bouquets."
 
 #: ../src/plugin.py:2477
@@ -968,7 +968,7 @@ msgid "Specify how xmltv entries will be matched to channels."
 msgstr "Précisez comment les entrées xmltv seront associées aux chaînes."
 
 #: ../src/plugin.py:2221
-msgid "Specify is there media library available on separate url."
+msgid "Specify whether a media library is available on a separate URL."
 msgstr "Précisez si une médiathèque est disponible à une adresse URL distincte."
 
 #: ../src/plugin.py:2224

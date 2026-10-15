@@ -57,7 +57,7 @@ msgstr "%s: Blacklist-Bouquets"
 #: ../src/plugin.py:2021 ../src/plugin.py:2022
 #, python-format
 msgid ""
-"%s: an error occured during bouquet creation\n"
+"%s: an error occurred during bouquet creation\n"
 "\n"
 "Error type: %s"
 msgstr ""
@@ -359,7 +359,7 @@ msgid "Each substitution line must be in the form key:value (offending line: \"%
 msgstr ""
 
 #: ../src/plugin.py:2419
-msgid "Enable IPTV functionality and managment."
+msgid "Enable IPTV functionality and management."
 msgstr "IPTV-Funktionen aktivieren und verwalten."
 
 #: ../src/plugin.py:2419
@@ -401,7 +401,7 @@ msgid "Fallback location for picons"
 msgstr "Fallback-Standort für Picons"
 
 #: ../src/plugin.py:2434
-msgid "Fallback loction for picons used when current active picon location can not be detected."
+msgid "Fallback location for picons used when current active picon location can not be detected."
 msgstr "Fallback-Standort für Picons, der verwendet wird, wenn der aktuell aktive Picon-Standort nicht ermittelt werden kann."
 
 #: ../src/plugin.py:1987 ../src/plugin.py:2026
@@ -739,7 +739,7 @@ msgid "Protect the web interface with HTTP authentication using the box's own lo
 msgstr ""
 
 #: ../src/plugin.py:2241
-msgid "Provider TSID retrival condition"
+msgid "Provider TSID retrieval condition"
 msgstr "Bedingung für die Abrufung der Anbieter-TSID"
 
 #: ../src/plugin.py:2181
@@ -887,7 +887,7 @@ msgid "Select if timeshift should continue when set to record."
 msgstr "Legen Sie fest, ob Timeshift fortgesetzt werden soll, wenn die Aufnahme aktiviert ist."
 
 #: ../src/plugin.py:2385
-msgid "Select the bouquets you want to blacklist and press ok. Blacklisted bouquets will be removed and not regenerated on rebuild. To reactive a bouquet, deselect it and regenerate bouquets."
+msgid "Select the bouquets you want to blacklist and press ok. Blacklisted bouquets will be removed and not regenerated on rebuild. To reactivate a bouquet, deselect it and regenerate bouquets."
 msgstr "Wählen Sie die Bouquets aus, die Sie auf die schwarze Liste setzen möchten, und drücken Sie OK. Bouquets, die auf der schwarzen Liste stehen, werden entfernt und bei der Wiederherstellung nicht neu generiert. Um ein Bouquet zu reaktivieren, deaktivieren Sie es und generieren Sie die Bouquets neu."
 
 #: ../src/plugin.py:2477
@@ -989,7 +989,7 @@ msgid "Specify how xmltv entries will be matched to channels."
 msgstr "Geben Sie an, wie xmltv-Einträge den Kanälen zugeordnet werden."
 
 #: ../src/plugin.py:2221
-msgid "Specify is there media library available on separate url."
+msgid "Specify whether a media library is available on a separate URL."
 msgstr "Geben Sie an, ob eine Medienbibliothek unter einer separaten URL verfügbar ist."
 
 #: ../src/plugin.py:2224
