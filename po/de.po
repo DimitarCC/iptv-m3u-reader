@@ -63,9 +63,7 @@ msgid ""
 msgstr ""
 "%s: Ein Fehler ist während der Bouquet-Erstellung aufgetreten\n"
 "\n"
-"Fehlertyp: %s%s: Bei der Bouquet-Erstellung ist ein Fehler aufgetreten\n"
-"\n"
-"Fehler-Typ: %s"
+"Fehlertyp: %s"
 
 #: ../src/plugin.py:2037
 #, python-format
@@ -1179,8 +1177,7 @@ msgid ""
 "Possible reason can be no network available."
 msgstr ""
 "Bouquet \"%s\" konnte nicht erstellt werden!\n"
-"Mögliche Ursache: Kein Netzwerk verfügbar.Bouquet kann nicht erstellt werden \"%s\"!\n"
-"Möglicher Grund kann sein, dass kein Netzwerk verfügbar ist."
+"Mögliche Ursache: Kein Netzwerk verfügbar."
 
 #: ../src/StalkerProvider.py:360
 msgid "Unknown"
