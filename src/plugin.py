@@ -2406,6 +2406,39 @@ class BouquetBlacklist(Screen):
 				self.providerObj.removeBouquet(self.providerObj.cleanFilename(f"userbouquet.m3uiptv.{self.providerObj.iptv_service_provider}.{bouquet}.tv"))
 		self.close()
 
+	def createSummary(self):
+		return BouquetBlacklistSummary
+
+
+class BouquetBlacklistSummary(ScreenSummary):
+	def __init__(self, session, parent):
+		ScreenSummary.__init__(self, session, parent=parent)
+		# Use SetupSummary screen because every display skin should have it.
+		# "entry" and "value" for distros using these non-standard labels.
+		self["SetupTitle"] = StaticText(parent.getTitle())
+		self["entry"] = self["SetupEntry"] = StaticText()
+		self["value"] = self["SetupValue"] = StaticText()
+		self.skinName = "SetupSummary"
+		if self.addWatcher not in self.onShow:
+			self.onShow.append(self.addWatcher)
+		if self.removeWatcher not in self.onHide:
+			self.onHide.append(self.removeWatcher)
+
+	def addWatcher(self):
+		if self.selectionChanged not in self.parent["config"].onSelectionChanged:
+			self.parent["config"].onSelectionChanged.append(self.selectionChanged)
+		self.selectionChanged()
+
+	def removeWatcher(self):
+		if self.selectionChanged in self.parent["config"].onSelectionChanged:
+			self.parent["config"].onSelectionChanged.remove(self.selectionChanged)
+
+	def selectionChanged(self):
+		current = self.parent["config"].getCurrent()
+		if current:
+			self["SetupEntry"].text = current[0][0]
+			self["SetupValue"].text = _("Yes") if current[0][3] else _("No")
+
 
 class IPTVPluginConfig(Setup):
 	def __init__(self, session):
