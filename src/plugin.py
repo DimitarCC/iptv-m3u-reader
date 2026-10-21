@@ -240,7 +240,10 @@ def readProviders():
 				providerObj.iptv_service_provider = provider.find("servicename").text
 				providerObj.url = provider.find("url").text
 				providerObj.refresh_interval = int(provider.find("refresh_interval").text)
-				providerObj.search_criteria = provider.find("filter").text
+				filterNode = provider.find("filter")
+				providerObj.search_criteria = filterNode.text if filterNode is not None and filterNode.text else ""
+				if providerObj.search_criteria == "None":
+					providerObj.search_criteria = ""
 				providerObj.scheme = provider.find("scheme").text
 				providerObj.play_system = provider.find("system").text
 				providerObj.play_system_catchup = provider.find("system_catchup").text if provider.find("system_catchup") is not None and provider.find("system_catchup").text is not None else providerObj.play_system
@@ -421,7 +424,7 @@ def writeProviders():
 			xml.append(f"\t\t<refresh_interval>{val.refresh_interval}</refresh_interval>\n")
 			xml.append(f"\t\t<novod>{'on' if val.ignore_vod else 'off'}</novod>\n")
 			xml.append(f"\t\t<staticurl>{'on' if val.static_urls else 'off'}</staticurl>\n")
-			xml.append(f"\t\t<filter>{val.search_criteria}</filter>\n")
+			xml.append(f"\t\t<filter>{val.search_criteria or ''}</filter>\n")
 			xml.append(f"\t\t<scheme><![CDATA[{val.scheme}]]></scheme>\n")
 			xml.append(f"\t\t<system>{val.play_system}</system>\n")
 			xml.append(f"\t\t<system_catchup>{val.play_system_catchup}</system_catchup>\n")
@@ -2116,7 +2119,7 @@ class M3UIPTVProviderEdit(Setup):
 		self.novod = ConfigYesNo(default=providerObj.ignore_vod)
 		self.create_epg = ConfigYesNo(default=providerObj.create_epg)
 		self.staticurl = ConfigYesNo(default=providerObj.static_urls)
-		self.search_criteria = ConfigText(default=providerObj.search_criteria, fixed_size=False)
+		self.search_criteria = ConfigText(default=providerObj.search_criteria or "", fixed_size=False)
 		self.scheme = ConfigText(default=providerObj.scheme, fixed_size=False)
 		self.username = ConfigText(default=providerObj.username, fixed_size=False)
 		self.password = ConfigPassword(default=providerObj.password, fixed_size=False)

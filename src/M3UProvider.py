@@ -128,8 +128,11 @@ class M3UProvider(IPTVProcessor):
 						tsid = int(match_tsid.group(1))
 					else:
 						tsid = 0
-				condition = re.escape(self.search_criteria).replace("\\{SID\\}", "(.*?)")
-				match = re.search(condition, line)
+				if self.search_criteria:
+					condition = re.escape(self.search_criteria).replace("\\{SID\\}", "(.*?)")
+					match = re.search(condition, line)
+				else:
+					match = None
 				# possible issue is if there are "," in the service name
 				ch_name = line.split(",")[-1].strip()
 				sid = match.group(1).replace(":", "%3a") if match else ch_name.replace(":", "%3a").replace("&", "and")
@@ -372,7 +375,7 @@ class M3UProvider(IPTVProcessor):
 			if not self.isLocalPlaylist():
 				self.checkForNetwrok()
 			channelForSearch = channelForSearch.replace("%3a", ":")
-			channelSID = self.search_criteria.replace("{SID}", channelForSearch)
+			channelSID = (self.search_criteria or "").replace("{SID}", channelForSearch)
 			prov = self
 			cache_time = 0
 			if prov.refresh_interval > -1:

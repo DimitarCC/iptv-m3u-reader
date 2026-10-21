@@ -76,8 +76,11 @@ class TVHeadendProvider(IPTVProcessor):
 						tsid = int(match_tsid.group(1))
 					else:
 						tsid = 0
-				condition = re.escape(self.search_criteria).replace("\\{SID\\}", "(.*?)") + r".*,(.*)"
-				match = re.search(condition, line)
+				if self.search_criteria:
+					condition = re.escape(self.search_criteria).replace("\\{SID\\}", "(.*?)") + r".*,(.*)"
+					match = re.search(condition, line)
+				else:
+					match = None
 				isFallbackMatch = False
 				if not match:
 					# Probably the format of the playlist is not m3u+ or for some reason it doesnt contain
