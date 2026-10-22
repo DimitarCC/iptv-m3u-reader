@@ -63,6 +63,22 @@ class StalkerProvider(IPTVProcessor):
 		self.custom_device_id2 = ""
 		self.custom_signature = ""
 
+	# Cyrillic letters that look identical to the Latin hex digits A-F
+	_MAC_LOOKALIKES = {ord(k): v for k, v in {
+		"А": "A", "В": "B", "С": "C", "Е": "E",
+		"а": "a", "с": "c", "е": "e",
+	}.items()}
+
+	@property
+	def mac(self):
+		return self._mac
+
+	@mac.setter
+	def mac(self, value):
+		# MAC goes into HTTP cookies (latin-1), so strip lookalike/non-ASCII chars
+		value = (value or "").translate(self._MAC_LOOKALIKES)
+		self._mac = value.encode("ascii", "ignore").decode("ascii").strip()
+
 	# -------------------------------------------------------------------------
 	# HELPER FUNCTIONS
 	# -------------------------------------------------------------------------
@@ -515,8 +531,18 @@ class StalkerProvider(IPTVProcessor):
 			# so an HTTP error status or a body with no "js" key must also be treated as an auth failure
 			if response.status_code != 200:
 				return None
-			body = response.json()
+			try:
+				body = response.json()
+			except ValueError:
+				print("[M3UIPTV][Stalker] Non-JSON response (status %s): %r" % (response.status_code, response.text[:200]))
+				print("[M3UIPTV][Stalker] Response headers: " + str(dict(response.headers)))
+				req_headers = dict(response.request.headers)
+				if "Authorization" in req_headers:
+					req_headers["Authorization"] = req_headers["Authorization"][:14] + "..."  # don't log the full token
+				print("[M3UIPTV][Stalker] Request headers: " + str(req_headers))
+				return None
 			if not isinstance(body, dict) or "js" not in body:
+				print("[M3UIPTV][Stalker] Response without 'js' key: " + str(body)[:200])
 				return None
 			return body["js"]
 
@@ -524,11 +550,13 @@ class StalkerProvider(IPTVProcessor):
 			response = do_request()
 			js = extract_js(response)
 			if js is None and not skip_reauth:
+				print("[M3UIPTV][Stalker] Request failed (status %s), re-authenticating: %s" % (response.status_code, url))
 				self.get_token(skip_profile)
 				response = do_request()
 				js = extract_js(response)
 			return js if js is not None else {}
-		except:
+		except Exception as ex:
+			print("[M3UIPTV][Stalker] Request error for %s: %s" % (url, ex))
 			return {}
 
 	def channels_callback(self, groups):

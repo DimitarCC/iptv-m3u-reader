@@ -70,7 +70,11 @@ class XtreemProvider(IPTVProcessor):
 			except Exception:
 				return (1, str(key).lower())
 
-		groups = dict(sorted(groups.items(), key=lambda kv: _group_sort_key(kv[0])))
+		# same ordering criteria as for channels; "ALL_CHANNELS" stays first and "EMPTY" (added below) last
+		if self.ch_order_strategy == 1:
+			groups = dict(sorted(groups.items(), key=lambda kv: _group_sort_key(kv[0])))
+		elif self.ch_order_strategy == 2:
+			groups = dict(sorted(groups.items(), key=lambda kv: (kv[0] != "ALL_CHANNELS", kv[1][0].lower())))
 
 		groups["EMPTY"] = (_("UNCATEGORIZED"), [])  # put "EMPTY" in last place
 
@@ -149,7 +153,16 @@ class XtreemProvider(IPTVProcessor):
 				services = []
 				service_list = groupItem[1]
 				if self.ch_order_strategy > 0:
-					service_list.sort(key=lambda x: (x[4] if self.ch_order_strategy == 1 else x[2]))
+					if self.ch_order_strategy == 1:
+						# "num" may be missing/None or a numeric string; channels without a number go last (stable sort keeps provider order)
+						def _num_key(x):
+							try:
+								return (0, int(x[4]))
+							except (TypeError, ValueError):
+								return (1, 0)
+						service_list.sort(key=_num_key)
+					else:
+						service_list.sort(key=lambda x: x[2].lower())
 				for x in service_list:
 					services.append(x[0])
 				provider_name_for_titles = self.iptv_service_provider
