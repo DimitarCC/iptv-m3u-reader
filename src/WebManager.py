@@ -218,7 +218,7 @@ def applyProviderData(providerObj, data, is_edit):
 			if providerObj.refresh_interval not in REFRESH_INTERVAL_CHOICES:  # must match the on-box editor choices
 				providerObj.refresh_interval = min((x for x in REFRESH_INTERVAL_CHOICES if x > 0), key=lambda x: abs(x - providerObj.refresh_interval))
 			providerObj.static_urls = bool(data.get("static_urls", providerObj.static_urls))
-			providerObj.search_criteria = data.get("search_criteria", providerObj.search_criteria)
+			providerObj.search_criteria = data.get("search_criteria") or ""
 			providerObj.epg_url = data.get("epg_url", providerObj.epg_url)
 			providerObj.is_custom_xmltv = bool(data.get("is_custom_xmltv", providerObj.is_custom_xmltv))
 			providerObj.custom_xmltv_url = data.get("custom_xmltv_url", providerObj.custom_xmltv_url)
