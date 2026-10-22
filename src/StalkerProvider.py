@@ -563,14 +563,31 @@ class StalkerProvider(IPTVProcessor):
 		tsid = 1000
 		blacklist = self.readBlacklist()
 		srefs_for_main = []
-		for group in groups.values():
+
+		def _to_int(value):
+			try:
+				return (0, int(value))
+			except (TypeError, ValueError):
+				return (1, 0)  # missing/non-numeric values go last (stable sort keeps provider order)
+
+		# same ordering criteria as for channels; "ALL_CHANNELS" stays first and "EMPTY" last
+		fixed_first = [groups["ALL_CHANNELS"]] if "ALL_CHANNELS" in groups else []
+		fixed_last = [groups["EMPTY"]] if "EMPTY" in groups else []
+		middle = [(gid, grp) for gid, grp in groups.items() if gid not in ("ALL_CHANNELS", "EMPTY")]
+		if self.ch_order_strategy == 1:
+			middle.sort(key=lambda kv: _to_int(kv[0]))
+		elif self.ch_order_strategy == 2:
+			middle.sort(key=lambda kv: kv[1][0].lower())
+		ordered_groups = fixed_first + [grp for _gid, grp in middle] + fixed_last
+
+		for group in ordered_groups:
 			services = []
 			service_list = group[1]
 			if self.ch_order_strategy > 0:
 				if self.ch_order_strategy == 1:
-					service_list.sort(key=lambda x: int(x.number or "0"))
+					service_list.sort(key=lambda x: _to_int(x.number))
 				else:
-					service_list.sort(key=lambda x: x.name)
+					service_list.sort(key=lambda x: x.name.lower())
 			for service in service_list:
 				surl = service.cmd
 				if self.use_provider_tsid:
