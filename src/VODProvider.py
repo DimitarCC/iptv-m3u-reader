@@ -103,6 +103,7 @@ class VODProvider(IPTVProcessor):
 				genres.append({'category_name': name, 'category_type': 'VOD', 'category_id': gid})
 			if len(services) > 0:
 				genres.append({'category_name': _("UNCATEGORIZED"), 'category_type': 'VOD', 'category_id': "UNCATEGORIZED"})
+			self.writeExampleBlacklist([f"{x['category_name']}|gid|{x['category_id']}" for x in genres], 1)
 			dest_file = USER_IPTV_MOVIE_CATEGORIES_FILE % self.scheme
 			return self.getDataToFile(genres, dest_file)
 		except Exception as ex:
@@ -111,8 +112,10 @@ class VODProvider(IPTVProcessor):
 
 	def generateMediaLibrary(self, groups=None, services=None):
 		vod_categories = self.getVODCategories(groups, services)
+		blacklist = self.readBlacklist(1)
 		for category in vod_categories:
-			self.movie_categories[category["category_id"]] = category["category_name"]
+			if category["category_id"] not in blacklist:
+				self.movie_categories[category["category_id"]] = category["category_name"]
 		movies = []
 		series = []
 		for groupName, srefs in groups.items():
@@ -170,7 +173,10 @@ class VODProvider(IPTVProcessor):
 	def makeVodListFromJson(self, json_string):
 		if json_string:
 			vod_json_obj = json.loads(json_string)
+			blacklist = self.readBlacklist(1)
 			for movie in vod_json_obj:
+				if str(movie.get("category_id")) in blacklist:
+					continue
 				name = movie["name"]
 				id = movie["stream_id"]
 				url = movie["play_url"]

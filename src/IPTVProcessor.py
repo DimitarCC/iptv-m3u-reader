@@ -303,14 +303,18 @@ class IPTVProcessor():
 	def makeMovieCategoriesDictFromJson(self, json_string):
 		self.movie_categories = {}
 		if json_string:
+			blacklist = self.readBlacklist(1)
 			for category in json.loads(json_string):
-				self.movie_categories[str(category["category_id"])] = category["category_name"]
+				if str(category["category_id"]) not in blacklist:
+					self.movie_categories[str(category["category_id"])] = category["category_name"]
 
 	def makeSeriesCategoriesDictFromJson(self, json_string):
 		self.series_categories = {}
 		if json_string:
+			blacklist = self.readBlacklist(2)
 			for category in json.loads(json_string):
-				self.series_categories[str(category["category_id"])] = category["category_name"]
+				if str(category["category_id"]) not in blacklist:
+					self.series_categories[str(category["category_id"])] = category["category_name"]
 
 	def loadVoDMoviesFromFile(self):
 		pass
@@ -348,10 +352,13 @@ class IPTVProcessor():
 		self.vod_series = {}
 		if json_string:
 			series = json.loads(json_string)
+			blacklist = self.readBlacklist(2)
 			for x in series:
 				category_id = x.get("category_id")
 				if isinstance(category_id, int):
 					category_id = str(category_id)
+				if category_id in blacklist:
+					continue
 				category = "UNCATEGORIZED" if not category_id or category_id not in self.series_categories else self.series_categories[category_id]
 				name = x.get("title") or x.get("name")
 				series_id = x.get("series_id") and str(x["series_id"])
@@ -422,7 +429,10 @@ class IPTVProcessor():
 	def makeVodListFromJson(self, json_string):
 		if json_string:
 			vod_json_obj = json.loads(json_string)
+			blacklist = self.readBlacklist(1)
 			for movie in vod_json_obj:
+				if str(movie.get("category_id")) in blacklist:
+					continue
 				name = movie["name"]
 				ext = movie["container_extension"]
 				id = movie["stream_id"]

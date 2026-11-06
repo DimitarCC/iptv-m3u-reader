@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m py_compile IPTVProcessor.py VODProvider.py XtreemProvider.py StalkerProvider.py plugin.py)",
+      "Bash(python -m py_compile plugin.py)"
+    ]
+  }
+}

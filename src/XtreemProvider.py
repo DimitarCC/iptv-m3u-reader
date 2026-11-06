@@ -294,10 +294,19 @@ class XtreemProvider(IPTVProcessor):
 		url = "%s/player_api.php?username=%s&password=%s&action=get_vod_categories" % (self.url, self.username, self.password)
 		dest_file = USER_IPTV_MOVIE_CATEGORIES_FILE % self.scheme
 		json_string = self.getUrlToFile(url, dest_file)
+		self.writeVoDExampleBlacklist(json_string, 1)
 		self.makeMovieCategoriesDictFromJson(json_string)
 
 	def getSeriesCategories(self):
 		url = "%s/player_api.php?username=%s&password=%s&action=get_series_categories" % (self.url, self.username, self.password)
 		dest_file = USER_IPTV_SERIES_CATEGORIES_FILE % self.scheme
 		json_string = self.getUrlToFile(url, dest_file)
+		self.writeVoDExampleBlacklist(json_string, 2)
 		self.makeSeriesCategoriesDictFromJson(json_string)
+
+	def writeVoDExampleBlacklist(self, json_string, blacklist_type):
+		try:
+			if json_string:
+				self.writeExampleBlacklist([f"{x['category_name']}|gid|{x['category_id']}" for x in json.loads(json_string)], blacklist_type)
+		except Exception as err:
+			print("[XtreemProvider] writeVoDExampleBlacklist, an error occurred", err)

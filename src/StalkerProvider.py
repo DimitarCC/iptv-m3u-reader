@@ -1029,12 +1029,12 @@ class StalkerProvider(IPTVProcessor):
 		if not self.ignore_vod:
 			vod_categories = self.getVODCategories()
 			if vod_categories:
-				for category in vod_categories:
-					self.movie_categories[category["category_id"]] = category["category_name"]
+				movie_blacklist = self.readBlacklist(1)
+				self.movie_categories = {c["category_id"]: c["category_name"] for c in vod_categories if c["category_id"] not in movie_blacklist}
 			series_categories = self.getSeriesCategories()
 			if series_categories:
-				for category in series_categories:
-					self.series_categories[category["category_id"]] = category["category_name"]
+				series_blacklist = self.readBlacklist(2)
+				self.series_categories = {c["category_id"]: c["category_name"] for c in series_categories if c["category_id"] not in series_blacklist}
 			self.last_vod_update_time = time.time()
 			from .plugin import writeProviders  # deferred import
 			writeProviders()  # save to config so it doesn't get lost on reboot
@@ -1076,6 +1076,7 @@ class StalkerProvider(IPTVProcessor):
 			# which can immediately stop it. Resolve off the GUI thread and invoke the callback only once
 			# the real URL is known, so the GUI/input loop keeps running normally throughout.
 			threads.deferToThread(self.resolveLiveChannel, origRef, orig_name, cmd, catchup_days, nref).addCallback(callback)
+			return nnref, nref, True
 		return nnref, nref, False
 
 	def resolveLiveChannel(self, origRef, orig_name, cmd, catchup_days, nref):

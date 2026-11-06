@@ -24,7 +24,7 @@ from .WebManager import startWebManager
 from .VodPager import VodPager, EagerPager
 from .IPTVCatchupPlayer import injectCatchupInEPG, ServiceRestorer
 from .epgimport_helper import overwriteEPGImportEPGSourceInit
-from .Variables import SERVICEAPP_AVAILABLE, PROVIDER_FOLDER, USER_IPTV_PROVIDERS_FILE, USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_XTREME_60, CATCHUP_STALKER, CATCHUP_FLUSSONIC, CATCHUP_VOD, REQUEST_USER_AGENT
+from .Variables import SERVICEAPP_AVAILABLE, PROVIDER_FOLDER, USER_IPTV_PROVIDERS_FILE, USER_IPTV_PROVIDER_SUBSTITUTIONS_FILE, CATCHUP_DEFAULT, CATCHUP_APPEND, CATCHUP_SHIFT, CATCHUP_XTREME, CATCHUP_XTREME_60, CATCHUP_STALKER, CATCHUP_FLUSSONIC, CATCHUP_VOD, REQUEST_USER_AGENT, USER_IPTV_MOVIE_CATEGORIES_FILE
 from Screens.Screen import Screen, ScreenSummary
 from Screens.InfoBar import InfoBar, MoviePlayer
 from Screens.InfoBarGenerics import streamrelay
@@ -2250,9 +2250,10 @@ class M3UIPTVProviderEdit(Setup):
 
 		if self.blacklist:
 			configlist.append((_("Bouquets blacklist"), self.bouquetsblacklist, _("Press OK to select which bouquets/categories will be blacklisted.")))
-		if self.type.value == "Stalker" and not self.novod.value:
+		if self.edit and self.type.value in ("Stalker", "Xtreeme", "VOD") and not self.novod.value:
 			configlist.append((_("Blacklist VoD movie categories"), self.movieblacklist, _("Press OK to select which categories will be blacklisted.")))
-			configlist.append((_("Blacklist VoD series categories"), self.seriesblacklist, _("Press OK to select which categories will be blacklisted.")))
+			if self.type.value != "VOD":
+				configlist.append((_("Blacklist VoD series categories"), self.seriesblacklist, _("Press OK to select which categories will be blacklisted.")))
 
 		self["config"].list = configlist
 
@@ -2393,11 +2394,23 @@ class BouquetBlacklist(Screen):
 			"cancel": self.close,
 			"yellow": self["config"].toggleAllSelection,
 		}, -2)
-		if blacklist_type == 1:
-			self.providerObj.getVODCategories()
-		elif blacklist_type == 2:
-			self.providerObj.getSeriesCategories()
+		if self.providerObj.type == "Stalker":
+			if blacklist_type == 1:
+				self.providerObj.getVODCategories()
+			elif blacklist_type == 2:
+				self.providerObj.getSeriesCategories()
+		elif self.providerObj.type == "Xtreeme":
+			if blacklist_type == 1:
+				self.providerObj.getMovieCategories()
+			elif blacklist_type == 2:
+				self.providerObj.getSeriesCategories()
 		examples = self.providerObj.readExampleBlacklist(blacklist_type)
+		if not examples and self.providerObj.type == "VOD" and blacklist_type == 1:
+			# no example file yet, so build the list from the stored categories
+			try:
+				examples = [f"{x['category_name']}|gid|{x['category_id']}" for x in json.loads(self.providerObj.loadFromFile(USER_IPTV_MOVIE_CATEGORIES_FILE % self.providerObj.scheme) or "[]")]
+			except Exception as err:
+				print("[M3UIPTV] BouquetBlacklist, error reading VoD categories", err)
 		blacklist = self.providerObj.readBlacklist(blacklist_type)
 		self["config"].setList([SelectionEntryComponent(x.split("|gid|")[0], x.split("|gid|")[-1], "", x.split("|gid|")[-1] in blacklist) for x in examples if not x.startswith("#")])
 
@@ -2407,6 +2420,11 @@ class BouquetBlacklist(Screen):
 		if self.blacklist_type == 0:
 			for bouquet in blacklist:
 				self.providerObj.removeBouquet(self.providerObj.cleanFilename(f"userbouquet.m3uiptv.{self.providerObj.iptv_service_provider}.{bouquet}.tv"))
+		else:
+			try:  # apply the new VoD blacklist to the already loaded media library
+				self.providerObj.loadMedialLibraryItems()
+			except Exception as err:
+				print("[M3UIPTV] BouquetBlacklist, error reloading VoD", err)
 		self.close()
 
 	def createSummary(self):

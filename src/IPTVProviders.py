@@ -23,6 +23,12 @@ def processService(nref, callback, event=None):
 			return nref, nref, False, cplay_system
 		prov = providers[iptv_service]
 		ref, old_ref, is_dynamic = prov.processService(nref, iptvinfodata, callback, event)
+		# isPlayBackup is written by the provider's worker thread, so reading it right after an async
+		# processService() yields the previous resolution's outcome (e.g. left True by a catchup lookup or a
+		# failed fetch) and would make the caller play the unresolved shortcut ref. When a callback is used
+		# the provider's own return value is authoritative.
+		if callback and is_dynamic:
+			return ref, old_ref, True, cplay_system or int(prov.play_system_catchup)
 		return ref, old_ref, not prov.isPlayBackup, cplay_system or int(prov.play_system_catchup)
 	else:
 		return nref, nref, False, nref.type
